@@ -30,34 +30,33 @@ func (h *GlobalChatHandler) CreateGlobalRoom(c *gin.Context) {
 	}
 
 	if err := h.GlobalChatRepo.CreateRoom(room); err != nil {
-		c.JSON(http.StatusInternalServerError, response.Error("创建聊天室失败"))
+		response.Error(c, "CREATE_ROOM_FAILED", "创建聊天室失败", http.StatusInternalServerError)
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Success(room))
+	response.Success(c, room)
 }
 
 // GetGlobalRoom 获取全局聊天室信息
 func (h *GlobalChatHandler) GetGlobalRoom(c *gin.Context) {
 	room, err := h.GlobalChatRepo.GetRoom("global")
 	if err != nil {
-		c.JSON(http.StatusNotFound, response.Error("聊天室不存在"))
+		response.Error(c, "ROOM_NOT_FOUND", "聊天室不存在", http.StatusNotFound)
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Success(room))
+	response.Success(c, room)
 }
 
 // GetGlobalMessages 获取全局聊天消息
 func (h *GlobalChatHandler) GetGlobalMessages(c *gin.Context) {
-	// 获取最近100条消息
 	messages, err := h.GlobalChatRepo.GetMessages("global", 100)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.Error("获取消息失败"))
+		response.Error(c, "GET_MESSAGES_FAILED", "获取消息失败", http.StatusInternalServerError)
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Success(messages))
+	response.Success(c, messages)
 }
 
 // SendGlobalMessage 发送全局消息
@@ -70,12 +69,12 @@ func (h *GlobalChatHandler) SendGlobalMessage(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, response.Error("消息内容不能为空且最多500字"))
+		response.Error(c, "INVALID_CONTENT", "消息内容不能为空且最多500字", http.StatusBadRequest)
 		return
 	}
 
 	message := &domain.GlobalMessage{
-		ID:        generateID(),
+		ID:        time.Now().Format("20060102150405") + randomString(6),
 		RoomID:    "global",
 		UserID:    userID,
 		Username:  username,
@@ -84,11 +83,11 @@ func (h *GlobalChatHandler) SendGlobalMessage(c *gin.Context) {
 	}
 
 	if err := h.GlobalChatRepo.CreateMessage(message); err != nil {
-		c.JSON(http.StatusInternalServerError, response.Error("发送消息失败"))
+		response.Error(c, "SEND_FAILED", "发送消息失败", http.StatusInternalServerError)
 		return
 	}
 
-	c.JSON(http.StatusCreated, response.Success(message))
+	response.Success(c, message)
 }
 
 // JoinGlobalRoom 加入全局聊天室
@@ -96,21 +95,16 @@ func (h *GlobalChatHandler) JoinGlobalRoom(c *gin.Context) {
 	userID := c.GetString("user_id")
 
 	if err := h.GlobalChatRepo.JoinRoom(userID, "global"); err != nil {
-		c.JSON(http.StatusInternalServerError, response.Error("加入聊天室失败"))
+		response.Error(c, "JOIN_FAILED", "加入聊天室失败", http.StatusInternalServerError)
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Success(gin.H{
+	response.Success(c, gin.H{
 		"message": "成功加入全局聊天室",
-	}))
-}
-
-func generateID() string {
-	return time.Now().Format("20060102150405") + randomString(6)
+	})
 }
 
 func randomString(length int) string {
-	// 简单实现，生产环境应使用更好的方法
 	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 	b := make([]byte, length)
 	for i := range b {
