@@ -17,11 +17,34 @@
             background: linear-gradient(135deg, #f8f4ff 0%, #f0f4ff 50%, #f4f0ff 100%);
             min-height: 100vh;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 背景插图 */
+        .background-illustration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            max-width: 900px;
+            height: auto;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .background-illustration svg {
+            width: 100%;
+            height: auto;
         }
 
         .container {
             max-width: 480px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         /* Auth Screen */
@@ -490,6 +513,86 @@
     </style>
 </head>
 <body>
+    <!-- 背景插图：两个男人喝咖啡聊天 -->
+    <div class="background-illustration">
+        <svg viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 地面 -->
+            <ellipse cx="400" cy="520" rx="300" ry="30" fill="#e8e4f0"/>
+            
+            <!-- 桌子 -->
+            <rect x="200" y="380" width="400" height="20" rx="10" fill="#d4c4e8"/>
+            <rect x="380" y="400" width="40" height="120" fill="#c8b8dc"/>
+            <rect x="320" y="510" width="160" height="15" rx="5" fill="#c8b8dc"/>
+            
+            <!-- 咖啡杯1 -->
+            <ellipse cx="280" cy="375" rx="25" ry="8" fill="#fff"/>
+            <path d="M255 375 L255 355 C255 345, 305 345, 305 355 L305 375" fill="#fff" stroke="#e8e6ed" stroke-width="2"/>
+            <path d="M305 365 C315 365, 315 375, 305 375" stroke="#fff" stroke-width="3" fill="none"/>
+            <path d="M268 360 Q280 355, 292 360" stroke="#a890d4" stroke-width="2" fill="none" opacity="0.5"/>
+            
+            <!-- 咖啡杯2 -->
+            <ellipse cx="520" cy="375" rx="25" ry="8" fill="#fff"/>
+            <path d="M495 375 L495 355 C495 345, 545 345, 545 355 L545 375" fill="#fff" stroke="#e8e6ed" stroke-width="2"/>
+            <path d="M545 365 C555 365, 555 375, 545 375" stroke="#fff" stroke-width="3" fill="none"/>
+            <path d="M508 360 Q520 355, 532 360" stroke="#a890d4" stroke-width="2" fill="none" opacity="0.5"/>
+            
+            <!-- 左边的人物 -->
+            <g id="person-left">
+                <!-- 身体 -->
+                <path d="M230 380 L230 300 Q230 280, 250 280 L280 280 Q300 280, 300 300 L300 380" fill="#a890d4"/>
+                <!-- 头 -->
+                <circle cx="265" cy="250" r="35" fill="#f0d4c4"/>
+                <!-- 头发 -->
+                <path d="M230 250 Q230 215, 265 215 Q300 215, 300 250 L300 260 Q300 235, 265 235 Q230 235, 230 260 Z" fill="#5d4a6a"/>
+                <!-- 面部细节 -->
+                <circle cx="250" cy="250" r="3" fill="#4a4a5a"/>
+                <circle cx="280" cy="250" r="3" fill="#4a4a5a"/>
+                <path d="M255 265 Q265 270, 275 265" stroke="#c88" stroke-width="2" fill="none"/>
+                <!-- 左臂 -->
+                <path d="M230 320 Q200 340, 210 360" stroke="#a890d4" stroke-width="25" fill="none" stroke-linecap="round"/>
+                <!-- 右臂（放在桌上） -->
+                <path d="M300 320 Q330 350, 290 375" stroke="#a890d4" stroke-width="25" fill="none" stroke-linecap="round"/>
+                <!-- 手 -->
+                <circle cx="290" cy="378" r="12" fill="#f0d4c4"/>
+            </g>
+            
+            <!-- 右边的人物 -->
+            <g id="person-right">
+                <!-- 身体 -->
+                <path d="M500 380 L500 300 Q500 280, 520 280 L550 280 Q570 280, 570 300 L570 380" fill="#8b7db5"/>
+                <!-- 头 -->
+                <circle cx="535" cy="250" r="35" fill="#f0d4c4"/>
+                <!-- 头发 -->
+                <path d="M500 250 Q500 210, 535 210 Q570 210, 570 250 L570 265 Q570 235, 535 235 Q500 235, 500 265 Z" fill="#3d3d5a"/>
+                <!-- 面部细节 -->
+                <circle cx="520" cy="250" r="3" fill="#4a4a5a"/>
+                <circle cx="550" cy="250" r="3" fill="#4a4a5a"/>
+                <path d="M525 265 Q535 270, 545 265" stroke="#c88" stroke-width="2" fill="none"/>
+                <!-- 左臂（放在桌上） -->
+                <path d="M500 320 Q470 350, 510 375" stroke="#8b7db5" stroke-width="25" fill="none" stroke-linecap="round"/>
+                <!-- 右臂 -->
+                <path d="M570 320 Q600 340, 590 360" stroke="#8b7db5" stroke-width="25" fill="none" stroke-linecap="round"/>
+                <!-- 手 -->
+                <circle cx="510" cy="378" r="12" fill="#f0d4c4"/>
+            </g>
+            
+            <!-- 对话气泡1 -->
+            <g id="bubble-left">
+                <path d="M200 180 Q200 150, 240 150 L280 150 Q320 150, 320 180 L320 210 Q320 240, 280 240 L240 240 L220 260 L225 240 Q200 240, 200 210 Z" fill="#fff" stroke="#e8e6ed" stroke-width="2"/>
+                <text x="260" y="200" font-family="Inter, sans-serif" font-size="16" fill="#5d5d6a" text-anchor="middle">Hi! 👋</text>
+            </g>
+            
+            <!-- 对话气泡2 -->
+            <g id="bubble-right">
+                <path d="M480 180 Q480 150, 520 150 L560 150 Q600 150, 600 180 L600 210 Q600 240, 560 240 L520 240 L500 260 L505 240 Q480 240, 480 210 Z" fill="#fff" stroke="#e8e6ed" stroke-width="2"/>
+                <text x="540" y="200" font-family="Inter, sans-serif" font-size="16" fill="#5d5d6a" text-anchor="middle">很高兴见到你</text>
+            </g>
+            
+            <!-- 装饰元素：爱心 -->
+            <path d="M400 120 L400 105 L385 90 Q400 75, 415 90 L400 105 L400 120" fill="#d4c4e8" opacity="0.4"/>
+        </svg>
+    </div>
+
     <div class="container">
         <!-- Auth Screen -->
         <div id="authScreen" class="auth-screen">
