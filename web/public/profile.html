@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>个人资料 - Alike</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f7f7f7;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+            background: #f7f7f7;
+            min-height: 100vh;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: white;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        /* 个人信息头部 */
+        .profile-header {
+            background: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 8px solid #f7f7f7;
+        }
+
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .avatar svg {
+            width: 42px;
+            height: 42px;
+            fill: white;
+        }
+        
+        .avatar::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+            animation: logoShine 3s infinite;
+        }
+        
+        @keyframes logoShine {
+            0% {
+                transform: translateX(-100%) translateY(-100%) rotate(45deg);
+            }
+            100% {
+                transform: translateX(100%) translateY(100%) rotate(45deg);
+            }
+        }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .profile-id {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 16px;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 2px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* 列表分组 */
+        .list-group {
+            background: white;
+            margin-bottom: 8px;
+        }
+
+        .list-group-title {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #999;
+            font-weight: 500;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            text-decoration: none;
+            color: #1a1a1a;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item:hover {
+            background: #fafafa;
+        }
+
+        .list-item:active {
+            background: #f0f0f0;
+        }
+
+        .list-item-icon {
+            font-size: 20px;
+            margin-right: 12px;
+            width: 24px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .list-item-icon .material-icons {
+            font-size: 20px;
+        }
+
+        .list-item-content {
+            flex: 1;
+            font-size: 15px;
+        }
+
+        .list-item-value {
+            font-size: 15px;
+            color: #999;
+            margin-right: 8px;
+        }
+
+        .list-item-arrow {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        /* 编辑表单 */
+        .edit-form {
+            background: white;
+            padding: 0 16px;
+        }
+
+        .form-group {
+            padding: 14px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .form-group:last-child {
+            border-bottom: none;
+        }
+
+        .form-label {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 10px 0;
+            border: none;
+            font-size: 15px;
+            color: #1a1a1a;
+            background: transparent;
+            font-family: inherit;
+            resize: none;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+        }
+
+        .form-textarea {
+            min-height: 80px;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 16px;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e5e5;
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-around;
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            text-decoration: none;
+            color: #999;
+            transition: all 0.3s ease;
+            padding: 4px 0;
+        }
+
+        .nav-item.active {
+            color: #8b5cf6;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* 响应式 */
+        @media (max-width: 640px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 导航栏 -->
+        <div class="navbar">
+            <div class="navbar-title">个人资料</div>
+        </div>
+
+        <!-- 个人信息头部 -->
+        <div class="profile-header">
+            <div class="avatar-container">
+                <div class="avatar" id="userAvatar">?</div>
+            </div>
+            <div class="profile-name" id="userName">加载中...</div>
+            <div class="profile-id" id="userId">ID: ---</div>
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-number">156</div>
+                    <div class="stat-label">获赞</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">42</div>
+                    <div class="stat-label">匹配</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">89</div>
+                    <div class="stat-label">访客</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 我的信息 -->
+        <div class="list-group-title">我的信息</div>
+        <div class="list-group">
+            <div class="list-item" onclick="showEditForm()">
+                <span class="list-item-icon"><span class="material-icons">person</span></span>
+                <span class="list-item-content">昵称</span>
+                <span class="list-item-value" id="nicknameValue">未设置</span>
+                <span class="list-item-arrow">›</span>
+            </div>
+            <div class="list-item">
+                <span class="list-item-icon"><span class="material-icons">cake</span></span>
+                <span class="list-item-content">生日</span>
+                <span class="list-item-value">未设置</span>
+                <span class="list-item-arrow">›</span>
+            </div>
+            <div class="list-item">
+                <span class="list-item-icon"><span class="material-icons">location_on</span></span>
+                <span class="list-item-content">所在地</span>
+                <span class="list-item-value">未设置</span>
+                <span class="list-item-arrow">›</span>
+            </div>
+            <div class="list-item" onclick="showEditForm()">
+                <span class="list-item-icon"><span class="material-icons">description</span></span>
+                <span class="list-item-content">个人简介</span>
+                <span class="list-item-value" id="bioValue">未设置</span>
+                <span class="list-item-arrow">›</span>
+            </div>
+        </div>
+
+        <!-- 我的服务 -->
+        <div class="list-group-title">我的服务</div>
+        <div class="list-group">
+            <a href="global-chat.html" class="list-item">
+                <span class="list-item-icon"><span class="material-icons">forum</span></span>
+                <span class="list-item-content">聊天室</span>
+                <span class="list-item-value">1000+在线</span>
+                <span class="list-item-arrow">›</span>
+            </a>
+            <a href="index.html" class="list-item">
+                <span class="list-item-icon"><span class="material-icons">explore</span></span>
+                <span class="list-item-content">附近的人</span>
+                <span class="list-item-value">发现用户</span>
+                <span class="list-item-arrow">›</span>
+            </a>
+            <div class="list-item">
+                <span class="list-item-icon"><span class="material-icons">star</span></span>
+                <span class="list-item-content">VIP会员</span>
+                <span class="list-item-value">特权功能</span>
+                <span class="list-item-arrow">›</span>
+            </div>
+        </div>
+
+        <!-- 设置 -->
+        <div class="list-group-title">设置</div>
+        <div class="list-group">
+            <div class="list-item">
+                <span class="list-item-icon"><span class="material-icons">notifications</span></span>
+                <span class="list-item-content">消息通知</span>
+                <span class="list-item-arrow">›</span>
+            </div>
+            <div class="list-item">
+                <span class="list-item-icon"><span class="material-icons">lock</span></span>
+                <span class="list-item-content">隐私设置</span>
+                <span class="list-item-arrow">›</span>
+            </div>
+            <div class="list-item">
+                <span class="list-item-icon"><span class="material-icons">help</span></span>
+                <span class="list-item-content">帮助与反馈</span>
+                <span class="list-item-arrow">›</span>
+            </div>
+            <div class="list-item" onclick="logout()">
+                <span class="list-item-icon"><span class="material-icons">exit_to_app</span></span>
+                <span class="list-item-content" style="color: #ef4444;">退出登录</span>
+            </div>
+        </div>
+
+        <!-- 编辑表单（隐藏） -->
+        <div id="editForm" style="display: none;">
+            <div class="list-group">
+                <div class="edit-form">
+                    <div class="form-group">
+                        <input type="text" class="form-input" id="editNickname" placeholder="设置昵称">
+                    </div>
+                    <div class="form-group">
+                        <textarea class="form-textarea" id="editBio" placeholder="介绍一下自己..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <button class="save-btn" onclick="saveProfile()">保存</button>
+            <button class="save-btn" onclick="hideEditForm()" style="background: #f5f5f5; color: #666;">取消</button>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <a href="global-chat.html" class="nav-item">
+            <div class="nav-icon"><span class="material-icons">chat_bubble</span></div>
+            <div class="nav-label">聊天</div>
+        </a>
+        <a href="index.html" class="nav-item">
+            <div class="nav-icon"><span class="material-icons">place</span></div>
+            <div class="nav-label">附近</div>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <div class="nav-icon"><span class="material-icons">person</span></div>
+            <div class="nav-label">我的</div>
+        </a>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/v1';
+        let accessToken = localStorage.getItem('alike_access_token');
+
+        // 检查登录
+        if (!accessToken) {
+            window.location.href = 'login.html';
+        }
+
+        // 加载用户信息
+        async function loadProfile() {
+            try {
+                const res = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    const user = data.data;
+                    document.getElementById('userName').textContent = user.nickname || '未设置';
+                    document.getElementById('userId').textContent = `ID: ${user.id.slice(-6)}`;
+                    document.getElementById('userAvatar').textContent = (user.nickname || '?')[0].toUpperCase();
+                    document.getElementById('nicknameValue').textContent = user.nickname || '未设置';
+                    document.getElementById('bioValue').textContent = user.bio || '未设置';
+                    document.getElementById('editNickname').value = user.nickname || '';
+                    document.getElementById('editBio').value = user.bio || '';
+                }
+            } catch (error) {
+                console.error('加载失败:', error);
+            }
+        }
+
+        function showEditForm() {
+            document.getElementById('editForm').style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function hideEditForm() {
+            document.getElementById('editForm').style.display = 'none';
+        }
+
+        async function saveProfile() {
+            const nickname = document.getElementById('editNickname').value;
+            const bio = document.getElementById('editBio').value;
+
+            try {
+                const res = await fetch(`${API_BASE}/users/me`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nickname, bio })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert('保存成功！');
+                    hideEditForm();
+                    loadProfile();
+                } else {
+                    alert('保存失败：' + (data.error?.message || '未知错误'));
+                }
+            } catch (error) {
+                alert('网络错误');
+            }
+        }
+
+        function logout() {
+            if (confirm('确定要退出吗？')) {
+                localStorage.removeItem('alike_access_token');
+                localStorage.removeItem('alike_user_id');
+                localStorage.removeItem('alike_username');
+                window.location.href = 'login.html';
+            }
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>
