@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alike - 启动页</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #ddd6fe 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .launcher-container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .logo {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 40px;
+            position: relative;
+        }
+
+        .logo::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6, #7c3aed);
+            border-radius: 50%;
+            opacity: 0.2;
+            filter: blur(40px);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.2; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+
+        .logo svg {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        h1 {
+            font-size: 56px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+            letter-spacing: -2px;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 60px;
+            font-weight: 500;
+        }
+
+        .actions {
+            display: grid;
+            gap: 20px;
+        }
+
+        .action-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: block;
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #a78bfa, #8b5cf6, #7c3aed);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .action-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(139, 92, 246, 0.2);
+        }
+
+        .action-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .action-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .action-desc {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
+        .badge-new {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .stats {
+            margin-top: 60px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="launcher-container">
+        <div class="logo">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#a78bfa"/>
+                        <stop offset="50%" style="stop-color:#8b5cf6"/>
+                        <stop offset="100%" style="stop-color:#7c3aed"/>
+                    </linearGradient>
+                </defs>
+                <circle cx="50" cy="50" r="42" stroke="url(#logoGrad)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                <path d="M50 72 C50 72, 28 58, 28 42 C28 32, 38 28, 50 38" stroke="url(#logoGrad)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                <path d="M50 72 C50 72, 72 58, 72 42 C72 32, 62 28, 50 38" stroke="url(#logoGrad)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                <circle cx="50" cy="45" r="4" fill="url(#logoGrad)"/>
+            </svg>
+        </div>
+
+        <h1>Alike</h1>
+        <p class="subtitle">相似灵魂的相遇</p>
+
+        <div class="actions">
+            <a href="global-chat.html" class="action-card">
+                <div class="action-icon">💬</div>
+                <div class="action-title">全局聊天室</div>
+                <div class="action-desc">加入1000+人的大家庭，实时聊天，认识新朋友</div>
+                <div class="badge badge-new">NEW</div>
+            </a>
+
+            <a href="index.html" class="action-card">
+                <div class="action-icon">🌍</div>
+                <div class="action-title">附近用户</div>
+                <div class="action-desc">查看附近的人，发送喜欢，开始匹配</div>
+                <div class="badge">传统模式</div>
+            </a>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number">1,234</div>
+                <div class="stat-label">在线用户</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5.6K</div>
+                <div class="stat-label">总注册</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">12K</div>
+                <div class="stat-label">今日消息</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 检查登录状态
+        const accessToken = localStorage.getItem('accessToken');
+        if (accessToken) {
+            // 已登录，直接进入全局聊天室
+            // 可以添加偏好设置
+        }
+
+        // 模拟实时数据更新
+        setInterval(() => {
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers.forEach(stat => {
+                const currentValue = parseFloat(stat.textContent.replace(/,/g, ''));
+                const variation = Math.floor(Math.random() * 10) - 5;
+                stat.textContent = (currentValue + variation).toLocaleString();
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

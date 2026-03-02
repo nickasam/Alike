@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alike - 完整设计展示</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .showcase-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .showcase-header h1 {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+            letter-spacing: -2px;
+        }
+
+        .showcase-header p {
+            color: #888;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .pages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-showcase {
+            background: #1a1a1a;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .page-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            padding: 12px;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6, #7c3aed);
+            border-radius: 12px;
+        }
+
+        .phone-mockup {
+            background: #000;
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            border: 3px solid #333;
+        }
+
+        .phone-screen {
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #ddd6fe 100%);
+            border-radius: 32px;
+            overflow: hidden;
+            min-height: 700px;
+            position: relative;
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 28px;
+            background: #000;
+            border-radius: 0 0 16px 16px;
+            z-index: 100;
+        }
+
+        .screen-content {
+            padding: 40px 16px 16px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        /* CSS from main app */
+        :root {
+            --primary-50: #f5f3ff;
+            --primary-100: #ede9fe;
+            --primary-200: #ddd6fe;
+            --primary-300: #c4b5fd;
+            --primary-400: #a78bfa;
+            --primary-500: #8b5cf6;
+            --primary-600: #7c3aed;
+            --primary-700: #6d28d9;
+            
+            --gradient-start: #a78bfa;
+            --gradient-mid: #8b5cf6;
+            --gradient-end: #7c3aed;
+            
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+        }
+
+        .auth-screen-demo {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px 32px;
+            margin: 20px 0;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-screen-demo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon-wrapper {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .logo-icon-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            border-radius: 50%;
+            opacity: 0.2;
+            filter: blur(20px);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.2; }
+            50% { transform: scale(1.05); opacity: 0.3; }
+        }
+
+        .logo h1 {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .logo p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .form-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--primary-100);
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            background: #fafafa;
+            color: var(--text-primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+        }
+
+        .header-demo {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 8px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            background: #f5f5f5;
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--primary-700);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .user-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .user-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .user-info h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .user-info p {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .user-bio {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary-50), var(--primary-100));
+            border-radius: 10px;
+            border-left: 3px solid var(--primary-400);
+            margin-bottom: 10px;
+        }
+
+        .tags {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            background: var(--primary-50);
+            color: var(--primary-700);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .like-btn {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
+            color: white;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 16px;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .empty-state-sub {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .stats-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .stats-number {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .stats-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="showcase-header">
+        <h1>✨ Alike 完整设计展示</h1>
+        <p>高级UI设计 · 专业级别 · 所有页面</p>
+    </div>
+
+    <div class="pages-grid">
+        <!-- 1. 登录页面 -->
+        <div class="page-showcase">
+            <div class="page-title">1. 登录页面</div>
+            <div class="phone-mockup">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="screen-content">
+                        <div class="auth-screen-demo">
+                            <div class="logo">
+                                <div class="logo-icon-wrapper">
+                                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+                                        <circle cx="50" cy="50" r="42" stroke="url(#g1)" stroke-width="6" fill="none"/>
+                                        <path d="M50 72 C50 72, 28 58, 28 42 C28 32, 38 28, 50 38" stroke="url(#g1)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                                        <path d="M50 72 C50 72, 72 58, 72 42 C72 32, 62 28, 50 38" stroke="url(#g1)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                                        <circle cx="50" cy="45" r="4" fill="url(#g1)"/>
+                                        <defs>
+                                            <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#a78bfa"/>
+                                                <stop offset="50%" style="stop-color:#8b5cf6"/>
+                                                <stop offset="100%" style="stop-color:#7c3aed"/>
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                </div>
+                                <h1>Alike</h1>
+                                <p>相似灵魂的相遇</p>
+                            </div>
+                            
+                            <div class="form-title">欢迎回来</div>
+                            <div class="form-group">
+                                <label>手机号</label>
+                                <input type="tel" value="+8613800138000" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>密码</label>
+                                <input type="password" value="password123" readonly>
+                            </div>
+                            <button class="btn">登录</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 注册页面 -->
+        <div class="page-showcase">
+            <div class="page-title">2. 注册页面</div>
+            <div class="phone-mockup">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="screen-content">
+                        <div class="auth-screen-demo">
+                            <div class="logo">
+                                <div class="logo-icon-wrapper">
+                                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+                                        <circle cx="50" cy="50" r="42" stroke="url(#g2)" stroke-width="6" fill="none"/>
+                                        <path d="M50 72 C50 72, 28 58, 28 42 C28 32, 38 28, 50 38" stroke="url(#g2)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                                        <path d="M50 72 C50 72, 72 58, 72 42 C72 32, 62 28, 50 38" stroke="url(#g2)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                                        <circle cx="50" cy="45" r="4" fill="url(#g2)"/>
+                                        <defs>
+                                            <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#a78bfa"/>
+                                                <stop offset="50%" style="stop-color:#8b5cf6"/>
+                                                <stop offset="100%" style="stop-color:#7c3aed"/>
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                </div>
+                                <h1>Alike</h1>
+                                <p>相似灵魂的相遇</p>
+                            </div>
+                            
+                            <div class="form-title">创建账号</div>
+                            <div class="form-group">
+                                <label>手机号</label>
+                                <input type="tel" placeholder="+8613800138000" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>验证码</label>
+                                <input type="text" placeholder="123456" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>昵称</label>
+                                <input type="text" placeholder="你的昵称" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>密码</label>
+                                <input type="password" placeholder="至少8位字符" readonly>
+                            </div>
+                            <button class="btn">创建账号</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 附近用户 -->
+        <div class="page-showcase">
+            <div class="page-title">3. 附近用户</div>
+            <div class="phone-mockup">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="screen-content">
+                        <div class="header-demo">
+                            <div class="header-content">
+                                <h1>Alike</h1>
+                                <div style="width: 60px; height: 30px; background: #f5f5f5; border-radius: 8px; font-size: 11px; display: flex; align-items: center; justify-content: center; color: #666; font-weight: 600;">退出</div>
+                            </div>
+                            <div class="tabs">
+                                <div class="tab active">🌍 附近</div>
+                                <div class="tab">💕 匹配</div>
+                                <div class="tab">💬 聊天</div>
+                            </div>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="user-card-header">
+                                <div class="avatar">李</div>
+                                <div class="user-info">
+                                    <h3>李明</h3>
+                                    <p>2km · 在线</p>
+                                </div>
+                            </div>
+                            <div class="user-bio">热爱生活，喜欢旅行、摄影、咖啡。希望能遇到有趣的人。</div>
+                            <div class="tags">
+                                <span class="tag">🌈 社区</span>
+                                <span class="tag">💬 在线</span>
+                            </div>
+                            <div class="actions">
+                                <button class="action-btn like-btn">💝 喜欢</button>
+                            </div>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="user-card-header">
+                                <div class="avatar">王</div>
+                                <div class="user-info">
+                                    <h3>王浩</h3>
+                                    <p>5km · 1小时前</p>
+                                </div>
+                            </div>
+                            <div class="user-bio">健身达人，喜欢户外运动。周末一起去爬山吧！</div>
+                            <div class="tags">
+                                <span class="tag">🌈 社区</span>
+                                <span class="tag">💬 在线</span>
+                            </div>
+                            <div class="actions">
+                                <button class="action-btn like-btn">💝 喜欢</button>
+                            </div>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="user-card-header">
+                                <div class="avatar">张</div>
+                                <div class="user-info">
+                                    <h3>张伟</h3>
+                                    <p>8km · 3小时前</p>
+                                </div>
+                            </div>
+                            <div class="user-bio">IT从业者，喜欢科技、电影、美食。寻找志同道合的朋友。</div>
+                            <div class="tags">
+                                <span class="tag">🌈 社区</span>
+                                <span class="tag">💬 在线</span>
+                            </div>
+                            <div class="actions">
+                                <button class="action-btn like-btn">💝 喜欢</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 匹配列表 -->
+        <div class="page-showcase">
+            <div class="page-title">4. 匹配列表</div>
+            <div class="phone-mockup">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="screen-content">
+                        <div class="header-demo">
+                            <div class="header-content">
+                                <h1>Alike</h1>
+                                <div style="width: 60px; height: 30px; background: #f5f5f5; border-radius: 8px; font-size: 11px; display: flex; align-items: center; justify-content: center; color: #666; font-weight: 600;">退出</div>
+                            </div>
+                            <div class="tabs">
+                                <div class="tab">🌍 附近</div>
+                                <div class="tab active">💕 匹配</div>
+                                <div class="tab">💬 聊天</div>
+                            </div>
+                        </div>
+
+                        <div class="stats-card">
+                            <div class="stats-icon">💕</div>
+                            <div class="stats-number">3</div>
+                            <div class="stats-label">个匹配</div>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="user-card-header">
+                                <div class="avatar">李</div>
+                                <div class="user-info">
+                                    <h3>李明</h3>
+                                    <p>💕 相互喜欢</p>
+                                </div>
+                            </div>
+                            <div class="user-bio">热爱生活，喜欢旅行、摄影、咖啡。希望能遇到有趣的人。</div>
+                            <div class="tags">
+                                <span class="tag">💕 匹配</span>
+                                <span class="tag">💬 可以聊天</span>
+                            </div>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="user-card-header">
+                                <div class="avatar">王</div>
+                                <div class="user-info">
+                                    <h3>王浩</h3>
+                                    <p>💕 相互喜欢</p>
+                                </div>
+                            </div>
+                            <div class="user-bio">健身达人，喜欢户外运动。周末一起去爬山吧！</div>
+                            <div class="tags">
+                                <span class="tag">💕 匹配</span>
+                                <span class="tag">💬 可以聊天</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 聊天列表 -->
+        <div class="page-showcase">
+            <div class="page-title">5. 聊天列表</div>
+            <div class="phone-mockup">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="screen-content">
+                        <div class="header-demo">
+                            <div class="header-content">
+                                <h1>Alike</h1>
+                                <div style="width: 60px; height: 30px; background: #f5f5f5; border-radius: 8px; font-size: 11px; display: flex; align-items: center; justify-content: center; color: #666; font-weight: 600;">退出</div>
+                            </div>
+                            <div class="tabs">
+                                <div class="tab">🌍 附近</div>
+                                <div class="tab">💕 匹配</div>
+                                <div class="tab active">💬 聊天</div>
+                            </div>
+                        </div>
+
+                        <div class="stats-card">
+                            <div class="stats-icon">💬</div>
+                            <div class="stats-number">2</div>
+                            <div class="stats-label">个聊天</div>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="user-card-header">
+                                <div class="avatar">李</div>
+                                <div class="user-info">
+                                    <h3>李明</h3>
+                                    <p>你好！很高兴认识你 👋</p>
+                                </div>
+                            </div>
+                            <div class="tags">
+                                <span class="tag">💬 2分钟前</span>
+                            </div>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="user-card-header">
+                                <div class="avatar">王</div>
+                                <div class="user-info">
+                                    <h3>王浩</h3>
+                                    <p>周末有空一起去爬山吗？</p>
+                                </div>
+                            </div>
+                            <div class="tags">
+                                <span class="tag">💬 1小时前</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. 空状态 -->
+        <div class="page-showcase">
+            <div class="page-title">6. 空状态设计</div>
+            <div class="phone-mockup">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="screen-content">
+                        <div class="header-demo">
+                            <div class="header-content">
+                                <h1>Alike</h1>
+                                <div style="width: 60px; height: 30px; background: #f5f5f5; border-radius: 8px; font-size: 11px; display: flex; align-items: center; justify-content: center; color: #666; font-weight: 600;">退出</div>
+                            </div>
+                            <div class="tabs">
+                                <div class="tab">🌍 附近</div>
+                                <div class="tab active">💕 匹配</div>
+                                <div class="tab">💬 聊天</div>
+                            </div>
+                        </div>
+
+                        <div class="empty-state">
+                            <div class="empty-state-icon">✨</div>
+                            <div class="empty-state-text">暂无匹配</div>
+                            <div class="empty-state-sub">喜欢更多用户来获得匹配</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 添加页面滚动动画
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.page-showcase');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>
