@@ -2,107 +2,123 @@
 
 set -e
 
-echo "🚀 Setting up Alike Database..."
+echo "🚀 Alike Database Setup"
+echo "======================="
+echo ""
 
-# Check PostgreSQL installation
+# 检查PostgreSQL
 if ! command -v psql &> /dev/null; then
-    echo "⚠️  PostgreSQL not found in PATH"
-    echo "📦 Installing PostgreSQL..."
-    brew install postgresql@15
-    
-    echo "⏳ Waiting for installation to complete..."
-    sleep 10
-    
-    # Try to find PostgreSQL
-    if [ -f /opt/homebrew/bin/psql ]; then
-        export PATH="/opt/homebrew/bin:$PATH"
-    fi
-fi
-
-# Check if psql is available
-if ! command -v psql &> /dev/null; then
-    echo "❌ PostgreSQL installation failed or not in PATH"
-    echo "Please try: brew install postgresql@15"
-    echo "Then add to PATH: export PATH=\"/opt/homebrew/bin:\$PATH\""
+    echo "❌ PostgreSQL 未安装"
+    echo ""
+    echo "请先安装 PostgreSQL："
+    echo "  brew install postgresql@15"
+    echo "  brew services start postgresql@15"
+    echo ""
+    echo "或者使用 Docker（推荐）："
+    echo "  cd /Users/zhenghongfei6/go/src/github.com/Alike"
+    echo "  docker-compose -f deployments/docker/docker-compose.yml up -d"
+    echo ""
     exit 1
 fi
 
-echo "✅ PostgreSQL found: $(psql --version)"
-
-# Start PostgreSQL service
-echo "🔧 Starting PostgreSQL service..."
-brew services start postgresql@15 2>/dev/null || brew services restart postgresql@15
-
-# Wait for PostgreSQL to be ready
-echo "⏳ Waiting for PostgreSQL to start..."
-sleep 5
-
-# Initialize database if needed
-if ! pg_isready -q; then
-    echo "⚠️  PostgreSQL not ready, initializing..."
-    initdb -D /opt/homebrew/var/postgresql@15 2>/dev/null || true
-    sleep 3
+# 检查服务状态
+if ! pg_isready -q 2>/dev/null; then
+    echo "🔧 启动 PostgreSQL 服务..."
+    brew services start postgresql@15
+    echo "⏳ 等待服务启动..."
+    sleep 5
 fi
 
-# Create database
-echo "📊 Creating database..."
-createdb alike_db 2>/dev/null && echo "✅ Database created" || echo "ℹ️  Database already exists"
+# 再次检查
+if ! pg_isready -q 2>/dev/null; then
+    echo "❌ PostgreSQL 服务未启动"
+    echo ""
+    echo "请手动启动："
+    echo "  brew services start postgresql@15"
+    echo ""
+    echo "检查状态："
+    echo "  brew services list | grep postgres"
+    echo ""
+    exit 1
+fi
 
-# Create user
-echo "👤 Creating database user..."
-psql -d postgres << 'EOSQL' 2>/dev/null || echo "User already exists"
-DO $$
+echo "✅ PostgreSQL 服务运行中"
+echo ""
+
+# 创建数据库
+echo "📊 创建数据库..."
+if createdb alike_db 2>/dev/null; then
+    echo "✅ 数据库创建成功: alike_db"
+else
+    echo "ℹ️  数据库已存在: alike_db"
+fi
+echo ""
+
+# 创建用户
+echo "👤 创建数据库用户..."
+psql -d postgres >/dev/null 2>&1 << SQL || true
+DO \$\$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'alike_user') THEN
         CREATE USER alike_user WITH PASSWORD 'alike_password';
     END IF;
     GRANT ALL PRIVILEGES ON DATABASE alike_db TO alike_user;
-    ALTER USER alike_user WITH PASSWORD 'alike_password';
 END
-$$;
-EOSQL
+\$\$;
+SQL
 
-# Test connection
-echo "🔗 Testing connection..."
-if PGPASSWORD=alike_password psql -U alike_user -d alike_db -c "SELECT 1;" > /dev/null 2>&1; then
-    echo "✅ Database connection successful!"
+echo "✅ 用户创建成功: alike_user"
+echo ""
+
+# 测试连接
+echo "🔗 测试连接..."
+if PGPASSWORD=alike_password psql -U alike_user -d alike_db -c "SELECT 1;" >/dev/null 2>&1; then
+    echo "✅ 数据库连接成功"
 else
-    echo "⚠️  Connection test failed - PostgreSQL may still be starting"
-    echo "   Try again in 10 seconds or check: brew services list"
+    echo "❌ 数据库连接失败"
+    echo ""
+    echo "请检查："
+    echo "  PGPASSWORD=alike_password psql -U alike_user -d alike_db"
+    echo ""
+    exit 1
 fi
+echo ""
 
-# Run migrations
-echo "📋 Running database migrations..."
+# 运行迁移
+echo "📋 运行数据库迁移..."
 cd /Users/zhenghongfei6/go/src/github.com/Alike
-if go run cmd/migrate/main.go up 2>&1; then
-    echo "✅ Migrations completed"
+if go run cmd/migrate/main.go up 2>&1 | grep -q "Migration completed"; then
+    echo "✅ 迁移完成"
 else
-    echo "⚠️  Migrations failed - you may need to run manually"
+    echo "⚠️  迁移可能失败，请检查输出"
 fi
+echo ""
 
-# Seed test data
-echo "🌱 Seeding test data..."
-if PGPASSWORD=alike_password psql -U alike_user -d alike_db -f db/seeds/seed.sql > /dev/null 2>&1; then
-    echo "✅ Test data seeded"
+# 导入测试数据
+echo "🌱 导入测试数据..."
+if PGPASSWORD=alike_password psql -U alike_user -d alike_db -f db/seeds/seed.sql >/dev/null 2>&1; then
+    echo "✅ 测试数据导入成功"
+    echo ""
+    echo "测试账号："
+    echo "  手机: +8613800138000"
+    echo "  密码: password123"
 else
-    echo "ℹ️  Seed data already exists or failed"
+    echo "ℹ️  测试数据已存在"
 fi
+echo ""
 
+echo "✅ 数据库设置完成！"
 echo ""
-echo "✅ Database setup complete!"
-echo ""
-echo "📊 Connection Info:"
+echo "📊 连接信息："
 echo "   Host: localhost"
 echo "   Port: 5432"
 echo "   Database: alike_db"
 echo "   User: alike_user"
 echo "   Password: alike_password"
 echo ""
-echo "🧪 Test connection:"
+echo "🧪 测试连接："
 echo "   PGPASSWORD=alike_password psql -U alike_user -d alike_db"
 echo ""
-echo "🚀 Next:"
-echo "   go run cmd/api/main.go"
-echo "   open web/public/index.html"
+echo "🚀 启动应用："
+echo "   ./scripts/start.sh"
 echo ""
-echo "🎉 Ready to use!"
