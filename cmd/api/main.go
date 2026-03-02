@@ -41,7 +41,7 @@ func main() {
 	authService := auth.New(&cfg.JWT)
 	
 	r := gin.Default()
-	router.Setup(r, authService)
+	router.Setup(r, authService, db)
 	
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),

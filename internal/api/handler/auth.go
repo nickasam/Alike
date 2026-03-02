@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"net/http"
-
 	"github.com/Alike/internal/api/middleware"
 	"github.com/Alike/internal/auth"
 	"github.com/Alike/internal/pkg/response"
