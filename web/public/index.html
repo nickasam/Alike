@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alike - 相似灵魂的相遇</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -14,17 +14,9 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #e40303 0%, #ff8c00 16%, #ffed00 33%, #008026 50%, #24408e 66%, #732982 83%, #e40303 100%);
-            background-size: 400% 400%;
-            animation: rainbow 15s ease infinite;
+            background: linear-gradient(135deg, #f8f4ff 0%, #f0f4ff 50%, #f4f0ff 100%);
             min-height: 100vh;
             padding: 20px;
-        }
-
-        @keyframes rainbow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         .container {
@@ -34,12 +26,12 @@
 
         /* Auth Screen */
         .auth-screen {
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 28px;
             padding: 45px 35px;
             margin-top: 35px;
-            box-shadow: 0 25px 70px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(100, 80, 160, 0.08);
             animation: slideUp 0.6s ease-out;
         }
 
@@ -60,108 +52,102 @@
         }
 
         .logo-icon {
-            width: 110px;
-            height: 110px;
+            width: 100px;
+            height: 100px;
             margin: 0 auto 20px;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: pulse 3s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
         }
 
         .logo-icon svg {
             width: 100%;
             height: 100%;
-            filter: drop-shadow(0 12px 35px rgba(0,0,0,0.25));
+            filter: drop-shadow(0 8px 24px rgba(100, 80, 160, 0.12));
         }
 
         .logo h1 {
-            font-size: 42px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #e40303 0%, #ff8c00 25%, #008026 50%, #24408e 75%, #732982 100%);
+            font-size: 38px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a890d4 0%, #8b7db5 50%, #9d8fc4 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 8px;
-            letter-spacing: -2px;
+            letter-spacing: -1px;
         }
 
         .logo p {
-            color: #6b7280;
-            font-size: 15px;
+            color: #8b8b9a;
+            font-size: 14px;
             font-weight: 400;
         }
 
         .form-title {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 600;
-            color: #1f2937;
+            color: #2d2d3a;
             margin-bottom: 24px;
             text-align: center;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #374151;
-            font-size: 14px;
+            color: #5d5d6a;
+            font-size: 13px;
             font-weight: 500;
         }
 
         .form-group input {
             width: 100%;
             padding: 14px 16px;
-            border: 2px solid #e5e7eb;
+            border: 1.5px solid #e8e6ed;
             border-radius: 12px;
             font-size: 15px;
-            transition: all 0.3s;
-            background: #f9fafb;
+            transition: all 0.2s;
+            background: #faf9fc;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #732982;
+            border-color: #b5a5d4;
             background: white;
-            box-shadow: 0 0 0 4px rgba(115, 41, 130, 0.1);
+            box-shadow: 0 0 0 3px rgba(181, 165, 212, 0.1);
         }
 
         .btn {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #732982 0%, #24408e 50%, #008026 100%);
+            background: linear-gradient(135deg, #a890d4 0%, #8b7db5 100%);
             color: white;
             border: none;
             border-radius: 12px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(115, 41, 130, 0.4);
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(168, 144, 212, 0.25);
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(115, 41, 130, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(168, 144, 212, 0.35);
         }
 
         .toggle-auth {
             text-align: center;
             margin-top: 20px;
-            color: #6b7280;
-            font-size: 14px;
+            color: #8b8b9a;
+            font-size: 13px;
         }
 
         .toggle-auth a {
-            color: #732982;
+            color: #a890d4;
             text-decoration: none;
             font-weight: 600;
         }
@@ -172,18 +158,18 @@
         }
 
         .header {
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
-            padding: 20px;
-            border-radius: 22px;
-            box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+            padding: 18px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(100, 80, 160, 0.06);
             animation: slideDown 0.6s ease-out;
         }
 
         @keyframes slideDown {
             from {
                 opacity: 0;
-                transform: translateY(-30px);
+                transform: translateY(-20px);
             }
             to {
                 opacity: 1;
@@ -195,7 +181,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
         }
 
         .header-left {
@@ -205,8 +191,8 @@
         }
 
         .header-logo {
-            width: 46px;
-            height: 46px;
+            width: 42px;
+            height: 42px;
             position: relative;
             display: flex;
             align-items: center;
@@ -219,28 +205,29 @@
         }
 
         .header h1 {
-            font-size: 26px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #e40303 0%, #ff8c00 25%, #008026 50%, #24408e 75%, #732982 100%);
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a890d4 0%, #8b7db5 50%, #9d8fc4 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
+            letter-spacing: -0.5px;
         }
 
         .logout-btn {
-            padding: 10px 16px;
-            background: #f3f4f6;
-            color: #6b7280;
+            padding: 8px 14px;
+            background: #f4f3f8;
+            color: #7b7b8a;
             border: none;
-            border-radius: 10px;
+            border-radius: 9px;
             cursor: pointer;
             font-weight: 500;
+            font-size: 13px;
             transition: all 0.2s;
         }
 
         .logout-btn:hover {
-            background: #e5e7eb;
-            color: #374151;
+            background: #ebe9f2;
+            color: #5d5d6a;
         }
 
         .tabs {
@@ -250,47 +237,47 @@
 
         .tab {
             flex: 1;
-            padding: 12px;
-            background: #f3f4f6;
+            padding: 11px;
+            background: #f4f3f8;
             border: none;
             border-radius: 10px;
             cursor: pointer;
             font-weight: 500;
-            color: #6b7280;
-            transition: all 0.3s;
-            font-size: 15px;
+            color: #7b7b8a;
+            transition: all 0.2s;
+            font-size: 14px;
         }
 
         .tab.active {
-            background: linear-gradient(135deg, #732982 0%, #24408e 50%, #008026 100%);
+            background: linear-gradient(135deg, #a890d4 0%, #8b7db5 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(115, 41, 130, 0.3);
+            box-shadow: 0 3px 10px rgba(168, 144, 212, 0.2);
         }
 
         .content {
-            margin-top: 20px;
+            margin-top: 18px;
         }
 
         .user-card {
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 3px 16px rgba(100, 80, 160, 0.06);
             animation: fadeInUp 0.5s ease-out;
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
 
         .user-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 6px 24px rgba(100, 80, 160, 0.1);
         }
 
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(15px);
             }
             to {
                 opacity: 1;
@@ -301,63 +288,44 @@
         .user-card-header {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 14px;
+            margin-bottom: 14px;
         }
 
         .avatar {
-            width: 70px;
-            height: 70px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #e40303 0%, #ff8c00 33%, #008026 66%, #732982 100%);
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #d4c4e8 0%, #c8b8dc 50%, #ddd0ed 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
-            box-shadow: 0 4px 15px rgba(115, 41, 130, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .avatar::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            transform: rotate(45deg);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) rotate(45deg); }
+            box-shadow: 0 4px 12px rgba(168, 144, 212, 0.18);
         }
 
         .user-info h3 {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
-            color: #1f2937;
+            color: #2d2d3a;
             margin-bottom: 4px;
         }
 
         .user-info p {
-            font-size: 14px;
-            color: #9ca3af;
+            font-size: 13px;
+            color: #8b8b9a;
         }
 
         .user-bio {
-            font-size: 15px;
-            color: #6b7280;
-            line-height: 1.5;
-            padding: 15px;
-            background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 25%, #f0fdf4 50%, #eff6ff 75%, #faf5ff 100%);
-            border-radius: 12px;
-            border-left: 4px solid #732982;
+            font-size: 14px;
+            color: #6d6d7a;
+            line-height: 1.6;
+            padding: 13px;
+            background: linear-gradient(135deg, #faf9fc 0%, #f8f7fc 100%);
+            border-radius: 11px;
+            border-left: 3px solid #d4c4e8;
         }
 
         .tags {
@@ -368,48 +336,48 @@
         }
 
         .tag {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
+            padding: 5px 11px;
+            border-radius: 18px;
+            font-size: 12px;
             font-weight: 500;
         }
 
         .tag:nth-child(1) {
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
-            color: #991b1b;
+            background: linear-gradient(135deg, #f0eff5, #e8e6f0);
+            color: #7d6da8;
         }
 
         .tag:nth-child(2) {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            color: #92400e;
+            background: linear-gradient(135deg, #fff5f0, #ffe8e0);
+            color: #a87d6d;
         }
 
         .actions {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 14px;
         }
 
         .action-btn {
             flex: 1;
-            padding: 12px;
+            padding: 11px;
             border: none;
-            border-radius: 12px;
+            border-radius: 11px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s;
+            font-size: 13px;
+            transition: all 0.2s;
         }
 
         .like-btn {
-            background: linear-gradient(135deg, #e40303 0%, #ff8c00 50%, #008026 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(228, 3, 3, 0.3);
+            background: linear-gradient(135deg, #d4c4e8 0%, #c8b8dc 100%);
+            color: #5d4a8a;
+            box-shadow: 0 3px 10px rgba(168, 144, 212, 0.2);
         }
 
         .like-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(228, 3, 3, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(168, 144, 212, 0.28);
         }
 
         .hidden {
@@ -419,10 +387,9 @@
         .loading {
             text-align: center;
             padding: 40px 20px;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            color: #8b7db5;
+            font-size: 15px;
+            font-weight: 500;
         }
 
         .loading::after {
@@ -437,94 +404,88 @@
         }
 
         .error {
-            background: rgba(254, 242, 242, 0.98);
+            background: rgba(254, 242, 242, 0.95);
             backdrop-filter: blur(20px);
-            color: #dc2626;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border-left: 4px solid #dc2626;
+            color: #c44;
+            padding: 14px;
+            border-radius: 11px;
+            margin-bottom: 14px;
+            border-left: 3px solid #e88;
             font-weight: 500;
+            font-size: 13px;
         }
 
         .success {
-            background: rgba(236, 253, 245, 0.98);
+            background: rgba(242, 253, 245, 0.95);
             backdrop-filter: blur(20px);
-            color: #059669;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border-left: 4px solid #059669;
+            color: #4a8;
+            padding: 14px;
+            border-radius: 11px;
+            margin-bottom: 14px;
+            border-left: 3px solid #6b9;
             font-weight: 500;
+            font-size: 13px;
         }
 
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: white;
+            color: #a890d4;
         }
 
         .empty-state-icon {
-            font-size: 72px;
-            margin-bottom: 20px;
-            animation: float 3s ease-in-out infinite;
-            filter: drop-shadow(0 4px 15px rgba(0,0,0,0.3));
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            25% { transform: translateY(-8px) rotate(2deg); }
-            75% { transform: translateY(-8px) rotate(-2deg); }
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.6;
         }
 
         .empty-state-text {
-            font-size: 20px;
+            font-size: 17px;
             font-weight: 600;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            margin-bottom: 6px;
+            color: #8b7db5;
         }
 
         .empty-state-sub {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.85);
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            font-size: 13px;
+            color: #9d8fc4;
         }
 
         /* Stats card */
         .stats-card {
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 35px;
-            margin-bottom: 15px;
+            border-radius: 18px;
+            padding: 28px;
+            margin-bottom: 14px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 16px rgba(100, 80, 160, 0.06);
         }
 
         .stats-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-            filter: drop-shadow(0 4px 15px rgba(0,0,0,0.15));
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.7;
         }
 
         .stats-number {
-            font-size: 64px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #e40303 0%, #ff8c00 25%, #008026 50%, #24408e 75%, #732982 100%);
+            font-size: 52px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a890d4 0%, #8b7db5 50%, #9d8fc4 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             line-height: 1;
         }
 
         .stats-label {
-            font-size: 17px;
-            color: #6b7280;
+            font-size: 14px;
+            color: #7b7b8a;
             font-weight: 500;
         }
 
         .tab-icon {
-            margin-right: 6px;
+            margin-right: 5px;
         }
     </style>
 </head>
@@ -534,36 +495,26 @@
         <div id="authScreen" class="auth-screen">
             <div class="logo">
                 <div class="logo-icon">
-                    <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- 外圈彩虹环 -->
-                        <circle cx="60" cy="60" r="50" stroke="url(#rainbow1)" stroke-width="12" fill="none" stroke-linecap="round"/>
+                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 外圈淡雅渐变环 -->
+                        <circle cx="50" cy="50" r="42" stroke="url(#elegant)" stroke-width="8" fill="none" stroke-linecap="round"/>
                         
-                        <!-- 内圈心形 - 由两个交织的弧组成 -->
-                        <!-- 左半心 -->
-                        <path d="M60 85 C60 85, 30 65, 30 45 C30 30, 45 25, 60 40" 
-                              stroke="#e40303" stroke-width="10" stroke-linecap="round" fill="none"/>
+                        <!-- 内圈心形 - 两条优雅的弧线 -->
+                        <path d="M50 72 C50 72, 28 58, 28 42 C28 32, 38 28, 50 38" 
+                              stroke="#d4c4e8" stroke-width="7" stroke-linecap="round" fill="none"/>
                         
-                        <!-- 右半心 -->
-                        <path d="M60 85 C60 85, 90 65, 90 45 C90 30, 75 25, 60 40" 
-                              stroke="#ff8c00" stroke-width="10" stroke-linecap="round" fill="none"/>
+                        <path d="M50 72 C50 72, 72 58, 72 42 C72 32, 62 28, 50 38" 
+                              stroke="#c8b8dc" stroke-width="7" stroke-linecap="round" fill="none"/>
                         
-                        <!-- 中心连接点 -->
-                        <circle cx="60" cy="55" r="8" fill="url(#rainbow2)"/>
+                        <!-- 中心优雅连接点 -->
+                        <circle cx="50" cy="45" r="5" fill="url(#elegant)"/>
                         
-                        <!-- 渐变定义 -->
+                        <!-- 渐变定义 - 淡雅紫色调 -->
                         <defs>
-                            <linearGradient id="rainbow1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#e40303"/>
-                                <stop offset="20%" style="stop-color:#ff8c00"/>
-                                <stop offset="40%" style="stop-color:#ffed00"/>
-                                <stop offset="60%" style="stop-color:#008026"/>
-                                <stop offset="80%" style="stop-color:#24408e"/>
-                                <stop offset="100%" style="stop-color:#732982"/>
-                            </linearGradient>
-                            <linearGradient id="rainbow2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#ff8c00"/>
-                                <stop offset="50%" style="stop-color:#008026"/>
-                                <stop offset="100%" style="stop-color:#732982"/>
+                            <linearGradient id="elegant" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#d4c4e8"/>
+                                <stop offset="50%" style="stop-color:#c8b8dc"/>
+                                <stop offset="100%" style="stop-color:#ddd0ed"/>
                             </linearGradient>
                         </defs>
                     </svg>
@@ -573,7 +524,7 @@
             </div>
             
             <div id="loginForm">
-                <div class="form-title">欢迎回来 🏳️‍🌈</div>
+                <div class="form-title">欢迎回来</div>
                 <div class="form-group">
                     <label>手机号</label>
                     <input type="tel" id="loginPhone" value="+8613800138000" placeholder="+8613800138000">
@@ -589,7 +540,7 @@
             </div>
 
             <div id="registerForm" class="hidden">
-                <div class="form-title">创建账号 🌈</div>
+                <div class="form-title">创建账号</div>
                 <div class="form-group">
                     <label>手机号</label>
                     <input type="tel" id="registerPhone" placeholder="+8613800138000">
@@ -619,24 +570,16 @@
                 <div class="header-content">
                     <div class="header-left">
                         <div class="header-logo">
-                            <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="60" cy="60" r="50" stroke="url(#rainbow1)" stroke-width="12" fill="none" stroke-linecap="round"/>
-                                <path d="M60 85 C60 85, 30 65, 30 45 C30 30, 45 25, 60 40" stroke="#e40303" stroke-width="10" stroke-linecap="round" fill="none"/>
-                                <path d="M60 85 C60 85, 90 65, 90 45 C90 30, 75 25, 60 40" stroke="#ff8c00" stroke-width="10" stroke-linecap="round" fill="none"/>
-                                <circle cx="60" cy="55" r="8" fill="url(#rainbow2)"/>
+                            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="50" cy="50" r="42" stroke="url(#elegant)" stroke-width="8" fill="none" stroke-linecap="round"/>
+                                <path d="M50 72 C50 72, 28 58, 28 42 C28 32, 38 28, 50 38" stroke="#d4c4e8" stroke-width="7" stroke-linecap="round" fill="none"/>
+                                <path d="M50 72 C50 72, 72 58, 72 42 C72 32, 62 28, 50 38" stroke="#c8b8dc" stroke-width="7" stroke-linecap="round" fill="none"/>
+                                <circle cx="50" cy="45" r="5" fill="url(#elegant)"/>
                                 <defs>
-                                    <linearGradient id="rainbow1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#e40303"/>
-                                        <stop offset="20%" style="stop-color:#ff8c00"/>
-                                        <stop offset="40%" style="stop-color:#ffed00"/>
-                                        <stop offset="60%" style="stop-color:#008026"/>
-                                        <stop offset="80%" style="stop-color:#24408e"/>
-                                        <stop offset="100%" style="stop-color:#732982"/>
-                                    </linearGradient>
-                                    <linearGradient id="rainbow2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#ff8c00"/>
-                                        <stop offset="50%" style="stop-color:#008026"/>
-                                        <stop offset="100%" style="stop-color:#732982"/>
+                                    <linearGradient id="elegant" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#d4c4e8"/>
+                                        <stop offset="50%" style="stop-color:#c8b8dc"/>
+                                        <stop offset="100%" style="stop-color:#ddd0ed"/>
                                     </linearGradient>
                                 </defs>
                             </svg>
@@ -650,7 +593,7 @@
                         <span class="tab-icon">🌍</span>附近
                     </button>
                     <button class="tab" onclick="switchTab('matches')">
-                        <span class="tab-icon">💑</span>匹配
+                        <span class="tab-icon">💕</span>匹配
                     </button>
                     <button class="tab" onclick="switchTab('chats')">
                         <span class="tab-icon">💬</span>聊天
@@ -796,7 +739,7 @@
             if (!users || users.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">🌈</div>
+                        <div class="empty-state-icon">💫</div>
                         <div class="empty-state-text">暂无用户</div>
                         <div class="empty-state-sub">运行 ./scripts/setup-db.sh 导入测试数据</div>
                     </div>
@@ -815,11 +758,11 @@
                     </div>
                     ${user.bio ? `<div class="user-bio">${user.bio}</div>` : ''}
                     <div class="tags">
-                        <span class="tag">🏳️‍🌈 社区</span>
+                        <span class="tag">🌈 社区</span>
                         <span class="tag">💬 在线</span>
                     </div>
                     <div class="actions">
-                        <button class="action-btn like-btn" onclick="likeUser('${user.id}')">💖 喜欢</button>
+                        <button class="action-btn like-btn" onclick="likeUser('${user.id}')">💝 喜欢</button>
                     </div>
                 </div>
             `).join('');
@@ -831,7 +774,7 @@
             
             try {
                 const response = await fetch(`${API_BASE}/matches`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                    headers: { 'Authorization': `Bearer ${accessToken}` }  
                 });
                 const data = await response.json();
 
@@ -839,7 +782,7 @@
                     if (!data.data || data.data.length === 0) {
                         content.innerHTML = `
                             <div class="empty-state">
-                                <div class="empty-state-icon">💑</div>
+                                <div class="empty-state-icon">✨</div>
                                 <div class="empty-state-text">暂无匹配</div>
                                 <div class="empty-state-sub">喜欢更多用户来获得匹配</div>
                             </div>
@@ -847,7 +790,7 @@
                     } else {
                         content.innerHTML = `
                             <div class="stats-card">
-                                <div class="stats-icon">💑</div>
+                                <div class="stats-icon">💕</div>
                                 <div class="stats-number">${data.data.length}</div>
                                 <div class="stats-label">个匹配</div>
                             </div>
