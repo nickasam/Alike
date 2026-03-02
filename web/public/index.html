@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+你<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>附近的人 - Alike</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         * {
@@ -15,14 +15,14 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f7f7f7;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: white;
+            background: #f5f7fa;
             min-height: 100vh;
         }
 
@@ -30,10 +30,11 @@
         .navbar {
             background: white;
             padding: 16px 24px;
-            border-bottom: 1px solid #e5e5e5;
+            border-bottom: 1px solid #e8ecf0;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .navbar-content {
@@ -45,20 +46,30 @@
         }
 
         .navbar-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1a1a1a;
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .navbar-icon {
             font-size: 24px;
             cursor: pointer;
             color: #666;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .navbar-icon:hover {
-            color: #8b5cf6;
+            background: #f5f5f5;
+            color: #667eea;
         }
         
         .material-icons {
@@ -68,8 +79,8 @@
         /* 筛选栏 */
         .filter-bar {
             background: white;
-            padding: 16px 24px;
-            border-bottom: 1px solid #e5e5e5;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8ecf0;
             display: flex;
             gap: 12px;
             overflow-x: auto;
@@ -97,189 +108,220 @@
         }
 
         .filter-chip {
-            padding: 10px 20px;
+            padding: 12px 24px;
             background: white;
-            border: 1.5px solid #e5e7eb;
+            border: 2px solid #e8ecf0;
             border-radius: 24px;
             color: #6b7280;
             font-size: 15px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .filter-chip.active {
-            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-color: transparent;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         .filter-chip:hover:not(.active) {
             background: #f9fafb;
             border-color: #d1d5db;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
 
         .filter-chip.active:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
         }
 
         /* 用户列表 - 响应式网格布局 */
         .user-list {
-            background: #f7f7f7;
+            background: #f5f7fa;
             padding: 24px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
             max-width: 1400px;
             margin: 0 auto;
         }
 
         .user-item {
-            display: flex;
-            align-items: center;
-            padding: 20px;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
             background: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            animation: fadeInUp 0.6s ease;
+            animation-fill-mode: both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .user-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.2);
         }
 
         .user-item:active {
-            transform: translateY(-2px);
+            transform: translateY(-4px);
         }
 
         .user-avatar {
-            width: 64px;
-            height: 64px;
-            border-radius: 16px;
+            width: 100%;
+            height: 280px;
+            position: relative;
+            overflow: hidden;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .user-avatar-image {
+            font-size: 80px;
             color: white;
-            font-size: 28px;
-            font-weight: 700;
-            margin-right: 20px;
-            flex-shrink: 0;
-            position: relative;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            font-weight: 900;
+            text-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
         }
 
         .online-dot {
             position: absolute;
-            bottom: -2px;
-            right: -2px;
+            top: 16px;
+            right: 16px;
             width: 16px;
             height: 16px;
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-            border: 3px solid white;
+            border: 4px solid white;
             border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+            z-index: 1;
+        }
+
+        .vip-badge {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            font-size: 12px;
+            padding: 6px 14px;
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            color: white;
+            border-radius: 12px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+            z-index: 1;
         }
 
         .user-info {
-            flex: 1;
-            min-width: 0;
+            padding: 20px;
         }
 
         .user-name {
-            font-size: 17px;
-            font-weight: 600;
+            font-size: 22px;
+            font-weight: 800;
             color: #1a1a1a;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .vip-badge {
-            font-size: 11px;
-            padding: 4px 10px;
-            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-            color: white;
-            border-radius: 8px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
-        }
-
         .user-details {
             font-size: 14px;
-            color: #999;
+            color: #9ca3af;
             display: flex;
             align-items: center;
-            gap: 6px;
-            margin-bottom: 6px;
+            gap: 4px;
+            margin-bottom: 12px;
         }
 
         .user-bio {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 8px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 15px;
+            color: #6b7280;
+            margin-bottom: 16px;
+            line-height: 1.6;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
-            line-height: 1.4;
+            overflow: hidden;
         }
 
         .user-tags {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             flex-wrap: wrap;
+            margin-bottom: 16px;
         }
 
         .tag {
             font-size: 12px;
-            padding: 5px 12px;
+            padding: 6px 14px;
             background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
             color: #4b5563;
-            border-radius: 8px;
-            font-weight: 500;
+            border-radius: 12px;
+            font-weight: 600;
             border: 1px solid #e5e7eb;
         }
 
         .user-actions {
             display: flex;
-            gap: 8px;
-            margin-left: 16px;
+            gap: 12px;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
         }
 
         .action-btn {
-            width: 44px;
-            height: 44px;
+            flex: 1;
+            padding: 12px;
             border: none;
-            border-radius: 50%;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .action-btn.like {
-            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         .action-btn.like:hover {
-            background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            background: linear-gradient(135deg, #5568d3 0%, #653a91 100%);
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
         }
 
         .action-btn.pass {
@@ -290,12 +332,15 @@
         .action-btn.pass:hover {
             background: #e5e7eb;
             color: #6b7280;
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: scale(1.02);
         }
 
         .action-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.98);
+        }
+
+        .action-btn .material-icons {
+            font-size: 18px;
         }
 
         /* 底部导航 - 桌面端隐藏 */
@@ -305,8 +350,8 @@
             left: 0;
             right: 0;
             background: white;
-            border-top: 1px solid #e5e5e5;
-            padding: 10px 0;
+            border-top: 1px solid #e8ecf0;
+            padding: 12px 0;
             display: flex;
             justify-content: space-around;
             z-index: 100;
@@ -324,7 +369,7 @@
         }
 
         .nav-item.active {
-            color: #8b5cf6;
+            color: #667eea;
         }
 
         .nav-item.active::after {
@@ -335,7 +380,7 @@
             transform: translateX(-50%);
             width: 24px;
             height: 3px;
-            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 2px;
         }
 
@@ -347,7 +392,7 @@
 
         .nav-label {
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: 0.3px;
         }
 
@@ -356,7 +401,7 @@
         }
 
         .nav-item.active:hover {
-            color: #7c3aed;
+            color: #5568d3;
         }
 
         /* 空状态 */
@@ -368,21 +413,31 @@
         }
 
         .empty-icon {
-            font-size: 80px;
-            margin-bottom: 20px;
-            opacity: 0.4;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .empty-icon .material-icons {
+            font-size: 52px;
+            color: white;
         }
 
         .empty-text {
             font-size: 18px;
             margin-bottom: 10px;
             color: #6b7280;
-            font-weight: 500;
+            font-weight: 700;
         }
 
         .empty-hint {
             font-size: 15px;
-            color: #9ca3af;
         }
 
         /* 加载状态 */
@@ -392,6 +447,7 @@
             text-align: center;
             color: #9ca3af;
             font-size: 15px;
+            font-weight: 600;
         }
 
         .loading::after {
@@ -401,7 +457,7 @@
             height: 24px;
             margin-left: 10px;
             border: 2px solid #e5e7eb;
-            border-top-color: #8b5cf6;
+            border-top-color: #667eea;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             vertical-align: middle;
@@ -416,8 +472,8 @@
         /* 平板设备 */
         @media (max-width: 1024px) {
             .user-list {
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-                gap: 16px;
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                gap: 20px;
                 padding: 20px;
             }
         }
@@ -441,20 +497,22 @@
             }
 
             .navbar-title {
-                font-size: 17px;
-            }
-
-            .navbar-icon {
                 font-size: 20px;
             }
 
+            .navbar-icon {
+                font-size: 22px;
+                width: 36px;
+                height: 36px;
+            }
+
             .filter-bar {
-                padding: 12px 16px;
-                gap: 8px;
+                padding: 16px;
+                gap: 10px;
             }
 
             .filter-chip {
-                padding: 8px 16px;
+                padding: 10px 18px;
                 font-size: 14px;
             }
 
@@ -465,11 +523,11 @@
             }
 
             .user-item {
-                flex-direction: row;
-                padding: 16px;
+                display: flex;
                 border-radius: 0;
                 border-bottom: 1px solid #f0f0f0;
                 box-shadow: none;
+                margin-bottom: 0;
             }
 
             .user-item:hover {
@@ -479,65 +537,86 @@
             }
 
             .user-avatar {
-                width: 56px;
-                height: 56px;
-                font-size: 24px;
-                margin-right: 16px;
-                border-radius: 12px;
+                width: 100px;
+                height: 100px;
+                flex-shrink: 0;
             }
 
-            .online-dot {
-                width: 14px;
-                height: 14px;
+            .user-avatar-image {
+                font-size: 42px;
+            }
+
+            .user-info {
+                flex: 1;
+                padding: 16px;
             }
 
             .user-name {
-                font-size: 16px;
-                margin-bottom: 4px;
+                font-size: 18px;
+                margin-bottom: 6px;
             }
 
             .vip-badge {
                 font-size: 10px;
-                padding: 3px 8px;
-                border-radius: 6px;
+                padding: 4px 10px;
+                border-radius: 8px;
+                top: 8px;
+                left: 8px;
+            }
+
+            .online-dot {
+                width: 12px;
+                height: 12px;
+                top: 8px;
+                right: 8px;
+                border-width: 3px;
             }
 
             .user-details {
                 font-size: 13px;
-                margin-bottom: 4px;
+                margin-bottom: 8px;
             }
 
             .user-bio {
-                font-size: 13px;
-                margin-bottom: 6px;
-                -webkit-line-clamp: 1;
-                white-space: nowrap;
+                font-size: 14px;
+                margin-bottom: 12px;
+                -webkit-line-clamp: 2;
             }
 
             .user-tags {
-                gap: 4px;
+                gap: 6px;
+                margin-bottom: 12px;
             }
 
             .tag {
                 font-size: 11px;
                 padding: 4px 10px;
-                border-radius: 6px;
+                border-radius: 8px;
             }
 
             .user-actions {
-                flex-direction: column;
-                gap: 6px;
-                margin-left: 12px;
+                padding-top: 12px;
+                flex-direction: row;
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                border-top: none;
+                gap: 8px;
             }
 
             .action-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
+                width: 44px;
+                height: 44px;
+                padding: 0;
+                border-radius: 50%;
+            }
+
+            .action-btn span:not(.material-icons) {
+                display: none;
             }
 
             .bottom-nav {
-                padding: 8px 0;
+                padding: 10px 0;
             }
 
             .nav-item {
@@ -557,8 +636,12 @@
             }
 
             .empty-icon {
-                font-size: 64px;
-                margin-bottom: 16px;
+                width: 80px;
+                height: 80px;
+            }
+
+            .empty-icon .material-icons {
+                font-size: 42px;
             }
 
             .empty-text {
@@ -584,24 +667,29 @@
         /* 小屏幕手机 */
         @media (max-width: 375px) {
             .user-avatar {
-                width: 50px;
-                height: 50px;
-                font-size: 22px;
-                margin-right: 12px;
+                width: 90px;
+                height: 90px;
+            }
+
+            .user-avatar-image {
+                font-size: 38px;
             }
 
             .user-name {
-                font-size: 15px;
+                font-size: 16px;
             }
 
             .action-btn {
-                width: 36px;
-                height: 36px;
+                width: 40px;
+                height: 40px;
+            }
+
+            .action-btn .material-icons {
                 font-size: 16px;
             }
 
             .filter-chip {
-                padding: 6px 14px;
+                padding: 8px 14px;
                 font-size: 13px;
             }
         }
@@ -624,23 +712,31 @@
             }
 
             .desktop-nav-link {
-                padding: 8px 16px;
+                padding: 10px 18px;
                 text-decoration: none;
                 color: #6b7280;
                 font-size: 14px;
-                font-weight: 500;
-                border-radius: 8px;
+                font-weight: 600;
+                border-radius: 10px;
                 transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 6px;
             }
 
             .desktop-nav-link:hover {
                 background: #f3f4f6;
-                color: #8b5cf6;
+                color: #667eea;
             }
 
             .desktop-nav-link.active {
-                background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white;
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            }
+
+            .desktop-nav-link .material-icons {
+                font-size: 18px;
             }
         }
     </style>
@@ -654,19 +750,19 @@
                 <div style="display: flex; align-items: center; gap: 16px;">
                     <nav class="desktop-nav">
                         <a href="global-chat.html" class="desktop-nav-link">
-                            <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">chat_bubble</span>
+                            <span class="material-icons">chat_bubble</span>
                             聊天
                         </a>
                         <a href="index.html" class="desktop-nav-link active">
-                            <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">place</span>
+                            <span class="material-icons">place</span>
                             附近
                         </a>
                         <a href="profile.html" class="desktop-nav-link">
-                            <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">person</span>
+                            <span class="material-icons">person</span>
                             我的
                         </a>
                     </nav>
-                    <span class="material-icons navbar-icon">search</span>
+                    <div class="navbar-icon"><span class="material-icons">search</span></div>
                 </div>
             </div>
         </div>
@@ -674,19 +770,19 @@
         <!-- 筛选栏 -->
         <div class="filter-bar">
             <button class="filter-chip active" data-filter="all">
-                <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 6px;">apps</span>
+                <span class="material-icons" style="font-size: 18px;">apps</span>
                 全部
             </button>
             <button class="filter-chip" data-filter="online">
-                <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 6px;">circle</span>
+                <span class="material-icons" style="font-size: 18px;">circle</span>
                 在线
             </button>
             <button class="filter-chip" data-filter="nearby">
-                <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 6px;">near_me</span>
+                <span class="material-icons" style="font-size: 18px;">near_me</span>
                 附近
             </button>
             <button class="filter-chip" data-filter="new">
-                <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 6px;">fiber_new</span>
+                <span class="material-icons" style="font-size: 18px;">fiber_new</span>
                 新用户
             </button>
         </div>
@@ -722,19 +818,21 @@
             window.location.href = 'login.html';
         }
 
-        // 模拟用户数据
+        // 模拟用户数据 - 全部为男性
         const mockUsers = [
-            { id: 1, name: '李明', age: 28, location: '上海 · 2.5km', online: true, vip: false, bio: '喜欢健身、旅行、摄影 🏋️‍♂️', tags: ['健身', '旅行', '摄影'] },
-            { id: 2, name: '王浩', age: 25, location: '北京 · 1.2km', online: true, vip: true, bio: '喜欢音乐、咖啡、电影 ☕', tags: ['音乐', '咖啡', '电影'] },
-            { id: 3, name: '张伟', age: 30, location: '深圳 · 5.8km', online: false, vip: false, bio: '喜欢阅读、写作、瑜伽 📚', tags: ['阅读', '瑜伽', '写作'] },
-            { id: 4, name: '刘洋', age: 27, location: '成都 · 3.2km', online: true, vip: false, bio: '喜欢美食、烹饪、旅行 🍜', tags: ['美食', '烹饪', '旅行'] },
-            { id: 5, name: '陈静', age: 26, location: '杭州 · 4.1km', online: false, vip: true, bio: '喜欢舞蹈、画画、猫咪 🐱', tags: ['舞蹈', '画画', '宠物'] },
-            { id: 6, name: '赵强', age: 29, location: '广州 · 2.8km', online: true, vip: false, bio: '喜欢篮球、游戏、科技 🏀', tags: ['运动', '游戏', '科技'] },
+            { id: 1, name: '李明', age: 28, location: '上海 · 2.5km', online: true, vip: false, bio: '喜欢健身、游泳、跑步 🏋️‍♂️', tags: ['健身', '运动', '游泳'] },
+            { id: 2, name: '王浩', age: 25, location: '北京 · 1.2km', online: true, vip: true, bio: '健身教练，喜欢户外运动 🏃‍♂️', tags: ['健身', '户外', '教练'] },
+            { id: 3, name: '张伟', age: 30, location: '深圳 · 5.8km', online: false, vip: false, bio: '程序员，喜欢科技、音乐 💻', tags: ['编程', '音乐', '科技'] },
+            { id: 4, name: '刘洋', age: 27, location: '成都 · 3.2km', online: true, vip: false, bio: '设计师，喜欢艺术、旅行 🎨', tags: ['设计', '艺术', '旅行'] },
+            { id: 5, name: '陈俊', age: 26, location: '杭州 · 4.1km', online: false, vip: true, bio: '摄影师，喜欢拍照、看电影 📷', tags: ['摄影', '电影', '艺术'] },
+            { id: 6, name: '赵强', age: 29, location: '广州 · 2.8km', online: true, vip: false, bio: '篮球爱好者，喜欢运动、游戏 🏀', tags: ['篮球', '运动', '游戏'] },
+            { id: 7, name: '孙磊', age: 24, location: '南京 · 1.5km', online: true, vip: true, bio: '音乐人，喜欢唱歌、创作 🎵', tags: ['音乐', '创作', '唱歌'] },
+            { id: 8, name: '周杰', age: 31, location: '武汉 · 3.5km', online: false, vip: false, bio: '企业家，喜欢健身、阅读 📚', tags: ['创业', '健身', '阅读'] },
         ];
 
         function renderUsers(filter = 'all') {
             const list = document.getElementById('userList');
-            let users = mockUsers;
+            let users = [...mockUsers];
 
             // 筛选
             if (filter === 'online') {
@@ -742,7 +840,7 @@
             } else if (filter === 'nearby') {
                 users = users.filter(u => parseFloat(u.location) < 4);
             } else if (filter === 'new') {
-                users = users.slice(0, 3);
+                users = users.slice(0, 4);
             }
 
             if (users.length === 0) {
@@ -756,19 +854,20 @@
                 return;
             }
 
-            list.innerHTML = users.map(user => `
-                <div class="user-item" onclick="showProfile(${user.id})">
+            list.innerHTML = users.map((user, index) => `
+                <div class="user-item" style="animation-delay: ${index * 0.1}s" onclick="showProfile(${user.id})">
                     <div class="user-avatar">
-                        ${user.name[0]}
+                        <div class="user-avatar-image">${user.name[0]}</div>
+                        <div class="user-overlay"></div>
                         ${user.online ? '<div class="online-dot"></div>' : ''}
+                        ${user.vip ? '<div class="vip-badge">VIP</div>' : ''}
                     </div>
                     <div class="user-info">
                         <div class="user-name">
                             ${user.name}, ${user.age}
-                            ${user.vip ? '<span class="vip-badge">VIP</span>' : ''}
                         </div>
                         <div class="user-details">
-                            <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">place</span>
+                            <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 2px;">place</span>
                             ${user.location}
                         </div>
                         ${user.bio ? `<div class="user-bio">${user.bio}</div>` : ''}
@@ -777,21 +876,26 @@
                                 ${user.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                             </div>
                         ` : ''}
-                    </div>
-                    <div class="user-actions">
-                        <button class="action-btn like" onclick="event.stopPropagation(); likeUser(${user.id})">
-                            <span class="material-icons">favorite</span>
-                        </button>
-                        <button class="action-btn pass" onclick="event.stopPropagation(); passUser(${user.id})">
-                            <span class="material-icons">close</span>
-                        </button>
+                        <div class="user-actions">
+                            <button class="action-btn like" onclick="event.stopPropagation(); likeUser(${user.id})">
+                                <span class="material-icons">favorite</span>
+                                <span>喜欢</span>
+                            </button>
+                            <button class="action-btn pass" onclick="event.stopPropagation(); passUser(${user.id})">
+                                <span class="material-icons">close</span>
+                                <span>跳过</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }
 
         function likeUser(id) {
-            alert('已发送喜欢！');
+            const user = mockUsers.find(u => u.id === id);
+            if (user) {
+                alert(`已发送喜欢给 ${user.name}！`);
+            }
         }
 
         function passUser(id) {
@@ -799,7 +903,10 @@
         }
 
         function showProfile(id) {
-            alert('查看用户详情: ' + id);
+            const user = mockUsers.find(u => u.id === id);
+            if (user) {
+                alert(`查看用户详情：${user.name}`);
+            }
         }
 
         // 筛选按钮点击

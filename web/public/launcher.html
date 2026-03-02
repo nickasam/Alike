@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Alike - 相似灵魂的相遇</title>
+    <script>
+        // 防止页面刷新时滚动位置记忆
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        
+        // 页面加载时强制滚动到顶部
+        window.addEventListener('beforeunload', function() {
+            window.scrollTo(0, 0);
+        });
+        
+        window.addEventListener('load', function() {
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        });
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
@@ -11,6 +28,14 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        html {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
         }
 
         /* Material Icons 字体设置 */
@@ -39,6 +64,9 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            width: 100%;
+            margin: 0;
+            padding: 0;
         }
 
         @keyframes gradientShift {
@@ -105,8 +133,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
             z-index: 100;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
@@ -179,7 +209,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 80px 20px 60px;
+            padding: 100px 20px 60px;
             position: relative;
             z-index: 1;
         }
