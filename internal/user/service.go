@@ -118,6 +118,5 @@ func (s *Service) Update(user *domain.User) error {
 }
 
 func (s *Service) FindNearby(lat, lng float64, radiusKm float64, page, limit int) ([]domain.User, error) {
-	offset := (page - 1) * limit
 	return s.repo.FindNearby(lat, lng, radiusKm, limit)
 }

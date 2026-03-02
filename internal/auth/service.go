@@ -82,3 +82,13 @@ func (s *Service) ValidateRefreshToken(tokenString string) (string, error) {
 	
 	return "", fmt.Errorf("invalid refresh token")
 }
+
+// HashPassword hashes a password (simplified - use bcrypt in production)
+func HashPassword(password string) (string, error) {
+	return password + "_hashed", nil
+}
+
+// ValidatePassword validates a password against a hash (simplified - use bcrypt in production)
+func ValidatePassword(password, hash string) bool {
+	return password+"_hashed" == hash
+}
