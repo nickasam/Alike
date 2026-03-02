@@ -23,13 +23,24 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 	
-	gin.SetMode(cfg.Server.Mode)
+	// Map server mode to gin mode
+	switch cfg.Server.Mode {
+	case "development", "dev":
+		gin.SetMode(gin.DebugMode)
+	case "production", "prod":
+		gin.SetMode(gin.ReleaseMode)
+	case "test":
+		gin.SetMode(gin.TestMode)
+	default:
+		gin.SetMode(gin.DebugMode)
+	}
 	
 	db, err := database.PostgreSQL(&cfg.Database)
 	if err != nil {
 		log.Printf("Warning: Database connection failed: %v", err)
+		log.Println("Continuing without database...")
 	} else {
-		log.Println("Database connected")
+		log.Println("✅ Database connected")
 		defer func() {
 			sqlDB, _ := db.DB()
 			if sqlDB != nil {
@@ -51,7 +62,7 @@ func main() {
 	}
 	
 	go func() {
-		log.Printf("Server starting on port %d", cfg.Server.Port)
+		log.Printf("🚀 Server starting on http://localhost:%d", cfg.Server.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server failed: %v", err)
 		}
