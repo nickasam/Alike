@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alike - 连接真实的自己</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Alike - 相似灵魂的相遇</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -14,9 +14,17 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background: linear-gradient(135deg, #e40303 0%, #ff8c00 16%, #ffed00 33%, #008026 50%, #24408e 66%, #732982 83%, #e40303 100%);
+            background-size: 400% 400%;
+            animation: rainbow 15s ease infinite;
             min-height: 100vh;
             padding: 20px;
+        }
+
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .container {
@@ -26,12 +34,12 @@
 
         /* Auth Screen */
         .auth-screen {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 40px 30px;
-            margin-top: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border-radius: 28px;
+            padding: 45px 35px;
+            margin-top: 35px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.3);
             animation: slideUp 0.6s ease-out;
         }
 
@@ -51,31 +59,36 @@
             margin-bottom: 35px;
         }
 
-        /* 新Logo - 两个人连接的形状 */
         .logo-icon {
-            width: 100px;
-            height: 100px;
+            width: 110px;
+            height: 110px;
             margin: 0 auto 20px;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         .logo-icon svg {
             width: 100%;
             height: 100%;
-            filter: drop-shadow(0 10px 30px rgba(102, 126, 234, 0.4));
+            filter: drop-shadow(0 12px 35px rgba(0,0,0,0.25));
         }
 
         .logo h1 {
-            font-size: 40px;
+            font-size: 42px;
             font-weight: 800;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e40303 0%, #ff8c00 25%, #008026 50%, #24408e 75%, #732982 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 8px;
-            letter-spacing: -1px;
+            letter-spacing: -2px;
         }
 
         .logo p {
@@ -116,15 +129,15 @@
 
         .form-group input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #732982;
             background: white;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 4px rgba(115, 41, 130, 0.1);
         }
 
         .btn {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #732982 0%, #24408e 50%, #008026 100%);
             color: white;
             border: none;
             border-radius: 12px;
@@ -132,16 +145,12 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(115, 41, 130, 0.4);
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-        }
-
-        .btn:active {
-            transform: translateY(0);
+            box-shadow: 0 8px 25px rgba(115, 41, 130, 0.5);
         }
 
         .toggle-auth {
@@ -152,7 +161,7 @@
         }
 
         .toggle-auth a {
-            color: #667eea;
+            color: #732982;
             text-decoration: none;
             font-weight: 600;
         }
@@ -163,11 +172,11 @@
         }
 
         .header {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
             padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 22px;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.12);
             animation: slideDown 0.6s ease-out;
         }
 
@@ -196,8 +205,8 @@
         }
 
         .header-logo {
-            width: 44px;
-            height: 44px;
+            width: 46px;
+            height: 46px;
             position: relative;
             display: flex;
             align-items: center;
@@ -210,9 +219,9 @@
         }
 
         .header h1 {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 800;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e40303 0%, #ff8c00 25%, #008026 50%, #24408e 75%, #732982 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -1px;
@@ -253,9 +262,9 @@
         }
 
         .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #732982 0%, #24408e 50%, #008026 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(115, 41, 130, 0.3);
         }
 
         .content {
@@ -263,7 +272,7 @@
         }
 
         .user-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 20px;
@@ -296,19 +305,18 @@
             margin-bottom: 15px;
         }
 
-        /* 人物头像 - 更有设计感 */
         .avatar {
             width: 70px;
             height: 70px;
             border-radius: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e40303 0%, #ff8c00 33%, #008026 66%, #732982 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 28px;
             font-weight: 700;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 15px rgba(115, 41, 130, 0.3);
             position: relative;
             overflow: hidden;
         }
@@ -320,8 +328,14 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
             transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
         }
 
         .user-info h3 {
@@ -341,9 +355,9 @@
             color: #6b7280;
             line-height: 1.5;
             padding: 15px;
-            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 25%, #f0fdf4 50%, #eff6ff 75%, #faf5ff 100%);
             border-radius: 12px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #732982;
         }
 
         .tags {
@@ -355,11 +369,19 @@
 
         .tag {
             padding: 6px 12px;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            color: #0369a1;
             border-radius: 20px;
             font-size: 13px;
             font-weight: 500;
+        }
+
+        .tag:nth-child(1) {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+        }
+
+        .tag:nth-child(2) {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
         }
 
         .actions {
@@ -380,14 +402,14 @@
         }
 
         .like-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e40303 0%, #ff8c00 50%, #008026 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(228, 3, 3, 0.3);
         }
 
         .like-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(228, 3, 3, 0.4);
         }
 
         .hidden {
@@ -399,6 +421,8 @@
             padding: 40px 20px;
             color: white;
             font-size: 16px;
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         .loading::after {
@@ -413,7 +437,7 @@
         }
 
         .error {
-            background: rgba(254, 242, 242, 0.95);
+            background: rgba(254, 242, 242, 0.98);
             backdrop-filter: blur(20px);
             color: #dc2626;
             padding: 16px;
@@ -424,7 +448,7 @@
         }
 
         .success {
-            background: rgba(236, 253, 245, 0.95);
+            background: rgba(236, 253, 245, 0.98);
             backdrop-filter: blur(20px);
             color: #059669;
             padding: 16px;
@@ -441,47 +465,52 @@
         }
 
         .empty-state-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
+            font-size: 72px;
+            margin-bottom: 20px;
             animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 4px 15px rgba(0,0,0,0.3));
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-8px) rotate(2deg); }
+            75% { transform: translateY(-8px) rotate(-2deg); }
         }
 
         .empty-state-text {
-            font-size: 18px;
-            font-weight: 500;
+            font-size: 20px;
+            font-weight: 600;
             margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         .empty-state-sub {
             font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.85);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         /* Stats card */
         .stats-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
             border-radius: 20px;
-            padding: 30px;
+            padding: 35px;
             margin-bottom: 15px;
             text-align: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
 
         .stats-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
+            font-size: 64px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 15px rgba(0,0,0,0.15));
         }
 
         .stats-number {
-            font-size: 56px;
+            font-size: 64px;
             font-weight: 800;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e40303 0%, #ff8c00 25%, #008026 50%, #24408e 75%, #732982 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 8px;
@@ -489,12 +518,11 @@
         }
 
         .stats-label {
-            font-size: 16px;
+            font-size: 17px;
             color: #6b7280;
             font-weight: 500;
         }
 
-        /* Icon styles for tabs */
         .tab-icon {
             margin-right: 6px;
         }
@@ -506,40 +534,46 @@
         <div id="authScreen" class="auth-screen">
             <div class="logo">
                 <div class="logo-icon">
-                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- 左边的人 -->
-                        <circle cx="35" cy="38" r="12" fill="url(#gradient1)"/>
-                        <path d="M20 70 Q20 55 35 55 Q50 55 50 70" stroke="url(#gradient1)" stroke-width="8" stroke-linecap="round"/>
+                    <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 外圈彩虹环 -->
+                        <circle cx="60" cy="60" r="50" stroke="url(#rainbow1)" stroke-width="12" fill="none" stroke-linecap="round"/>
                         
-                        <!-- 右边的人 -->
-                        <circle cx="65" cy="38" r="12" fill="url(#gradient2)"/>
-                        <path d="M50 70 Q50 55 65 55 Q80 55 80 70" stroke="url(#gradient2)" stroke-width="8" stroke-linecap="round"/>
+                        <!-- 内圈心形 - 由两个交织的弧组成 -->
+                        <!-- 左半心 -->
+                        <path d="M60 85 C60 85, 30 65, 30 45 C30 30, 45 25, 60 40" 
+                              stroke="#e40303" stroke-width="10" stroke-linecap="round" fill="none"/>
                         
-                        <!-- 连接的心 -->
-                        <path d="M50 60 L50 50" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M50 50 L45 45" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M50 50 L55 45" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-                        <circle cx="50" cy="42" r="3" fill="#ef4444"/>
+                        <!-- 右半心 -->
+                        <path d="M60 85 C60 85, 90 65, 90 45 C90 30, 75 25, 60 40" 
+                              stroke="#ff8c00" stroke-width="10" stroke-linecap="round" fill="none"/>
+                        
+                        <!-- 中心连接点 -->
+                        <circle cx="60" cy="55" r="8" fill="url(#rainbow2)"/>
                         
                         <!-- 渐变定义 -->
                         <defs>
-                            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#667eea"/>
-                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            <linearGradient id="rainbow1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#e40303"/>
+                                <stop offset="20%" style="stop-color:#ff8c00"/>
+                                <stop offset="40%" style="stop-color:#ffed00"/>
+                                <stop offset="60%" style="stop-color:#008026"/>
+                                <stop offset="80%" style="stop-color:#24408e"/>
+                                <stop offset="100%" style="stop-color:#732982"/>
                             </linearGradient>
-                            <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#f093fb"/>
-                                <stop offset="100%" style="stop-color:#667eea"/>
+                            <linearGradient id="rainbow2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ff8c00"/>
+                                <stop offset="50%" style="stop-color:#008026"/>
+                                <stop offset="100%" style="stop-color:#732982"/>
                             </linearGradient>
                         </defs>
                     </svg>
                 </div>
                 <h1>Alike</h1>
-                <p>两个灵魂，一个世界</p>
+                <p>相似灵魂的相遇</p>
             </div>
             
             <div id="loginForm">
-                <div class="form-title">欢迎回来</div>
+                <div class="form-title">欢迎回来 🏳️‍🌈</div>
                 <div class="form-group">
                     <label>手机号</label>
                     <input type="tel" id="loginPhone" value="+8613800138000" placeholder="+8613800138000">
@@ -555,7 +589,7 @@
             </div>
 
             <div id="registerForm" class="hidden">
-                <div class="form-title">创建账号</div>
+                <div class="form-title">创建账号 🌈</div>
                 <div class="form-group">
                     <label>手机号</label>
                     <input type="tel" id="registerPhone" placeholder="+8613800138000">
@@ -585,23 +619,24 @@
                 <div class="header-content">
                     <div class="header-left">
                         <div class="header-logo">
-                            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="35" cy="38" r="12" fill="url(#gradient1)"/>
-                                <path d="M20 70 Q20 55 35 55 Q50 55 50 70" stroke="url(#gradient1)" stroke-width="8" stroke-linecap="round"/>
-                                <circle cx="65" cy="38" r="12" fill="url(#gradient2)"/>
-                                <path d="M50 70 Q50 55 65 55 Q80 55 80 70" stroke="url(#gradient2)" stroke-width="8" stroke-linecap="round"/>
-                                <path d="M50 60 L50 50" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-                                <path d="M50 50 L45 45" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-                                <path d="M50 50 L55 45" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-                                <circle cx="50" cy="42" r="3" fill="#ef4444"/>
+                            <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="60" cy="60" r="50" stroke="url(#rainbow1)" stroke-width="12" fill="none" stroke-linecap="round"/>
+                                <path d="M60 85 C60 85, 30 65, 30 45 C30 30, 45 25, 60 40" stroke="#e40303" stroke-width="10" stroke-linecap="round" fill="none"/>
+                                <path d="M60 85 C60 85, 90 65, 90 45 C90 30, 75 25, 60 40" stroke="#ff8c00" stroke-width="10" stroke-linecap="round" fill="none"/>
+                                <circle cx="60" cy="55" r="8" fill="url(#rainbow2)"/>
                                 <defs>
-                                    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#667eea"/>
-                                        <stop offset="100%" style="stop-color:#764ba2"/>
+                                    <linearGradient id="rainbow1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#e40303"/>
+                                        <stop offset="20%" style="stop-color:#ff8c00"/>
+                                        <stop offset="40%" style="stop-color:#ffed00"/>
+                                        <stop offset="60%" style="stop-color:#008026"/>
+                                        <stop offset="80%" style="stop-color:#24408e"/>
+                                        <stop offset="100%" style="stop-color:#732982"/>
                                     </linearGradient>
-                                    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#f093fb"/>
-                                        <stop offset="100%" style="stop-color:#667eea"/>
+                                    <linearGradient id="rainbow2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#ff8c00"/>
+                                        <stop offset="50%" style="stop-color:#008026"/>
+                                        <stop offset="100%" style="stop-color:#732982"/>
                                     </linearGradient>
                                 </defs>
                             </svg>
@@ -612,10 +647,10 @@
                 </div>
                 <div class="tabs">
                     <button class="tab active" onclick="switchTab('nearby')">
-                        <span class="tab-icon">📍</span>附近
+                        <span class="tab-icon">🌍</span>附近
                     </button>
                     <button class="tab" onclick="switchTab('matches')">
-                        <span class="tab-icon">💕</span>匹配
+                        <span class="tab-icon">💑</span>匹配
                     </button>
                     <button class="tab" onclick="switchTab('chats')">
                         <span class="tab-icon">💬</span>聊天
@@ -761,7 +796,7 @@
             if (!users || users.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">👥</div>
+                        <div class="empty-state-icon">🌈</div>
                         <div class="empty-state-text">暂无用户</div>
                         <div class="empty-state-sub">运行 ./scripts/setup-db.sh 导入测试数据</div>
                     </div>
@@ -780,11 +815,11 @@
                     </div>
                     ${user.bio ? `<div class="user-bio">${user.bio}</div>` : ''}
                     <div class="tags">
-                        <span class="tag">📍 附近</span>
+                        <span class="tag">🏳️‍🌈 社区</span>
                         <span class="tag">💬 在线</span>
                     </div>
                     <div class="actions">
-                        <button class="action-btn like-btn" onclick="likeUser('${user.id}')">❤️ 喜欢</button>
+                        <button class="action-btn like-btn" onclick="likeUser('${user.id}')">💖 喜欢</button>
                     </div>
                 </div>
             `).join('');
@@ -804,7 +839,7 @@
                     if (!data.data || data.data.length === 0) {
                         content.innerHTML = `
                             <div class="empty-state">
-                                <div class="empty-state-icon">💕</div>
+                                <div class="empty-state-icon">💑</div>
                                 <div class="empty-state-text">暂无匹配</div>
                                 <div class="empty-state-sub">喜欢更多用户来获得匹配</div>
                             </div>
@@ -812,7 +847,7 @@
                     } else {
                         content.innerHTML = `
                             <div class="stats-card">
-                                <div class="stats-icon">💕</div>
+                                <div class="stats-icon">💑</div>
                                 <div class="stats-number">${data.data.length}</div>
                                 <div class="stats-label">个匹配</div>
                             </div>
