@@ -51,26 +51,31 @@
             margin-bottom: 35px;
         }
 
+        /* 新Logo - 两个人连接的形状 */
         .logo-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 24px;
+            width: 100px;
+            height: 100px;
             margin: 0 auto 20px;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .logo-icon svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 10px 30px rgba(102, 126, 234, 0.4));
         }
 
         .logo h1 {
-            font-size: 36px;
-            font-weight: 700;
+            font-size: 40px;
+            font-weight: 800;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 8px;
+            letter-spacing: -1px;
         }
 
         .logo p {
@@ -191,22 +196,26 @@
         }
 
         .header-logo {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 20px;
-            font-weight: 700;
+        }
+
+        .header-logo svg {
+            width: 100%;
+            height: 100%;
         }
 
         .header h1 {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1f2937;
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
         }
 
         .logout-btn {
@@ -240,6 +249,7 @@
             font-weight: 500;
             color: #6b7280;
             transition: all 0.3s;
+            font-size: 15px;
         }
 
         .tab.active {
@@ -286,6 +296,7 @@
             margin-bottom: 15px;
         }
 
+        /* 人物头像 - 更有设计感 */
         .avatar {
             width: 70px;
             height: 70px;
@@ -298,6 +309,19 @@
             font-size: 28px;
             font-weight: 700;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
         }
 
         .user-info h3 {
@@ -417,8 +441,14 @@
         }
 
         .empty-state-icon {
-            font-size: 48px;
+            font-size: 64px;
             margin-bottom: 16px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
         .empty-state-text {
@@ -437,19 +467,25 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 20px;
-            padding: 24px;
+            padding: 30px;
             margin-bottom: 15px;
             text-align: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
 
-        .stats-number {
+        .stats-icon {
             font-size: 48px;
-            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .stats-number {
+            font-size: 56px;
+            font-weight: 800;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 8px;
+            line-height: 1;
         }
 
         .stats-label {
@@ -458,21 +494,9 @@
             font-weight: 500;
         }
 
-        /* Enhanced input focus */
-        .form-group input::placeholder {
-            color: #9ca3af;
-        }
-
-        /* Better button states */
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Smooth transitions */
-        * {
-            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+        /* Icon styles for tabs */
+        .tab-icon {
+            margin-right: 6px;
         }
     </style>
 </head>
@@ -481,9 +505,37 @@
         <!-- Auth Screen -->
         <div id="authScreen" class="auth-screen">
             <div class="logo">
-                <div class="logo-icon">✓</div>
+                <div class="logo-icon">
+                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 左边的人 -->
+                        <circle cx="35" cy="38" r="12" fill="url(#gradient1)"/>
+                        <path d="M20 70 Q20 55 35 55 Q50 55 50 70" stroke="url(#gradient1)" stroke-width="8" stroke-linecap="round"/>
+                        
+                        <!-- 右边的人 -->
+                        <circle cx="65" cy="38" r="12" fill="url(#gradient2)"/>
+                        <path d="M50 70 Q50 55 65 55 Q80 55 80 70" stroke="url(#gradient2)" stroke-width="8" stroke-linecap="round"/>
+                        
+                        <!-- 连接的心 -->
+                        <path d="M50 60 L50 50" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M50 50 L45 45" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M50 50 L55 45" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+                        <circle cx="50" cy="42" r="3" fill="#ef4444"/>
+                        
+                        <!-- 渐变定义 -->
+                        <defs>
+                            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            </linearGradient>
+                            <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#f093fb"/>
+                                <stop offset="100%" style="stop-color:#667eea"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
                 <h1>Alike</h1>
-                <p>连接真实的自己</p>
+                <p>两个灵魂，一个世界</p>
             </div>
             
             <div id="loginForm">
@@ -532,15 +584,42 @@
             <div class="header">
                 <div class="header-content">
                     <div class="header-left">
-                        <div class="header-logo">✓</div>
+                        <div class="header-logo">
+                            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="35" cy="38" r="12" fill="url(#gradient1)"/>
+                                <path d="M20 70 Q20 55 35 55 Q50 55 50 70" stroke="url(#gradient1)" stroke-width="8" stroke-linecap="round"/>
+                                <circle cx="65" cy="38" r="12" fill="url(#gradient2)"/>
+                                <path d="M50 70 Q50 55 65 55 Q80 55 80 70" stroke="url(#gradient2)" stroke-width="8" stroke-linecap="round"/>
+                                <path d="M50 60 L50 50" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+                                <path d="M50 50 L45 45" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+                                <path d="M50 50 L55 45" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="50" cy="42" r="3" fill="#ef4444"/>
+                                <defs>
+                                    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#667eea"/>
+                                        <stop offset="100%" style="stop-color:#764ba2"/>
+                                    </linearGradient>
+                                    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#f093fb"/>
+                                        <stop offset="100%" style="stop-color:#667eea"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
                         <h1>Alike</h1>
                     </div>
                     <button class="logout-btn" onclick="logout()">退出</button>
                 </div>
                 <div class="tabs">
-                    <button class="tab active" onclick="switchTab('nearby')">附近</button>
-                    <button class="tab" onclick="switchTab('matches')">匹配</button>
-                    <button class="tab" onclick="switchTab('chats')">聊天</button>
+                    <button class="tab active" onclick="switchTab('nearby')">
+                        <span class="tab-icon">📍</span>附近
+                    </button>
+                    <button class="tab" onclick="switchTab('matches')">
+                        <span class="tab-icon">💕</span>匹配
+                    </button>
+                    <button class="tab" onclick="switchTab('chats')">
+                        <span class="tab-icon">💬</span>聊天
+                    </button>
                 </div>
             </div>
 
@@ -733,6 +812,7 @@
                     } else {
                         content.innerHTML = `
                             <div class="stats-card">
+                                <div class="stats-icon">💕</div>
                                 <div class="stats-number">${data.data.length}</div>
                                 <div class="stats-label">个匹配</div>
                             </div>
@@ -768,6 +848,7 @@
                     } else {
                         content.innerHTML = `
                             <div class="stats-card">
+                                <div class="stats-icon">💬</div>
                                 <div class="stats-number">${data.data.length}</div>
                                 <div class="stats-label">个聊天</div>
                             </div>
