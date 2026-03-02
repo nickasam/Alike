@@ -18,6 +18,10 @@ func ValidationError(c *gin.Context, message string) {
 	Error(c, "VALIDATION_ERROR", message, http.StatusBadRequest)
 }
 
+func NotFound(c *gin.Context, message string) {
+	Error(c, "NOT_FOUND", message, http.StatusNotFound)
+}
+
 func Unauthorized(c *gin.Context, message string) {
 	Error(c, "UNAUTHORIZED", message, http.StatusUnauthorized)
 }

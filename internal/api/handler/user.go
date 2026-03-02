@@ -3,11 +3,9 @@ package handler
 import (
 	"strconv"
 
-	"github.com/Alike/internal/domain"
 	"github.com/Alike/internal/user"
 	"github.com/Alike/internal/pkg/response"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type UserHandler struct {
