@@ -12,14 +12,17 @@ func Setup(authHandler *handler.AuthHandler,
 	chatHandler *handler.ChatHandler,
 	notificationHandler *handler.NotificationHandler,
 	globalChatHandler *handler.GlobalChatHandler) *gin.Engine {
-	
+
 	r := gin.Default()
-	
+
+	// CORS 中间件 - 必须在路由之前设置
+	r.Use(middleware.CORSMiddleware())
+
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
-	
+
 	// API v1
 	v1 := r.Group("/api/v1")
 	{
@@ -32,7 +35,7 @@ func Setup(authHandler *handler.AuthHandler,
 			auth.POST("/logout", authHandler.Logout)
 			auth.GET("/me", middleware.Auth(), authHandler.Me)
 		}
-		
+
 		// 用户
 		users := v1.Group("/users")
 		users.Use(middleware.Auth())
@@ -41,7 +44,7 @@ func Setup(authHandler *handler.AuthHandler,
 			users.PUT("/me", userHandler.UpdateMe)
 			users.GET("/nearby", userHandler.GetNearby)
 		}
-		
+
 		// 匹配
 		matches := v1.Group("/matches")
 		matches.Use(middleware.Auth())
@@ -50,7 +53,7 @@ func Setup(authHandler *handler.AuthHandler,
 			matches.GET("/:id", matchHandler.GetMatch)
 			matches.POST("/:id/like", matchHandler.LikeUser)
 		}
-		
+
 		// 聊天
 		chats := v1.Group("/chats")
 		chats.Use(middleware.Auth())
@@ -60,7 +63,7 @@ func Setup(authHandler *handler.AuthHandler,
 			chats.GET("/:id/messages", chatHandler.GetMessages)
 			chats.POST("/:id/messages", chatHandler.SendMessage)
 		}
-		
+
 		// 通知
 		notifications := v1.Group("/notifications")
 		notifications.Use(middleware.Auth())
@@ -69,7 +72,7 @@ func Setup(authHandler *handler.AuthHandler,
 			notifications.POST("/:id/read", notificationHandler.MarkAsRead)
 			notifications.POST("/read-all", notificationHandler.MarkAllAsRead)
 		}
-		
+
 		// 全局聊天室
 		global := v1.Group("/global")
 		global.Use(middleware.Auth())
@@ -80,6 +83,6 @@ func Setup(authHandler *handler.AuthHandler,
 			global.POST("/join", globalChatHandler.JoinGlobalRoom)
 		}
 	}
-	
+
 	return r
 }

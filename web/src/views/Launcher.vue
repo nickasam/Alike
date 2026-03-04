@@ -36,7 +36,7 @@
       <!-- 功能卡片 -->
       <div class="features-grid">
         <!-- 全局聊天室 -->
-        <div class="feature-card primary" @click="router.push('/global')">
+        <div class="feature-card primary" @click="handleNavigateToGlobal">
           <div class="feature-image">
             <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=600&fit=crop" alt="一群男人在讨论聊天">
             <div class="feature-overlay"></div>
@@ -100,6 +100,19 @@ const isLoggedIn = userStore.isLoggedIn
 const handleLogout = async () => {
   await userStore.logout()
   window.location.reload()
+}
+
+// 导航到全局聊天室，检查登录状态
+const handleNavigateToGlobal = () => {
+  if (isLoggedIn.value) {
+    router.push('/global')
+  } else {
+    // 未登录，跳转到登录页并保存返回地址
+    router.push({
+      path: '/login',
+      query: { redirect: '/global' }
+    })
+  }
 }
 </script>
 
@@ -424,36 +437,8 @@ const handleLogout = async () => {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.5) 100%);
 }
 
-.feature-icon-badge {
-  position: absolute;
-  bottom: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 70px;
-  height: 70px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-}
-
-.feature-card.primary .feature-icon-badge {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.feature-card.secondary .feature-icon-badge {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.feature-icon-badge .material-icons {
-  font-size: 36px;
-  color: white;
-}
-
 .feature-content {
-  padding: 50px 36px 36px;
+  padding: 36px;
   text-align: center;
 }
 
@@ -593,17 +578,8 @@ const handleLogout = async () => {
     height: 220px;
   }
 
-  .feature-icon-badge {
-    width: 60px;
-    height: 60px;
-  }
-
-  .feature-icon-badge .material-icons {
-    font-size: 30px;
-  }
-
   .feature-content {
-    padding: 42px 28px 32px;
+    padding: 28px;
   }
 
   .feature-title {
@@ -638,7 +614,7 @@ const handleLogout = async () => {
   }
 
   .feature-content {
-    padding: 38px 20px 28px;
+    padding: 24px 20px;
   }
 
   .feature-title {
