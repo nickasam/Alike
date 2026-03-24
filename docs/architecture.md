@@ -15,50 +15,55 @@ Alike/
 ├── internal/              # 私有应用代码
 │   ├── api/              # HTTP handlers
 │   │   ├── handler/      # 请求处理器
+│   │   │   ├── auth.go
+│   │   │   ├── chat.go
+│   │   │   ├── global_chat.go
+│   │   │   ├── match.go
+│   │   │   ├── notification.go
+│   │   │   └── user.go
 │   │   ├── middleware/   # 中间件
+│   │   │   ├── auth.go
+│   │   │   └── common.go
 │   │   └── router/       # 路由配置
+│   │       └── router.go
 │   │
 │   ├── auth/             # 认证服务
-│   │   ├── jwt.go
-│   │   ├── password.go
 │   │   └── service.go
 │   │
 │   ├── chat/             # 聊天服务
-│   │   ├── service.go
-│   │   ├── websocket.go
-│   │   └── types.go
+│   │   └── service.go
 │   │
 │   ├── match/            # 匹配服务
-│   │   ├── service.go
-│   │   ├── algorithm.go
-│   │   └── types.go
+│   │   └── service.go
 │   │
 │   ├── user/             # 用户服务
-│   │   ├── service.go
 │   │   ├── repository.go
-│   │   └── types.go
+│   │   └── service.go
 │   │
 │   ├── notification/     # 推送通知
-│   │   ├── service.go
-│   │   ├── fcm.go
-│   │   └── apns.go
+│   │   └── service.go
 │   │
 │   ├── upload/           # 文件上传
-│   │   ├── service.go
-│   │   ├── oss.go
-│   │   └── types.go
+│   │   └── (待实现)
 │   │
 │   ├── pkg/              # 内部共享包
 │   │   ├── errors/       # 错误定义
 │   │   ├── logger/       # 日志
-│   │   ├── validator/    # 验证器
-│   │   └── response/     # API响应
+│   │   ├── response/     # API响应
+│   │   │   └── response.go
+│   │   └── validator/    # 验证器
+│   │
+│   ├── repository/       # 数据访问层
+│   │   ├── global_chat.go
+│   │   └── user.go
 │   │
 │   └── domain/           # 领域模型
-│       ├── user.go
 │       ├── chat.go
+│       ├── common.go
+│       ├── global_chat.go
 │       ├── match.go
-│       └── notification.go
+│       ├── notification.go
+│       └── user.go
 │
 ├── pkg/                  # 公共库（可被外部导入）
 │   ├── database/         # 数据库连接
@@ -109,101 +114,133 @@ Alike/
 
 ### 后端
 - **语言**: Go 1.21+
-- **框架**: Gin / Fiber
-- **数据库**: PostgreSQL 15+
-- **缓存**: Redis 7+
-- **消息队列**: Redis Streams / RabbitMQ
-- **WebSocket**: gorilla/websocket
-- **ORM**: GORM
-- **验证**: go-playground/validator
-- **配置**: Viper
-- **日志**: Zap
+- **框架**: Gin ✅
+- **数据库**: PostgreSQL 14+ ✅
+- **缓存**: Redis 7+ (计划中)
+- **消息队列**: Redis Streams (计划中)
+- **WebSocket**: gorilla/websocket (计划中)
+- **验证**: go-playground/validator ✅
+- **配置**: Viper ✅
+- **日志**: Zap (计划中)
+
+### 前端
+- **技术栈**: 纯 HTML/CSS/JavaScript ✅
+- **UI 设计**: Material Icons + 自定义设计系统 ✅
+- **响应式**: 桌面端/移动端适配 ✅
+- **PWA 支持**: 计划中
 
 ### 基础设施
-- **容器**: Docker
-- **编排**: Docker Compose / Kubernetes
-- **反向代理**: Nginx
-- **监控**: Prometheus + Grafana
-- **追踪**: Jaeger
-- **CI/CD**: GitHub Actions
+- **容器**: Docker ✅
+- **编排**: Docker Compose ✅
+- **反向代理**: Nginx ✅
+- **监控**: Prometheus + Grafana (计划中)
+- **CI/CD**: GitHub Actions (计划中)
 
-### 存储
+### 存储 (计划中)
 - **对象存储**: 阿里云OSS / AWS S3
 - **CDN**: 阿里云CDN / Cloudflare
 
-### 推送
+### 推送 (计划中)
 - **iOS**: APNs
 - **Android**: Firebase Cloud Messaging
 
+## 实现状态
+
+| 模块 | 状态 | 完成度 | 说明 |
+|------|------|--------|------|
+| 认证系统 | ✅ 已实现 | 80% | 注册、登录、JWT 完成，缺少 SMS 验证 |
+| 用户系统 | ✅ 已实现 | 70% | CRUD 完成，缺少头像上传 |
+| 匹配系统 | 🚧 开发中 | 40% | 基础匹配完成，缺少推荐算法 |
+| 聊天系统 | 🚧 开发中 | 60% | 全局聊天完成，私聊部分完成 |
+| 通知系统 | ✅ 已实现 | 50% | 基础通知完成，缺少推送 |
+| 数据库 | ✅ 已实现 | 90% | 表结构完成，需要优化索引 |
+| API 文档 | 📋 计划中 | 0% | 待生成 Swagger/OpenAPI |
+| 前端页面 | 🚧 开发中 | 40% | 基础页面完成，缺少交互 |
+| WebSocket | 📋 计划中 | 0% | 待实现 |
+| 文件上传 | 📋 计划中 | 0% | 待实现 |
+
 ## API Design
 
-### 认证相关
+### 健康检查
 ```
-POST   /api/v1/auth/register
-POST   /api/v1/auth/login
-POST   /api/v1/auth/logout
-POST   /api/v1/auth/refresh
-POST   /api/v1/auth/verify
-POST   /api/v1/auth/forgot-password
-POST   /api/v1/auth/reset-password
+GET    /health                     # ✅ 已实现
 ```
 
-### 用户相关
+### 认证相关 (✅ 已实现)
 ```
-GET    /api/v1/users/me
-PUT    /api/v1/users/me
-DELETE /api/v1/users/me
-GET    /api/v1/users/:id
-POST   /api/v1/users/me/avatar
-GET    /api/v1/users/nearby
-GET    /api/v1/users/recommend
-POST   /api/v1/users/:id/view
-POST   /api/v1/users/:id/like
-DELETE /api/v1/users/:id/like
-POST   /api/v1/users/:id/block
-DELETE /api/v1/users/:id/block
-GET    /api/v1/users/blocked
+POST   /api/v1/auth/register       # 用户注册
+POST   /api/v1/auth/login          # 用户登录
+POST   /api/v1/auth/refresh        # 刷新Token
+POST   /api/v1/auth/logout         # 用户登出
+GET    /api/v1/auth/me             # 获取当前用户信息（需认证）
 ```
 
-### 匹配相关
+### 用户相关 (✅ 部分实现)
 ```
-POST   /api/v1/matches
-GET    /api/v1/matches
-GET    /api/v1/matches/:id
-DELETE /api/v1/matches/:id
-POST   /api/v1/matches/:id/read
-```
-
-### 聊天相关
-```
-GET    /api/v1/chats
-GET    /api/v1/chats/:id
-POST   /api/v1/chats
-DELETE /api/v1/chats/:id
-GET    /api/v1/chats/:id/messages
-POST   /api/v1/chats/:id/messages
-POST   /api/v1/chats/:id/messages/:id/read
-DELETE /api/v1/chats/:id/messages/:id
-
-# WebSocket
-WS     /api/v1/chats/:id/ws
+GET    /api/v1/users/me            # 获取当前用户信息 ✅
+PUT    /api/v1/users/me            # 更新当前用户信息 ✅
+GET    /api/v1/users/nearby        # 获取附近用户 ✅
+POST   /api/v1/users/:id/view      # 记录用户访问 📋
+POST   /api/v1/users/:id/like      # 点赞用户 📋
+DELETE /api/v1/users/:id/like      # 取消点赞 📋
+POST   /api/v1/users/:id/block     # 屏蔽用户 📋
+DELETE /api/v1/users/:id/block     # 取消屏蔽 📋
+GET    /api/v1/users/:id           # 获取用户详情 📋
+POST   /api/v1/users/me/avatar     # 上传头像 📋
+GET    /api/v1/users/recommend     # 推荐用户 📋
+GET    /api/v1/users/blocked       # 获取屏蔽列表 📋
 ```
 
-### 通知相关
+### 匹配相关 (✅ 部分实现)
 ```
-GET    /api/v1/notifications
-POST   /api/v1/notifications/:id/read
-POST   /api/v1/notifications/read-all
-PUT    /api/v1/notifications/settings
-GET    /api/v1/notifications/settings
+GET    /api/v1/matches             # 获取匹配列表 ✅
+GET    /api/v1/matches/:id         # 获取匹配详情 ✅
+POST   /api/v1/matches/:id/like    # 点赞用户 ✅
+POST   /api/v1/matches             # 创建匹配 📋
+DELETE /api/v1/matches/:id         # 删除匹配 📋
+POST   /api/v1/matches/:id/read    # 标记为已读 📋
 ```
 
-### 上传相关
+### 聊天相关 (✅ 部分实现)
 ```
-POST   /api/v1/upload/image
-POST   /api/v1/upload/avatar
-DELETE /api/v1/upload/:id
+GET    /api/v1/chats               # 获取聊天列表 ✅
+GET    /api/v1/chats/:id           # 获取聊天详情 ✅
+GET    /api/v1/chats/:id/messages  # 获取消息列表 ✅
+POST   /api/v1/chats/:id/messages  # 发送消息 ✅
+POST   /api/v1/chats               # 创建聊天 📋
+DELETE /api/v1/chats/:id           # 删除聊天 📋
+POST   /api/v1/chats/:id/messages/:id/read  # 标记消息已读 📋
+DELETE /api/v1/chats/:id/messages/:id       # 删除消息 📋
+WS     /api/v1/chats/:id/ws        # WebSocket 连接 📋
 ```
+
+### 全局聊天室 (✅ 已实现)
+```
+GET    /api/v1/global/room         # 获取全局聊天室信息 ✅
+GET    /api/v1/global/messages     # 获取全局消息 ✅
+POST   /api/v1/global/messages     # 发送全局消息 ✅
+POST   /api/v1/global/join         # 加入聊天室 ✅
+```
+
+### 通知相关 (✅ 已实现)
+```
+GET    /api/v1/notifications       # 获取通知列表 ✅
+POST   /api/v1/notifications/:id/read    # 标记为已读 ✅
+POST   /api/v1/notifications/read-all    # 全部标记为已读 ✅
+PUT    /api/v1/notifications/settings    # 更新通知设置 📋
+GET    /api/v1/notifications/settings    # 获取通知设置 📋
+```
+
+### 上传相关 (📋 计划中)
+```
+POST   /api/v1/upload/image        # 上传图片
+POST   /api/v1/upload/avatar       # 上传头像
+DELETE /api/v1/upload/:id          # 删除文件
+```
+
+**图例说明**：
+- ✅ 已实现：功能已完成并可用
+- 📋 计划中：功能已规划，待实现
 
 ## Database Schema
 

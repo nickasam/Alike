@@ -1,124 +1,91 @@
 <template>
   <div class="main-layout">
-    <!-- 背景装饰层 -->
-    <div class="background-decoration">
-      <div class="gradient-orb orb-1"></div>
-      <div class="gradient-orb orb-2"></div>
-      <div class="gradient-orb orb-3"></div>
-      <div class="grid-pattern"></div>
+    <!-- 顶部导航栏 -->
+    <TopNavBar />
+
+    <!-- 主容器 -->
+    <div class="main-container">
+      <!-- 侧边栏 (桌面端) -->
+      <Sidebar v-if="isDesktop" />
+
+      <!-- 主内容区域 -->
+      <main class="main-content">
+        <router-view v-slot="{ Component }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </main>
     </div>
 
-    <!-- 顶部导航栏 -->
-    <nav class="navbar">
-      <div class="navbar-brand">
-        <div class="brand-logo">💜</div>
-        <div class="brand-text">
-          <div class="brand-name">Alike</div>
-          <div class="brand-slogan">相似灵魂的相遇</div>
-        </div>
-      </div>
-
-      <div class="nav-actions">
-        <router-link 
-          to="/" 
-          class="nav-btn"
-          :class="{ active: $route.path === '/' }"
-        >
-          <span class="btn-icon">📍</span>
-          <span class="btn-text">附近用户</span>
-        </router-link>
-        <router-link 
-          to="/global" 
-          class="nav-btn"
-          :class="{ active: $route.path === '/global' }"
-        >
-          <span class="btn-icon">💬</span>
-          <span class="btn-text">全局聊天</span>
-        </router-link>
-        <router-link 
-          to="/profile" 
-          class="nav-btn"
-          :class="{ active: $route.path === '/profile' }"
-        >
-          <span class="btn-icon">👤</span>
-          <span class="btn-text">我的</span>
-        </router-link>
-        <button @click="handleLogout" class="logout-btn" title="退出登录">
-          <span class="logout-icon">🚪</span>
-          <span class="logout-text">退出</span>
-        </button>
-      </div>
-    </nav>
-
-    <!-- 主内容区 -->
-    <main class="main-content">
-      <router-view />
-    </main>
+    <!-- 底部Tab栏 (移动端) -->
+    <BottomTabBar v-if="!isDesktop" />
   </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import TopNavBar from './TopNavBar.vue'
+import Sidebar from './Sidebar.vue'
+import BottomTabBar from './BottomTabBar.vue'
 
-const router = useRouter()
-const userStore = useUserStore()
+// 响应式断点检测
+const windowWidth = ref(window.innerWidth)
 
-const handleLogout = async () => {
-  if (confirm('确定要退出登录吗？')) {
-    await userStore.logout()
-    router.push('/login')
-  }
+const isDesktop = computed(() => windowWidth.value >= 1024)
+
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
 }
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+})
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 .main-layout {
-  /* CSS 变量 */
-  --primary: #8b5cf6;
-  --primary-light: #a78bfa;
-  --primary-dark: #7c3aed;
-  --secondary: #ec4899;
-  --accent: #06b6d4;
-
-  /* 渐变 */
-  --gradient-brand: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --gradient-purple: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
-  /* 玻璃态 */
-  --glass-bg: rgba(255, 255, 255, 0.15);
-  --glass-border: rgba(255, 255, 255, 0.2);
-
-  /* 深色主题 */
-  --bg-dark: #0a0a0f;
-  --bg-darker: #050508;
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-tertiary: rgba(255, 255, 255, 0.5);
-
-  /* 阴影 */
-  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 12px 40px rgba(240, 147, 251, 0.4);
-
-  /* 布局 */
+  min-height: 100vh;
+  background: #f5f7fa;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background: var(--bg-dark);
-  color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  overflow-x: hidden;
-  position: relative;
 }
 
-/* ========== 背景装饰层 ========== */
+.main-container {
+  display: flex;
+  flex: 1;
+  padding-top: 64px; /* 桌面端顶部导航栏高度 */
+}
+
+@media (max-width: 1023px) {
+  .main-container {
+    padding-top: 56px; /* 移动端顶部导航栏高度 */
+    padding-bottom: 64px; /* 底部Tab栏高度 */
+  }
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 页面切换过渡动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
 .background-decoration {
   position: fixed;
   top: 0;

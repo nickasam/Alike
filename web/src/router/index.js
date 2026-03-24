@@ -23,44 +23,65 @@ const routes = [
     path: '/',
     component: () => import('@/components/layout/MainLayout.vue'),
     meta: { requiresAuth: true },
+    redirect: '/home',
     children: [
       {
-        path: '',
+        path: 'home',
         name: 'Home',
         component: () => import('@/views/home/NearbyUsers.vue'),
-        meta: { title: '附近用户 - Alike' }
-      },
-      {
-        path: 'matches',
-        name: 'Matches',
-        component: () => import('@/views/match/Matches.vue'),
-        meta: { title: '我的匹配 - Alike' }
-      },
-      {
-        path: 'chat',
-        name: 'ChatList',
-        component: () => import('@/views/chat/ChatList.vue'),
-        meta: { title: '聊天列表 - Alike' }
-      },
-      {
-        path: 'chat/:userId',
-        name: 'ChatRoom',
-        component: () => import('@/views/chat/ChatRoom.vue'),
-        meta: { title: '聊天 - Alike' }
+        meta: { title: '首页 - Alike' }
       },
       {
         path: 'global',
         name: 'GlobalChat',
         component: () => import('@/views/global/GlobalChat.vue'),
-        meta: { title: '全局聊天室 - Alike' }
+        meta: { title: '聊天室 - Alike' }
+      },
+      {
+        path: 'match',
+        name: 'Match',
+        component: () => import('@/views/match/Matches.vue'),
+        meta: { title: '匹配 - Alike' }
+      },
+      {
+        path: 'messages',
+        name: 'Messages',
+        component: () => import('@/views/chat/ChatList.vue'),
+        meta: { title: '消息 - Alike' }
+      },
+      {
+        path: 'notifications',
+        name: 'Notifications',
+        component: () => import('@/views/Notifications.vue'),
+        meta: { title: '通知 - Alike' }
       },
       {
         path: 'profile',
         name: 'Profile',
         component: () => import('@/views/profile/Profile.vue'),
-        meta: { title: '个人资料 - Alike' }
+        meta: { title: '我的 - Alike' }
+      },
+      // 兼容旧路由
+      {
+        path: '',
+        redirect: '/home'
+      },
+      {
+        path: 'matches',
+        redirect: '/match'
+      },
+      {
+        path: 'chat',
+        redirect: '/messages'
       }
     ]
+  },
+  // 一对一聊天路由 (不使用MainLayout)
+  {
+    path: '/chat/:userId',
+    name: 'ChatRoom',
+    component: () => import('@/views/chat/ChatRoom.vue'),
+    meta: { requiresAuth: true, title: '聊天 - Alike' }
   },
   {
     path: '/:pathMatch(.*)*',
