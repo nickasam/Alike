@@ -21,7 +21,7 @@ const props = defineProps({
     required: true,
     default: () => ({
       nickname: '用户',
-      avatar: '/default-avatar.png'
+      avatar: '/default-avatar.svg'
     })
   },
   compact: {

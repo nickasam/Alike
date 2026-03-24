@@ -40,7 +40,7 @@ const userStore = useUserStore()
 // 用户信息
 const user = computed(() => ({
   nickname: userStore.user?.nickname || '用户',
-  avatar: userStore.user?.avatar_url || '/default-avatar.png'
+  avatar: userStore.user?.avatar_url || '/default-avatar.svg'
 }))
 
 // 导航菜单项

@@ -39,7 +39,7 @@ const userStore = useUserStore()
 
 // 用户信息
 const userName = computed(() => userStore.user?.nickname || '用户')
-const userAvatar = computed(() => userStore.user?.avatar_url || '/default-avatar.png')
+const userAvatar = computed(() => userStore.user?.avatar_url || '/default-avatar.svg')
 
 // 未读数量 (示例数据，后续从API获取)
 const unreadCount = ref(3)
