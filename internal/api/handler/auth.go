@@ -24,13 +24,31 @@ type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
+type RegisterRequest struct {
+	Phone    string `json:"phone" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Nickname string `json:"nickname" binding:"required"`
+}
+
+func (h *AuthHandler) Register(c *gin.Context) {
+	var req RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ValidationError(c, err.Error())
+		return
+	}
+
+	// TODO: 实现注册逻辑
+	response.Success(c, gin.H{"message": "Register endpoint - to be implemented"})
+}
+
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ValidationError(c, err.Error())
 		return
 	}
-	
+
+	// TODO: 实现登录逻辑
 	response.Success(c, gin.H{"message": "Login endpoint - to be implemented"})
 }
 

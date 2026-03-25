@@ -16,6 +16,9 @@ type GlobalChatHandler struct {
 		GetMessages(roomID string, limit int) ([]domain.GlobalMessage, error)
 		JoinRoom(userID, roomID string) error
 	}
+	UserRepo interface {
+		GetByID(id string) (*domain.User, error)
+	}
 }
 
 // CreateGlobalRoom 创建全局聊天室
@@ -62,7 +65,13 @@ func (h *GlobalChatHandler) GetGlobalMessages(c *gin.Context) {
 // SendGlobalMessage 发送全局消息
 func (h *GlobalChatHandler) SendGlobalMessage(c *gin.Context) {
 	userID := c.GetString("user_id")
-	username := c.GetString("username")
+
+	// 获取用户信息
+	user, err := h.UserRepo.GetByID(userID)
+	if err != nil {
+		response.Error(c, "USER_NOT_FOUND", "用户不存在", http.StatusNotFound)
+		return
+	}
 
 	var req struct {
 		Content string `json:"content" binding:"required,min=1,max=500"`
@@ -77,7 +86,7 @@ func (h *GlobalChatHandler) SendGlobalMessage(c *gin.Context) {
 		ID:        time.Now().Format("20060102150405") + randomString(6),
 		RoomID:    "global",
 		UserID:    userID,
-		Username:  username,
+		Username:  user.Nickname,
 		Content:   req.Content,
 		CreatedAt: time.Now(),
 	}

@@ -22,24 +22,25 @@ export const useUserStore = defineStore('user', {
       try {
         const response = await login(credentials)
         const { user, tokens } = response.data
-        
+
         this.token = tokens.access_token
         this.refreshToken = tokens.refresh_token
         this.userInfo = user
         this.isLoggedIn = true
-        
+
         // 保存到 localStorage
         localStorage.setItem('alike_access_token', tokens.access_token)
         localStorage.setItem('alike_refresh_token', tokens.refresh_token)
         localStorage.setItem('alike_user_id', user.id)
+        localStorage.setItem('alike_username', user.nickname) // 保存用户名
         localStorage.setItem('alike_user_info', JSON.stringify(user))
-        
+
         return { success: true }
       } catch (error) {
         console.error('登录失败:', error)
-        return { 
-          success: false, 
-          message: error.response?.data?.message || '登录失败' 
+        return {
+          success: false,
+          message: error.response?.data?.error?.message || error.response?.data?.message || '登录失败'
         }
       }
     },
@@ -49,24 +50,25 @@ export const useUserStore = defineStore('user', {
       try {
         const response = await register(userData)
         const { user, tokens } = response.data
-        
+
         this.token = tokens.access_token
         this.refreshToken = tokens.refresh_token
         this.userInfo = user
         this.isLoggedIn = true
-        
+
         // 保存到 localStorage
         localStorage.setItem('alike_access_token', tokens.access_token)
         localStorage.setItem('alike_refresh_token', tokens.refresh_token)
         localStorage.setItem('alike_user_id', user.id)
+        localStorage.setItem('alike_username', user.nickname) // 保存用户名
         localStorage.setItem('alike_user_info', JSON.stringify(user))
-        
+
         return { success: true }
       } catch (error) {
         console.error('注册失败:', error)
-        return { 
-          success: false, 
-          message: error.response?.data?.message || '注册失败' 
+        return {
+          success: false,
+          message: error.response?.data?.error?.message || error.response?.data?.message || '注册失败'
         }
       }
     },

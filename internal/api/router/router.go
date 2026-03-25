@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/Alike/internal/api/handler"
 	"github.com/Alike/internal/api/middleware"
+	"github.com/Alike/internal/auth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,7 +12,8 @@ func Setup(authHandler *handler.AuthHandler,
 	matchHandler *handler.MatchHandler,
 	chatHandler *handler.ChatHandler,
 	notificationHandler *handler.NotificationHandler,
-	globalChatHandler *handler.GlobalChatHandler) *gin.Engine {
+	globalChatHandler *handler.GlobalChatHandler,
+	authService *auth.Service) *gin.Engine {
 
 	r := gin.Default()
 
@@ -33,12 +35,12 @@ func Setup(authHandler *handler.AuthHandler,
 			auth.POST("/login", authHandler.Login)
 			auth.POST("/refresh", authHandler.RefreshToken)
 			auth.POST("/logout", authHandler.Logout)
-			auth.GET("/me", middleware.Auth(), authHandler.Me)
+			auth.GET("/me", middleware.AuthMiddleware(authService), authHandler.Me)
 		}
 
 		// 用户
 		users := v1.Group("/users")
-		users.Use(middleware.Auth())
+		users.Use(middleware.AuthMiddleware(authService))
 		{
 			users.GET("/me", userHandler.GetMe)
 			users.PUT("/me", userHandler.UpdateMe)
@@ -47,7 +49,7 @@ func Setup(authHandler *handler.AuthHandler,
 
 		// 匹配
 		matches := v1.Group("/matches")
-		matches.Use(middleware.Auth())
+		matches.Use(middleware.AuthMiddleware(authService))
 		{
 			matches.GET("", matchHandler.ListMatches)
 			matches.GET("/:id", matchHandler.GetMatch)
@@ -56,7 +58,7 @@ func Setup(authHandler *handler.AuthHandler,
 
 		// 聊天
 		chats := v1.Group("/chats")
-		chats.Use(middleware.Auth())
+		chats.Use(middleware.AuthMiddleware(authService))
 		{
 			chats.GET("", chatHandler.ListChats)
 			chats.GET("/:id", chatHandler.GetChat)
@@ -66,7 +68,7 @@ func Setup(authHandler *handler.AuthHandler,
 
 		// 通知
 		notifications := v1.Group("/notifications")
-		notifications.Use(middleware.Auth())
+		notifications.Use(middleware.AuthMiddleware(authService))
 		{
 			notifications.GET("", notificationHandler.ListNotifications)
 			notifications.POST("/:id/read", notificationHandler.MarkAsRead)
@@ -75,7 +77,7 @@ func Setup(authHandler *handler.AuthHandler,
 
 		// 全局聊天室
 		global := v1.Group("/global")
-		global.Use(middleware.Auth())
+		global.Use(middleware.AuthMiddleware(authService))
 		{
 			global.GET("/room", globalChatHandler.GetGlobalRoom)
 			global.GET("/messages", globalChatHandler.GetGlobalMessages)
