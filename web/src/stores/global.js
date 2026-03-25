@@ -25,8 +25,10 @@ export const useGlobalChatStore = defineStore('globalChat', {
       try {
         this.isLoading = true
         const response = await getGlobalMessages(params)
+        console.log('API返回的原始数据:', response)
         this.messages = response.data || []
-        return { success: true }
+        console.log('Store中的消息列表:', this.messages)
+        return { success: true, data: this.messages }
       } catch (error) {
         console.error('获取全局消息失败:', error)
         this.error = error.message
@@ -37,11 +39,13 @@ export const useGlobalChatStore = defineStore('globalChat', {
     },
 
     // 发送全局消息
-    async sendMessage(content) {
+    async sendMessage(data) {
       try {
-        const response = await sendGlobalMessage({ content })
+        console.log('Store发送消息:', data)
+        const response = await sendGlobalMessage(data)
+        console.log('Store发送消息响应:', response)
         this.messages.push(response.data)
-        return { success: true }
+        return { success: true, data: response.data }
       } catch (error) {
         console.error('发送消息失败:', error)
         return { success: false, message: error.message }
@@ -53,7 +57,7 @@ export const useGlobalChatStore = defineStore('globalChat', {
       try {
         const response = await getOnlineUsers()
         this.onlineUsers = response.data || []
-        return { success: true }
+        return { success: true, data: this.onlineUsers }
       } catch (error) {
         console.error('获取在线用户失败:', error)
         return { success: false, message: error.message }
@@ -64,8 +68,8 @@ export const useGlobalChatStore = defineStore('globalChat', {
     async fetchOnlineCount() {
       try {
         const response = await getOnlineCount()
-        this.onlineCount = response.data?.count || 0
-        return { success: true }
+        this.onlineCount = response.data || 0
+        return { success: true, data: this.onlineCount }
       } catch (error) {
         console.error('获取在线人数失败:', error)
         return { success: false, message: error.message }

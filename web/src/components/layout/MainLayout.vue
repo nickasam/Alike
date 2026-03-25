@@ -71,6 +71,7 @@ onUnmounted(() => {
 
 .main-content {
   flex: 1;
+  margin-left: 240px;
   overflow-y: auto;
   overflow-x: hidden;
 }

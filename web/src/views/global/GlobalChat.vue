@@ -40,59 +40,8 @@
 
     <!-- 主应用 -->
     <div class="app-container" v-else>
-      <!-- 左侧边栏 -->
-      <aside class="sidebar" :class="{ open: sidebarOpen }" id="sidebar">
-        <div class="sidebar-header">
-          <div class="sidebar-title">
-            频道
-            <span class="channel-count">{{ channels.length }}</span>
-          </div>
-
-          <div 
-            v-for="channel in channels" 
-            :key="channel.id"
-            class="channel-item"
-            :class="{ active: currentChannelId === channel.id }"
-            @click="switchChannel(channel)"
-          >
-            <span class="channel-icon">#</span>
-            <span class="channel-name">{{ channel.name }}</span>
-            <span class="channel-badge">{{ channel.badge }}</span>
-          </div>
-        </div>
-
-        <div class="users-section">
-          <div class="section-title">在线用户 — {{ formatNumber(onlineCount) }}</div>
-
-          <div 
-            v-for="user in onlineUsers" 
-            :key="user.id"
-            class="user-item"
-            @click="mentionUser(user)"
-          >
-            <div 
-              class="user-item-avatar"
-              :style="{ background: user.gradient || getGradientForUser(user.nickname) }"
-            >
-              {{ user.nickname ? user.nickname[0].toUpperCase() : '?' }}
-              <span 
-                class="status"
-                :class="{
-                  idle: user.status === 'idle',
-                  dnd: user.status === 'dnd'
-                }"
-              ></span>
-            </div>
-            <div class="user-item-info">
-              <div class="user-item-name">{{ user.nickname }}</div>
-              <div class="user-item-status">{{ user.statusText || '在线' }}</div>
-            </div>
-          </div>
-        </div>
-      </aside>
-
       <!-- 主内容区 -->
-      <main class="main-content" @click="closeSidebarOnMobile">
+      <main class="main-content">
         <div class="chat-header">
           <h1># {{ currentChannelName }}</h1>
           <p>与 {{ formatNumber(onlineCount) }} 位在线用户分享你的故事 💜</p>
@@ -185,9 +134,6 @@
                 </div>
               </div>
             </div>
-            <button class="send-btn" @click="sendMessage" :disabled="!newMessage.trim()">
-              ➤
-            </button>
           </div>
         </div>
       </main>
@@ -218,29 +164,17 @@ const currentUserId = ref(null)
 const currentUsername = ref('')
 const messages = ref([])
 const newMessage = ref('')
-const onlineCount = ref(1234)
-const sidebarOpen = ref(false)
+const onlineCount = ref(0)
 const onlineUsers = ref([])
 const showEmojiPicker = ref(false)
 const currentView = ref('chat')
-const currentChannelId = ref(1)
 
 const messagesContainer = ref(null)
 const messageInput = ref(null)
 
 let refreshInterval = null
 
-// 频道数据
-const channels = ref([
-  { id: 1, name: '全局聊天室', badge: '1.2k' },
-  { id: 2, name: '技术交流', badge: '356' },
-  { id: 3, name: '音乐分享', badge: '189' }
-])
-
-const currentChannelName = computed(() => {
-  const channel = channels.value.find(c => c.id === currentChannelId.value)
-  return channel ? channel.name : '全局聊天室'
-})
+const currentChannelName = computed(() => '全局聊天室')
 
 // 表情列表
 const emojis = [
@@ -290,12 +224,13 @@ const checkAuth = () => {
   const token = localStorage.getItem('alike_access_token')
   const userId = localStorage.getItem('alike_user_id')
   const username = localStorage.getItem('alike_username')
-  
+
   if (token && userId) {
     currentUserId.value = userId
     currentUsername.value = username || ''
     isLoggedIn.value = true
     loadMessages()
+    loadOnlineUsers()
     startAutoRefresh()
   }
 }
@@ -304,37 +239,40 @@ const handleLogin = async () => {
   try {
     isLoading.value = true
     errorMessage.value = ''
-    
+
+    // 先尝试登录
     let result = await userStore.login({
       phone: loginForm.value.phone,
       password: loginForm.value.password
     })
-    
+
     if (result.success) {
-      currentUserId.value = userStore.user.id
-      currentUsername.value = userStore.user.nickname
+      currentUserId.value = userStore.userId
+      currentUsername.value = userStore.nickname || ''
       isLoggedIn.value = true
       loadMessages()
       startAutoRefresh()
     } else {
+      // 登录失败，尝试自动注册
       result = await userStore.register({
         phone: loginForm.value.phone,
         password: loginForm.value.password,
-        nickname: loginForm.value.phone.slice(-4) + '用户'
+        nickname: '用户' + loginForm.value.phone.slice(-4)
       })
-      
+
       if (result.success) {
-        currentUserId.value = userStore.user.id
-        currentUsername.value = userStore.user.nickname
+        currentUserId.value = userStore.userId
+        currentUsername.value = userStore.nickname || ''
         isLoggedIn.value = true
         loadMessages()
         startAutoRefresh()
       } else {
-        errorMessage.value = result.message || '登录失败'
+        errorMessage.value = result.message || '登录失败，请重试'
       }
     }
   } catch (error) {
-    errorMessage.value = '网络错误：' + error.message
+    console.error('登录错误:', error)
+    errorMessage.value = '网络错误，请检查连接'
   } finally {
     isLoading.value = false
   }
@@ -355,8 +293,10 @@ const logout = () => {
 const loadMessages = async () => {
   try {
     const result = await globalStore.fetchMessages()
+    console.log('加载消息结果:', result)
     if (result.success && result.data) {
       messages.value = result.data
+      console.log('当前消息列表:', messages.value)
       await nextTick()
       scrollToBottom()
     }
@@ -370,17 +310,21 @@ const sendMessage = async () => {
   if (!content) return
 
   try {
+    console.log('发送消息:', content)
     const result = await globalStore.sendMessage({ content })
+    console.log('发送消息结果:', result)
     if (result.success) {
       newMessage.value = ''
       if (messageInput.value) {
         messageInput.value.style.height = 'auto'
       }
-      loadMessages()
+      // 立即加载消息列表
+      await loadMessages()
     } else {
       showToast('发送失败：' + (result.message || '未知错误'))
     }
   } catch (error) {
+    console.error('发送消息错误:', error)
     showToast('网络错误')
   }
 }
@@ -407,20 +351,7 @@ const formatTime = (dateStr) => {
 }
 
 const formatNumber = (num) => {
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'k'
-  }
   return num.toString()
-}
-
-const toggleSidebar = () => {
-  sidebarOpen.value = !sidebarOpen.value
-}
-
-const closeSidebarOnMobile = () => {
-  if (window.innerWidth <= 1024) {
-    sidebarOpen.value = false
-  }
 }
 
 const switchView = (view) => {
@@ -433,19 +364,6 @@ const switchView = (view) => {
   } else if (view === 'profile') {
     console.log('切换到个人中心')
     router.push('/profile')
-  }
-}
-
-const switchChannel = (channel) => {
-  currentChannelId.value = channel.id
-  console.log('切换到频道:', channel.name)
-}
-
-const mentionUser = (user) => {
-  const mention = `@${user.nickname} `
-  newMessage.value += mention
-  if (messageInput.value) {
-    messageInput.value.focus()
   }
 }
 
@@ -480,12 +398,12 @@ const loadOnlineUsers = async () => {
   try {
     const result = await globalStore.fetchOnlineUsers()
     if (result.success && result.data) {
-      onlineUsers.value = result.data.map(user => ({
-        ...user,
-        status: ['online', 'idle', 'dnd'][Math.floor(Math.random() * 3)],
-        statusText: ['在线', '离开 - 15分钟前', '忙碌'][Math.floor(Math.random() * 3)]
-      }))
-      onlineCount.value = result.data.length
+      onlineUsers.value = result.data
+    }
+    // 单独获取在线人数
+    const countResult = await globalStore.fetchOnlineCount()
+    if (countResult.success && countResult.data !== undefined) {
+      onlineCount.value = countResult.data
     }
   } catch (error) {
     console.error('加载在线用户失败:', error)
@@ -559,17 +477,14 @@ onUnmounted(() => {
   --shadow-brand: 0 4px 16px rgba(139, 92, 246, 0.3);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 .global-chat-container {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
-  min-height: 100vh;
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* ========== 登录界面 ========== */
@@ -730,16 +645,14 @@ onUnmounted(() => {
 
 /* ========== 主容器 ========== */
 .app-container {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  height: 100vh;
-  width: 100vw;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* ========== 顶部导航栏 ========== */
 .navbar {
-  grid-column: 1 / -1;
-  grid-row: 1;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
   padding: 0 20px;
@@ -755,25 +668,6 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-.sidebar-toggle {
-  display: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--bg-tertiary);
-  border: none;
-  color: var(--text-secondary);
-  font-size: 18px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar-toggle:hover {
-  background: var(--bg-card);
-  color: var(--text-primary);
-}
 
 .brand-logo {
   width: 40px;
@@ -870,185 +764,15 @@ onUnmounted(() => {
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
 }
 
-/* ========== 左侧边栏 ========== */
-.sidebar {
-  grid-column: 1;
-  grid-row: 1;
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transition: transform 0.3s ease;
-}
-
-.sidebar-header {
-  padding: 20px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.sidebar-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.channel-count {
-  font-size: 11px;
-  color: var(--primary);
-  background: rgba(139, 92, 246, 0.15);
-  padding: 2px 8px;
-  border-radius: 10px;
-}
-
-.channel-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 4px;
-}
-
-.channel-item:hover {
-  background: var(--bg-tertiary);
-}
-
-.channel-item.active {
-  background: rgba(139, 92, 246, 0.15);
-  color: var(--primary);
-}
-
-.channel-icon {
-  font-size: 18px;
-  color: var(--text-tertiary);
-}
-
-.channel-item.active .channel-icon {
-  color: var(--primary);
-}
-
-.channel-name {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.channel-badge {
-  background: var(--primary);
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 10px;
-  min-width: 18px;
-  text-align: center;
-}
-
-.users-section {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-}
-
-.section-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
-  padding: 0 4px;
-}
-
-.user-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 2px;
-}
-
-.user-item:hover {
-  background: var(--bg-tertiary);
-}
-
-.user-item-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--gradient-brand);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 14px;
-  flex-shrink: 0;
-  position: relative;
-}
-
-.user-item-avatar .status {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 10px;
-  height: 10px;
-  background: #22c55e;
-  border: 2px solid var(--bg-secondary);
-  border-radius: 50%;
-}
-
-.user-item-avatar .status.idle {
-  background: #f59e0b;
-}
-
-.user-item-avatar .status.dnd {
-  background: #ef4444;
-}
-
-.user-item-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.user-item-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.user-item-status {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 /* ========== 主内容区 ========== */
 .main-content {
-  grid-column: 2;
-  grid-row: 1;
+  flex: 1;
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
   overflow: hidden;
+  min-height: 0;
 }
 
 .chat-header {
@@ -1177,6 +901,11 @@ onUnmounted(() => {
   line-height: 1.5;
   color: var(--text-secondary);
   word-wrap: break-word;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .message-own {
@@ -1191,6 +920,10 @@ onUnmounted(() => {
   margin-left: 0;
   margin-right: 52px;
   text-align: right;
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
 }
 
 .message-own .message-name {
@@ -1199,7 +932,7 @@ onUnmounted(() => {
 
 /* ========== 输入区域 ========== */
 .input-area {
-  padding: 16px 24px 24px;
+  padding: 20px 24px 24px;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
 }
@@ -1217,84 +950,96 @@ onUnmounted(() => {
 
 .message-input {
   width: 100%;
-  padding: 12px 50px 12px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  font-size: 14px;
+  padding: 18px 60px 18px 20px;
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  border-radius: 20px;
+  font-size: 16px;
   font-weight: 500;
   resize: none;
-  transition: all 0.2s ease;
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  max-height: 120px;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+  color: #ffffff;
+  min-height: 60px;
+  max-height: 150px;
   font-family: inherit;
   line-height: 1.5;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.message-input:hover {
+  border-color: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(135deg, #8b5cf6 0%, #f472b6 100%);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .message-input:focus {
   outline: none;
-  border-color: var(--primary);
-  background: var(--bg-card);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+  border-color: #ffffff;
+  background: linear-gradient(135deg, #9b6cf6 0%, #f569b9 100%);
+  box-shadow: 0 0 0 5px rgba(139, 92, 246, 0.5), 0 16px 40px rgba(236, 72, 153, 0.4);
+  transform: translateY(-2px);
 }
 
 .message-input::placeholder {
-  color: var(--text-tertiary);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .input-actions {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
+  right: 10px;
+  bottom: 10px;
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .action-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   background: transparent;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 18px;
   color: var(--text-tertiary);
   transition: all 0.2s ease;
 }
 
 .action-btn:hover {
-  background: var(--bg-tertiary);
+  background: rgba(139, 92, 246, 0.15);
   color: var(--primary);
+  transform: scale(1.05);
 }
 
 .action-btn.active {
-  background: var(--bg-tertiary);
+  background: rgba(139, 92, 246, 0.15);
   color: var(--primary);
 }
 
 .send-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: var(--gradient-brand);
-  border: none;
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+  border: 3px solid rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: white;
-  font-size: 18px;
-  box-shadow: var(--shadow-brand);
+  font-size: 24px;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
 .send-btn:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.6);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
 .send-btn:active:not(:disabled) {
@@ -1302,8 +1047,9 @@ onUnmounted(() => {
 }
 
 .send-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* ========== 表情选择器 ========== */
@@ -1366,23 +1112,6 @@ onUnmounted(() => {
 
 /* ========== 响应式 ========== */
 @media (max-width: 1024px) {
-  .sidebar {
-    position: fixed;
-    left: -280px;
-    top: 0;
-    height: 100vh;
-    z-index: 100;
-    transition: left 0.3s ease;
-  }
-
-  .sidebar.open {
-    left: 0;
-  }
-
-  .sidebar-toggle {
-    display: flex;
-  }
-
   .app-container {
     grid-template-columns: 1fr;
   }
