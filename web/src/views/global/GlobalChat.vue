@@ -504,7 +504,15 @@ onUnmounted(() => {
 @media (max-width: 1023px) {
   .global-chat-container {
     top: 56px;  /* 平板/移动端顶部导航栏高度 */
-    height: calc(100dvh - 56px);
+    bottom: 20px;  /* 距离底部20px，不要贴底 */
+    height: auto;  /* 让浏览器自动计算高度 */
+  }
+}
+
+@media (max-width: 767px) {
+  .global-chat-container {
+    top: 56px;
+    bottom: 16px;  /* 移动端距离底部16px */
   }
 }
 
