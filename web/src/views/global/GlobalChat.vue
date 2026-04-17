@@ -582,10 +582,11 @@ onUnmounted(() => {
 
 .form-input {
   width: 100%;
-  padding: 16px 20px;
+  padding: 14px 16px;  /* 增加内边距 */
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  font-size: 15px;
+  font-size: 16px;  /* 修复：16px防止iOS自动缩放 */
+  min-height: 44px;  /* 添加：触摸友好 */
   font-weight: 500;
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -1122,9 +1123,15 @@ onUnmounted(() => {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {  /* 修复：统一使用767px断点 */
+  .global-chat-container {
+    height: 100dvh;  /* 移动端全屏 */
+    height: calc(var(--vh, 1vh) * 100);
+  }
+
   .navbar {
     padding: 0 12px;
+    height: 56px;  /* 移动端优化 */
   }
 
   .brand-slogan {
@@ -1137,23 +1144,83 @@ onUnmounted(() => {
 
   .nav-btn {
     padding: 8px 12px;
+    min-height: 44px;  /* 触摸友好 */
+    min-width: 44px;
   }
 
-  .messages-container {
+  .chat-header {
     padding: 16px;
   }
 
+  .chat-header h1 {
+    font-size: 20px;  /* 响应式字体 */
+  }
+
+  .messages-container {
+    padding: 12px;  /* 移动端减少padding */
+  }
+
+  .message-group {
+    margin-bottom: 12px;
+  }
+
+  .message-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .message-content {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
   .input-area {
-    padding: 12px 16px;
+    padding: 10px 12px;  /* 移动端减少padding */
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));  /* 安全区域 */
+  }
+
+  .message-input {
+    padding: 12px 50px 12px 16px;  /* 移动端优化 */
+    font-size: 16px;  /* 防止缩放 */
+    min-height: 44px;  /* 触摸友好 */
+  }
+
+  .send-btn {
+    width: 44px;  /* 触摸友好 */
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .emoji-btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .emoji-picker {
     width: 280px;
     left: -10px;
+    bottom: 60px;  /* 避免被输入框遮挡 */
   }
 
   .emoji-grid {
     grid-template-columns: repeat(7, 1fr);
+  }
+
+  /* 登录界面移动端优化 */
+  .login-container {
+    padding: 20px;
+  }
+
+  .login-title {
+    font-size: 32px;  /* 响应式 */
+  }
+
+  .form-group {
+    margin-bottom: 12px;
   }
 }
 </style>
