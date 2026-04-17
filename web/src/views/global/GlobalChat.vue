@@ -1,3 +1,4 @@
+
 <template>
   <div class="global-chat-container">
     <!-- 登录界面 -->
@@ -1213,17 +1214,19 @@ onUnmounted(() => {
 
   .input-area {
     padding: 12px 12px;  /* 移动端padding */
-    padding-bottom: max(12px, env(safe-area-inset-bottom));  /* 底部安全区域，但不超出12px太多 */
+    padding-bottom: max(12px, env(safe-area-inset-bottom));  /* 底部安全区域 */
     box-sizing: border-box;
     position: relative;  /* 确保定位上下文 */
     z-index: 10;  /* 确保在最上层 */
+    flex-shrink: 0;  /* 防止被压缩 */
   }
 
   .message-input {
-    padding: 10px 50px 10px 14px;  /* 减少padding */
+    padding: 12px 50px 12px 16px;  /* 恢复合适的padding */
     font-size: 16px;  /* 防止缩放 */
-    min-height: 40px;  /* 减少最小高度 */
-    height: 40px;  /* 固定高度 */
+    min-height: 44px;  /* 恢复触摸友好的高度 */
+    height: auto;  /* 自适应高度 */
+    line-height: 1.4;  /* 行高 */
     position: relative;  /* 确保输入框可点击 */
     z-index: 11;  /* 比input-area更高 */
   }
