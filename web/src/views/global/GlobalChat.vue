@@ -849,7 +849,7 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
-  padding-bottom: 120px;  /* 避免被固定在底部的输入框遮挡 */
+  padding-bottom: 200px;  /* 增加底部padding，确保总是可以滚动到最新消息 */
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1201,7 +1201,7 @@ onUnmounted(() => {
 
   .messages-container {
     padding: 12px;  /* 移动端减少padding */
-    padding-bottom: 160px;  /* 输入框(80px) + BottomTabBar(64px) + 间距(16px) */
+    padding-bottom: 200px;  /* 增加底部padding，确保可以滚动到最新消息 */
     flex: 1;  /* 占据剩余空间 */
     overflow-y: auto;  /* 允许滚动 */
   }
