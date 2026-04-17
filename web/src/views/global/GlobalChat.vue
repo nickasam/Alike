@@ -337,9 +337,16 @@ const sendMessage = async () => {
 
 const scrollToBottom = async () => {
   await nextTick()
-  if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-  }
+  // 使用 setTimeout 确保 DOM 完全渲染后再滚动
+  setTimeout(() => {
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTo({
+        top: messagesContainer.value.scrollHeight,
+        behavior: 'smooth'  // 平滑滚动
+      })
+      console.log('已滚动到底部')
+    }
+  }, 100)  // 延迟100ms确保DOM完全渲染
 }
 
 const formatTime = (dateStr) => {
