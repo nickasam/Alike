@@ -948,8 +948,9 @@ onUnmounted(() => {
   padding: 20px 24px 24px;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
-  position: relative;  /* 添加定位上下文 */
-  z-index: 10;  /* 确保输入区域在最上层 */
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;  /* 确保输入框不被压缩，始终固定在底部 */
 }
 
 .input-wrapper {
@@ -1181,9 +1182,9 @@ onUnmounted(() => {
     padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));  /* 底部安全区域 */
     box-sizing: border-box;
     position: relative;
-    z-index: 10;
+    z-index: 150;  /* 高于 BottomTabBar (z-index: 100) */
     flex-shrink: 0;
-    margin-bottom: 16px;  /* 增加底部margin，避免被底部TabBar遮挡 */
+    margin-bottom: 0;  /* 移除 margin-bottom，因为 z-index 已经解决遮挡问题 */
     max-height: 80px;  /* 限制最大高度，防止占用过多空间 */
   }
 
