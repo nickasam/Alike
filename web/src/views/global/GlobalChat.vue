@@ -298,13 +298,18 @@ const logout = () => {
 
 const loadMessages = async () => {
   try {
+    console.log('开始加载消息...')
     const result = await globalStore.fetchMessages()
     console.log('加载消息结果:', result)
     if (result.success && result.data) {
       messages.value = result.data
       console.log('当前消息列表:', messages.value)
+      console.log('消息数量:', messages.value.length)
       await nextTick()
+      console.log('nextTick 完成，准备滚动')
       scrollToBottom()
+    } else {
+      console.log('加载消息失败：', result.message)
     }
   } catch (error) {
     console.error('加载消息失败:', error)
@@ -340,13 +345,21 @@ const scrollToBottom = async () => {
   // 使用 setTimeout 确保 DOM 完全渲染后再滚动
   setTimeout(() => {
     if (messagesContainer.value) {
+      console.log('准备滚动...', {
+        container: messagesContainer.value,
+        scrollHeight: messagesContainer.value.scrollHeight,
+        scrollTop: messagesContainer.value.scrollTop,
+        clientHeight: messagesContainer.value.clientHeight
+      })
       messagesContainer.value.scrollTo({
         top: messagesContainer.value.scrollHeight,
         behavior: 'smooth'  // 平滑滚动
       })
       console.log('已滚动到底部')
+    } else {
+      console.error('messagesContainer 不存在')
     }
-  }, 100)  // 延迟100ms确保DOM完全渲染
+  }, 150)  // 增加延迟到150ms
 }
 
 const formatTime = (dateStr) => {
