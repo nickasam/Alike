@@ -482,13 +482,13 @@ onUnmounted(() => {
   background: var(--bg-primary);
   color: var(--text-primary);
 
-  /* 全屏布局：覆盖MainLayout的margin-left */
+  /* 全屏布局：覆盖MainLayout的margin-left和侧边栏 */
   position: fixed;
   top: 64px;  /* 桌面端顶部导航栏高度 */
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1;
+  z-index: 100;  /* 确保在侧边栏(z-index: 50)之上 */
 
   width: 100%;
   max-width: 100vw;
@@ -956,6 +956,8 @@ onUnmounted(() => {
   padding: 20px 24px 24px;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
+  position: relative;  /* 添加定位上下文 */
+  z-index: 10;  /* 确保输入区域在最上层 */
 }
 
 .input-wrapper {
@@ -1211,12 +1213,16 @@ onUnmounted(() => {
     padding: 10px 12px;  /* 移动端减少padding */
     padding-bottom: calc(10px + env(safe-area-inset-bottom));  /* 仅底部安全区域 */
     box-sizing: border-box;
+    position: relative;  /* 确保定位上下文 */
+    z-index: 10;  /* 确保在最上层 */
   }
 
   .message-input {
     padding: 12px 50px 12px 16px;  /* 移动端优化 */
     font-size: 16px;  /* 防止缩放 */
     min-height: 44px;  /* 触摸友好 */
+    position: relative;  /* 确保输入框可点击 */
+    z-index: 11;  /* 比input-area更高 */
   }
 
   .send-btn {
