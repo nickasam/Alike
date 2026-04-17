@@ -125,7 +125,8 @@ const handleNavigateToGlobal = () => {
 
 .launcher-container {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;  /* 使用dvh单位，修复移动端100vh问题 */
+  fallback-height: 100vh;  /* 回退方案 */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   background-size: 400% 400%;
@@ -149,6 +150,8 @@ const handleNavigateToGlobal = () => {
   background: rgba(255, 255, 255, 0.1);
   animation: float 20s infinite;
   pointer-events: none;
+  will-change: transform;  /* 性能优化 */
+  transform: translate3d(0, 0, 0);  /* GPU加速 */
 }
 
 .circle-1 {
@@ -184,10 +187,10 @@ const handleNavigateToGlobal = () => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(30px, -30px) rotate(90deg); }
-  50% { transform: translate(-20px, 20px) rotate(180deg); }
-  75% { transform: translate(20px, 30px) rotate(270deg); }
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  25% { transform: translate3d(30px, -30px, 0) rotate(90deg); }
+  50% { transform: translate3d(-20px, 20px, 0) rotate(180deg); }
+  75% { transform: translate3d(20px, 30px, 0) rotate(270deg); }
 }
 
 /* 顶部导航 */
@@ -346,7 +349,7 @@ const handleNavigateToGlobal = () => {
 }
 
 .hero-title {
-  font-size: 56px;
+  font-size: clamp(32px, 6vw, 56px);  /* 响应式字体 */
   font-weight: 900;
   margin-bottom: 16px;
   background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
@@ -355,18 +358,19 @@ const handleNavigateToGlobal = () => {
   background-clip: text;
   letter-spacing: -1.5px;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  line-height: 1.2;
 }
 
 .hero-subtitle {
-  font-size: 22px;
+  font-size: clamp(18px, 3vw, 22px);  /* 响应式字体 */
   color: rgba(255, 255, 255, 0.95);
   margin-bottom: 12px;
   font-weight: 500;
 }
 
 .hero-description {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: clamp(14px, 2vw, 18px);  /* 响应式字体 */
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 400;
 }
 

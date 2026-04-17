@@ -481,7 +481,8 @@ onUnmounted(() => {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
-  height: calc(100vh - 64px);
+  height: calc(100dvh - 64px);  /* 使用dvh单位，修复移动端100vh问题 */
+  fallback-height: calc(100vh - 64px);  /* 回退方案 */
   display: flex;
   flex-direction: column;
   overflow: hidden;
