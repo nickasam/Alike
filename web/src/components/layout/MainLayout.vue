@@ -71,9 +71,16 @@ onUnmounted(() => {
 
 .main-content {
   flex: 1;
-  margin-left: 240px;
+  margin-left: 240px;  /* 桌面端：为侧边栏预留空间 */
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* 移动端：移除左边距 */
+@media (max-width: 1023px) {
+  .main-content {
+    margin-left: 0;  /* 移动端无侧边栏，移除左边距 */
+  }
 }
 
 /* 页面切换过渡动画 */
