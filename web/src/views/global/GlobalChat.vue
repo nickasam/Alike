@@ -127,7 +127,7 @@
               </div>
 
               <!-- 表情选择器 -->
-              <div class="emoji-picker" v-if="showEmojiPicker" v-click-outside="() => showEmojiPicker = false">
+              <div class="emoji-picker" v-if="showEmojiPicker">
                 <div class="emoji-grid">
                   <span 
                     v-for="emoji in emojis" 
