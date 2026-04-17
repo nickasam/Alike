@@ -65,7 +65,7 @@ onUnmounted(() => {
 @media (max-width: 1023px) {
   .main-container {
     padding-top: 56px; /* 移动端顶部导航栏高度 */
-    padding-bottom: 64px; /* 底部Tab栏高度 */
+    padding-bottom: 80px; /* 底部Tab栏高度 + 输入框空间 */
   }
 }
 

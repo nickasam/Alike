@@ -1,6 +1,7 @@
 
 
 
+
 <template>
   <div class="global-chat-container">
     <!-- 登录界面 -->
@@ -951,7 +952,7 @@ onUnmounted(() => {
   border-top: 1px solid var(--border-color);
   position: relative;
   z-index: 10;
-  flex-shrink: 0;  /* 确保输入框不被压缩，始终固定在底部 */
+  flex-shrink: 0;  /* 不被压缩，与 messages-container 并列 */
 }
 
 .input-wrapper {
@@ -1159,6 +1160,7 @@ onUnmounted(() => {
 
   .messages-container {
     padding: 12px;  /* 移动端减少padding */
+    padding-bottom: 100px;  /* 避免被 BottomTabBar 遮挡 */
     flex: 1;  /* 占据剩余空间 */
     overflow-y: auto;  /* 允许滚动 */
   }
@@ -1179,14 +1181,13 @@ onUnmounted(() => {
   }
 
   .input-area {
-    padding: 6px 12px;  /* 减少padding，往上提 */
+    padding: 6px 12px;  /* 减少padding */
     padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));  /* 底部安全区域 */
     box-sizing: border-box;
     position: relative;
-    z-index: 150;  /* 高于 BottomTabBar (z-index: 100) */
-    flex-shrink: 0;
-    margin-bottom: 0;  /* 移除 margin-bottom，因为 z-index 已经解决遮挡问题 */
-    max-height: 80px;  /* 限制最大高度，防止占用过多空间 */
+    z-index: 10;
+    flex-shrink: 0;  /* 与 messages-container 并列 */
+    max-height: 80px;  /* 限制最大高度 */
   }
 
   .message-input {
