@@ -1192,6 +1192,8 @@ onUnmounted(() => {
 
   .messages-container {
     padding: 12px;  /* 移动端减少padding */
+    flex: 1;  /* 占据剩余空间 */
+    overflow-y: auto;  /* 允许滚动 */
   }
 
   .message-group {
@@ -1210,17 +1212,18 @@ onUnmounted(() => {
   }
 
   .input-area {
-    padding: 10px 12px;  /* 移动端减少padding */
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));  /* 仅底部安全区域 */
+    padding: 12px 12px;  /* 移动端padding */
+    padding-bottom: max(12px, env(safe-area-inset-bottom));  /* 底部安全区域，但不超出12px太多 */
     box-sizing: border-box;
     position: relative;  /* 确保定位上下文 */
     z-index: 10;  /* 确保在最上层 */
   }
 
   .message-input {
-    padding: 12px 50px 12px 16px;  /* 移动端优化 */
+    padding: 10px 50px 10px 14px;  /* 减少padding */
     font-size: 16px;  /* 防止缩放 */
-    min-height: 44px;  /* 触摸友好 */
+    min-height: 40px;  /* 减少最小高度 */
+    height: 40px;  /* 固定高度 */
     position: relative;  /* 确保输入框可点击 */
     z-index: 11;  /* 比input-area更高 */
   }
