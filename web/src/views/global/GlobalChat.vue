@@ -2,6 +2,7 @@
 
 
 
+
 <template>
   <div class="global-chat-container">
     <!-- 登录界面 -->
@@ -812,6 +813,7 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+  padding-bottom: 120px;  /* 避免被固定在底部的输入框遮挡 */
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -950,9 +952,12 @@ onUnmounted(() => {
   padding: 20px 24px 24px;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
-  position: relative;
-  z-index: 10;
-  flex-shrink: 0;  /* 不被压缩，与 messages-container 并列 */
+  position: fixed;  /* 固定在浏览器窗口底部 */
+  bottom: 0;
+  left: 240px;  /* 桌面端：避开侧边栏 */
+  right: 0;
+  z-index: 50;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .input-wrapper {
@@ -1160,7 +1165,7 @@ onUnmounted(() => {
 
   .messages-container {
     padding: 12px;  /* 移动端减少padding */
-    padding-bottom: 100px;  /* 避免被 BottomTabBar 遮挡 */
+    padding-bottom: 150px;  /* 避免被输入框和 BottomTabBar 遮挡 */
     flex: 1;  /* 占据剩余空间 */
     overflow-y: auto;  /* 允许滚动 */
   }
@@ -1184,9 +1189,12 @@ onUnmounted(() => {
     padding: 6px 12px;  /* 减少padding */
     padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));  /* 底部安全区域 */
     box-sizing: border-box;
-    position: relative;
-    z-index: 10;
-    flex-shrink: 0;  /* 与 messages-container 并列 */
+    position: fixed;  /* 固定在浏览器窗口底部 */
+    bottom: 0;
+    left: 0;  /* 移动端：全宽 */
+    right: 0;
+    z-index: 150;  /* 高于 BottomTabBar (z-index: 100) */
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
     max-height: 80px;  /* 限制最大高度 */
   }
 
