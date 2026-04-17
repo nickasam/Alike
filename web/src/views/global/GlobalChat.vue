@@ -484,31 +484,12 @@ onUnmounted(() => {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
-
-  /* 全屏布局：覆盖MainLayout的margin-left和侧边栏 */
-  position: fixed;
-  top: 64px;  /* 桌面端顶部导航栏高度 */
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 100;  /* 确保在侧边栏(z-index: 50)之上 */
-
+  height: 100%;  /* 在main-content内正常流动 */
   width: 100%;
-  max-width: 100vw;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  margin: 0;
-  padding: 0;
-}
-
-@media (max-width: 1023px) {
-  .global-chat-container {
-    top: 56px;  /* 平板/移动端顶部导航栏高度 */
-    height: calc(100dvh - 56px);  /* 恢复计算高度 */
-    bottom: auto;  /* 移除bottom定位 */
-  }
 }
 
 /* ========== 登录界面 ========== */
@@ -1145,31 +1126,7 @@ onUnmounted(() => {
 }
 
 /* ========== 响应式 ========== */
-@media (max-width: 1024px) {
-  .global-chat-container {
-    top: 56px;  /* 平板/移动端顶部导航栏高度 */
-    height: calc(100dvh - 56px);
-  }
-}
-
-@media (max-width: 767px) {  /* 修复：统一使用767px断点 */
-  /* 容器已经在桌面端设置为fixed，移动端只需调整top */
-  .global-chat-container {
-    top: 56px;  /* 移动端顶部导航栏高度 */
-    height: calc(100dvh - 56px);
-  }
-
-  .app-container {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-
-  .main-content {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
+@media (max-width: 767px) {  /* 移动端优化 */
 
   .navbar {
     padding: 0 12px;
