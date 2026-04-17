@@ -1215,23 +1215,25 @@ onUnmounted(() => {
   }
 
   .input-area {
-    padding: 8px 12px;  /* 减少顶部padding */
-    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));  /* 底部安全区域，默认0 */
+    padding: 6px 12px;  /* 减少padding，往上提 */
+    padding-bottom: max(6px, env(safe-area-inset-bottom, 6px));  /* 底部安全区域，最少6px */
     box-sizing: border-box;
     position: relative;
     z-index: 10;
-    flex-shrink: 0;  /* 防止被压缩 */
-    margin-bottom: 0;  /* 移除底部margin */
+    flex-shrink: 0;
+    margin-bottom: 0;
+    max-height: 80px;  /* 限制最大高度，防止占用过多空间 */
   }
 
   .message-input {
-    padding: 12px 50px 12px 16px;  /* 恢复合适的padding */
-    font-size: 16px;  /* 防止缩放 */
-    min-height: 44px;  /* 恢复触摸友好的高度 */
-    height: auto;  /* 自适应高度 */
-    line-height: 1.4;  /* 行高 */
-    position: relative;  /* 确保输入框可点击 */
-    z-index: 11;  /* 比input-area更高 */
+    padding: 10px 50px 10px 14px;  /* 减少padding */
+    font-size: 16px;
+    min-height: 40px;  /* 减少最小高度 */
+    max-height: 60px;  /* 限制最大高度 */
+    height: auto;
+    line-height: 1.3;
+    position: relative;
+    z-index: 11;
   }
 
   .send-btn {
