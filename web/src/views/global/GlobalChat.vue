@@ -1178,12 +1178,12 @@ onUnmounted(() => {
 
   .input-area {
     padding: 6px 12px;  /* 减少padding，往上提 */
-    padding-bottom: max(6px, env(safe-area-inset-bottom, 6px));  /* 底部安全区域，最少6px */
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));  /* 底部安全区域 */
     box-sizing: border-box;
     position: relative;
     z-index: 10;
     flex-shrink: 0;
-    margin-bottom: 0;
+    margin-bottom: 16px;  /* 增加底部margin，避免被底部TabBar遮挡 */
     max-height: 80px;  /* 限制最大高度，防止占用过多空间 */
   }
 
