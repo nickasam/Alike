@@ -483,9 +483,14 @@ onUnmounted(() => {
   color: var(--text-primary);
   height: calc(100dvh - 64px);  /* 使用dvh单位，修复移动端100vh问题 */
   fallback-height: calc(100vh - 64px);  /* 回退方案 */
+  width: 100%;  /* 确保宽度100% */
+  max-width: 100vw;  /* 防止超出视口 */
+  box-sizing: border-box;  /* 确保padding计算在内 */
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  margin: 0;  /* 移除margin */
+  padding: 0;  /* 移除padding */
 }
 
 /* ========== 登录界面 ========== */
@@ -1127,6 +1132,21 @@ onUnmounted(() => {
   .global-chat-container {
     height: 100dvh;  /* 移动端全屏 */
     height: calc(var(--vh, 1vh) * 100);
+    width: 100%;  /* 确保宽度100% */
+    max-width: 100%;  /* 防止超出 */
+    box-sizing: border-box;  /* 确保padding计算在内 */
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .main-content {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .navbar {
@@ -1177,7 +1197,8 @@ onUnmounted(() => {
 
   .input-area {
     padding: 10px 12px;  /* 移动端减少padding */
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));  /* 安全区域 */
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));  /* 仅底部安全区域 */
+    box-sizing: border-box;
   }
 
   .message-input {
