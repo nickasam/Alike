@@ -42,6 +42,30 @@
 
     <!-- 主应用 -->
     <div class="app-container" v-else>
+      <!-- 左侧边栏：在线用户 -->
+      <aside class="left-sidebar">
+        <div class="sidebar-header">
+          <h3>在线用户</h3>
+          <span class="online-count">{{ onlineCount }}</span>
+        </div>
+        <div class="online-users-list">
+          <div 
+            v-for="user in onlineUsers" 
+            :key="user.id"
+            class="online-user-item"
+            :class="{ 'is-self': user.id === currentUserId }"
+          >
+            <div class="user-avatar" :style="{ background: getGradientForUser(user.name) }">
+              {{ user.name ? user.name[0].toUpperCase() : '?' }}
+            </div>
+            <div class="user-info">
+              <div class="user-name">{{ user.name }}</div>
+              <div class="user-status">在线</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
       <!-- 主内容区 -->
       <main class="main-content">
         <div class="chat-header">
@@ -670,9 +694,105 @@ onUnmounted(() => {
 /* ========== 主容器 ========== */
 .app-container {
   flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr;  /* 左侧边栏280px，剩余给主内容 */
+  gap: 0;
+  overflow: hidden;
+}
+
+/* ========== 左侧边栏 ========== */
+.left-sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.online-count {
+  background: var(--gradient-brand);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.online-users-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.online-user-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: background 0.2s ease;
+}
+
+.online-user-item:hover {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.online-user-item.is-self {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-status {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.online-user-item.is-self .user-name {
+  color: var(--primary);
 }
 
 /* ========== 顶部导航栏 ========== */
@@ -1139,7 +1259,11 @@ onUnmounted(() => {
 /* ========== 响应式 ========== */
 @media (max-width: 1024px) {
   .app-container {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr;  /* 移动端单栏布局 */
+  }
+
+  .left-sidebar {
+    display: none;  /* 移动端隐藏左侧边栏 */
   }
 
   .main-content {
