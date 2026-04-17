@@ -345,17 +345,32 @@ const scrollToBottom = async () => {
   // 使用 setTimeout 确保 DOM 完全渲染后再滚动
   setTimeout(() => {
     if (messagesContainer.value) {
+      const container = messagesContainer.value
       console.log('准备滚动...', {
-        container: messagesContainer.value,
-        scrollHeight: messagesContainer.value.scrollHeight,
-        scrollTop: messagesContainer.value.scrollTop,
-        clientHeight: messagesContainer.value.clientHeight
+        container: container,
+        scrollHeight: container.scrollHeight,
+        scrollTop: container.scrollTop,
+        clientHeight: container.clientHeight,
+        canScroll: container.scrollHeight > container.clientHeight
       })
-      messagesContainer.value.scrollTo({
-        top: messagesContainer.value.scrollHeight,
-        behavior: 'smooth'  // 平滑滚动
+
+      // 先尝试 smooth 滚动
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
       })
-      console.log('已滚动到底部')
+
+      // 立即检查是否滚动成功，如果不成功则使用 auto
+      setTimeout(() => {
+        if (container.scrollTop < container.scrollHeight - container.clientHeight - 100) {
+          console.log('smooth 滚动可能失败，使用 auto 强制滚动')
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'auto'
+          })
+        }
+        console.log('已滚动到底部，当前 scrollTop:', container.scrollTop)
+      }, 300)
     } else {
       console.error('messagesContainer 不存在')
     }
