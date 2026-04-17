@@ -3,6 +3,7 @@
 
 
 
+
 <template>
   <div class="global-chat-container">
     <!-- 登录界面 -->
@@ -1165,7 +1166,7 @@ onUnmounted(() => {
 
   .messages-container {
     padding: 12px;  /* 移动端减少padding */
-    padding-bottom: 150px;  /* 避免被输入框和 BottomTabBar 遮挡 */
+    padding-bottom: 160px;  /* 输入框(80px) + BottomTabBar(64px) + 间距(16px) */
     flex: 1;  /* 占据剩余空间 */
     overflow-y: auto;  /* 允许滚动 */
   }
@@ -1190,7 +1191,7 @@ onUnmounted(() => {
     padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));  /* 底部安全区域 */
     box-sizing: border-box;
     position: fixed;  /* 固定在浏览器窗口底部 */
-    bottom: 0;
+    bottom: 64px;  /* 在 BottomTabBar 之上（BottomTabBar高度64px） */
     left: 0;  /* 移动端：全宽 */
     right: 0;
     z-index: 150;  /* 高于 BottomTabBar (z-index: 100) */
