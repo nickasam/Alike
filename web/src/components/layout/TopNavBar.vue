@@ -156,8 +156,10 @@ const notificationCount = ref(5)
 }
 
 .action-btn {
-  width: 42px;
-  height: 42px;
+  width: 44px;  /* 最小触摸目标 */
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border: none;
   background: transparent;
   border-radius: 10px;
@@ -171,6 +173,11 @@ const notificationCount = ref(5)
 
 .action-btn:hover {
   background: rgba(102, 126, 234, 0.1);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+  background: rgba(102, 126, 234, 0.15);
 }
 
 .action-btn .material-icons {
@@ -245,8 +252,10 @@ const notificationCount = ref(5)
 
   .action-btn,
   .user-btn {
-    width: 38px;
-    height: 38px;
+    width: 48px;  /* 移动端增大到48px */
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
   }
 
   .action-btn .material-icons {

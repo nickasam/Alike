@@ -327,10 +327,11 @@ const showToast = (message) => {
 
 .form-input {
   width: 100%;
-  padding: 12px 16px;
+  padding: 14px 16px;
   border: 1.5px solid #e5e5e5;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;  /* 防止 iOS 自动缩放 */
+  min-height: 44px;  /* 触摸友好 */
   transition: all 0.3s ease;
   background: #fafafa;
 }
@@ -446,14 +447,14 @@ const showToast = (message) => {
 }
 
 /* 平板设备 */
-@media (min-width: 769px) {
+@media (min-width: 768px) {
   .left-panel {
     display: block;
   }
 }
 
 /* 移动设备 */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .container {
     max-width: 100%;
     border-radius: 0;
