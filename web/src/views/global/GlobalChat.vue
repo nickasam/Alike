@@ -792,6 +792,7 @@ onUnmounted(() => {
   padding: 16px 24px;
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-secondary);
+  flex-shrink: 0;  /* 固定高度，不被压缩 */
 }
 
 .chat-header h1 {
