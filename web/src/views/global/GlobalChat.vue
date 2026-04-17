@@ -1,4 +1,5 @@
 
+
 <template>
   <div class="global-chat-container">
     <!-- 登录界面 -->
@@ -504,15 +505,8 @@ onUnmounted(() => {
 @media (max-width: 1023px) {
   .global-chat-container {
     top: 56px;  /* 平板/移动端顶部导航栏高度 */
-    bottom: 20px;  /* 距离底部20px，不要贴底 */
-    height: auto;  /* 让浏览器自动计算高度 */
-  }
-}
-
-@media (max-width: 767px) {
-  .global-chat-container {
-    top: 56px;
-    bottom: 16px;  /* 移动端距离底部16px */
+    height: calc(100dvh - 56px);  /* 恢复计算高度 */
+    bottom: auto;  /* 移除bottom定位 */
   }
 }
 
@@ -1221,12 +1215,13 @@ onUnmounted(() => {
   }
 
   .input-area {
-    padding: 12px 12px;  /* 移动端padding */
-    padding-bottom: max(12px, env(safe-area-inset-bottom));  /* 底部安全区域 */
+    padding: 8px 12px;  /* 减少顶部padding */
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));  /* 底部安全区域，默认0 */
     box-sizing: border-box;
-    position: relative;  /* 确保定位上下文 */
-    z-index: 10;  /* 确保在最上层 */
+    position: relative;
+    z-index: 10;
     flex-shrink: 0;  /* 防止被压缩 */
+    margin-bottom: 0;  /* 移除底部margin */
   }
 
   .message-input {
