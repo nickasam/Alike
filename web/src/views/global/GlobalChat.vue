@@ -955,12 +955,14 @@ onUnmounted(() => {
   color: var(--text-secondary);
   word-wrap: break-word;
   word-break: break-word;
+  overflow-wrap: break-word;
   background: rgba(255, 255, 255, 0.08);
   padding: 12px 16px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   max-width: 70%;  /* 限制最大宽度为70%，自适应内容 */
+  width: fit-content;  /* 根据内容宽度自适应 */
   display: inline-block;  /* 让气泡根据内容自适应 */
 }
 
