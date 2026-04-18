@@ -954,11 +954,14 @@ onUnmounted(() => {
   line-height: 1.5;
   color: var(--text-secondary);
   word-wrap: break-word;
+  word-break: break-word;
   background: rgba(255, 255, 255, 0.08);
   padding: 12px 16px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  max-width: 70%;  /* 限制最大宽度为70%，自适应内容 */
+  display: inline-block;  /* 让气泡根据内容自适应 */
 }
 
 .message-own {
@@ -1010,38 +1013,36 @@ onUnmounted(() => {
 .message-input {
   width: 100%;
   padding: 18px 60px 18px 20px;
-  border: 3px solid rgba(255, 255, 255, 0.7);
+  border: 2px solid #e5e7eb;
   border-radius: 20px;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
   resize: none;
   transition: all 0.3s ease;
-  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
-  color: #ffffff;
+  background: #ffffff;
+  color: #1f2937;
   min-height: 60px;
   max-height: 150px;
   font-family: inherit;
   line-height: 1.5;
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .message-input:hover {
-  border-color: rgba(255, 255, 255, 0.9);
-  background: linear-gradient(135deg, #8b5cf6 0%, #f472b6 100%);
-  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+  border-color: #d1d5db;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .message-input:focus {
   outline: none;
-  border-color: #ffffff;
-  background: linear-gradient(135deg, #9b6cf6 0%, #f569b9 100%);
-  box-shadow: 0 0 0 5px rgba(139, 92, 246, 0.5), 0 16px 40px rgba(236, 72, 153, 0.4);
-  transform: translateY(-2px);
+  border-color: #8b5cf6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .message-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: #9ca3af;
 }
 
 .input-actions {
