@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alike · 打工日记</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --bg-2:#0b1220;
+    --surface:rgba(26,34,54,.6); --surface-solid:#111729; --surface-hover:#1a2236;
+    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.14);
+    --shadow:0 8px 32px rgba(0,0,0,.4);
+    --text:#f1f5f9; --text-dim:#94a3b8; --text-mute:#7d8b9e;
+    --ai-1:#6366f1; --ai-2:#22d3ee; --ai-3:#a78bfa;
+    --grad-ai:linear-gradient(135deg,#6366f1,#22d3ee);
+    --grad-text:linear-gradient(135deg,#6366f1,#22d3ee,#a78bfa);
+    --warm:#fb923c; --warm-deep:#f97316;
+    --grad-warm:linear-gradient(135deg,#fb923c,#f97316);
+    --empathy:#34d399; --empathy-soft:rgba(52,211,153,.12);
+    --grad-empathy:linear-gradient(135deg,#34d399,#10b981);
+    --danger:#f87171; --info:#60a5fa; --gold:#fbbf24;
+    --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-xl:20px;
+    --radius-full:999px; --nav-h:64px;
+    --glass-bg:rgba(26,34,54,.6);
+    --glass-border:1px solid rgba(255,255,255,.08);
+    --glass-blur:blur(20px);
+    --glass-shadow:0 8px 32px rgba(0,0,0,.4);
+    --glass-highlight:inset 0 1px 0 rgba(255,255,255,.06);
+    --glow-ai:0 0 24px rgba(99,102,241,.4);
+    --glow-cyan:0 0 24px rgba(34,211,238,.4);
+    --glow-warm:0 0 24px rgba(251,146,60,.4);
+    --glow-empathy:0 0 24px rgba(52,211,153,.4);
+    --ease-out:cubic-bezier(0.16,1,0.3,1);
+    --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .light{
+    --bg:#FAFBFF; --bg-2:#F0F2FA;
+    --surface:rgba(255,255,255,.72); --surface-solid:#FFFFFF; --surface-hover:#F5F6FC;
+    --border:rgba(124,111,240,.14); --border-strong:rgba(124,111,240,.22);
+    --shadow:0 8px 30px rgba(80,80,160,.08);
+    --text:#1E2340; --text-dim:#5B6178; --text-mute:#6b7186;
+    --ai-1:#7C6FF0; --ai-2:#4A90FF; --ai-3:#22D3EE;
+    --grad-ai:linear-gradient(120deg,#7C6FF0,#4A90FF,#22D3EE);
+    --grad-text:linear-gradient(120deg,#7C6FF0,#4A90FF,#22D3EE);
+    --warm:#fb923c; --warm-deep:#f97316;
+    --grad-warm:linear-gradient(135deg,#fb923c,#f97316);
+    --empathy:#14B8A6; --empathy-soft:rgba(20,184,166,.10);
+    --grad-empathy:linear-gradient(135deg,#14B8A6,#2DD4BF);
+    --danger:#FB7185; --info:#60A5FA; --gold:#F59E0B;
+    --glass-bg:rgba(255,255,255,.72);
+    --glass-border:1px solid rgba(124,111,240,.14);
+    --glass-shadow:0 8px 30px rgba(80,80,160,.08);
+    --glass-highlight:inset 0 1px 0 rgba(255,255,255,.8);
+    --glow-ai:0 0 24px rgba(124,111,240,.25);
+    --glow-cyan:0 0 24px rgba(34,211,238,.25);
+    --glow-warm:0 0 24px rgba(251,146,60,.25);
+    --glow-empathy:0 0 24px rgba(20,184,166,.25);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--text);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;
+    transition:background .4s var(--ease-out),color .3s var(--ease-out);
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 0%,rgba(99,102,241,.15),transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 10%,rgba(34,211,238,.10),transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 100%,rgba(167,139,250,.08),transparent 60%),
+      var(--bg)}
+  .light body{
+    background:
+      radial-gradient(ellipse 70% 50% at 15% 0%,rgba(124,111,240,.06),transparent 60%),
+      radial-gradient(ellipse 60% 40% at 85% 10%,rgba(34,211,238,.05),transparent 60%),
+      var(--bg)}
+  a{color:inherit;text-decoration:none}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:rgba(148,163,184,.3);border-radius:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .icon-sm{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+  /* ---------- 顶部导航 ---------- */
+  .topnav{position:sticky;top:0;z-index:50;height:var(--nav-h);display:flex;align-items:center;gap:20px;padding:0 20px;
+    background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-bottom:var(--glass-border);box-shadow:var(--glass-shadow)}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px}
+  .logo .mark{width:36px;height:36px;border-radius:var(--radius-md);display:grid;place-items:center;
+    background:var(--grad-ai);box-shadow:var(--glow-ai);color:#fff}
+  .logo .mark svg{width:20px;height:20px;stroke:#fff}
+  .logo .name{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .search{flex:1;max-width:420px;position:relative}
+  .search input{width:100%;height:42px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--surface);
+    color:var(--text);padding:0 14px 0 42px;outline:none;transition:.25s var(--ease-out);font-size:14px;
+    backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+  .search input::placeholder{color:var(--text-mute)}
+  .search input:focus{border-color:var(--ai-1);box-shadow:0 0 0 3px rgba(99,102,241,.18)}
+  .search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-mute);display:flex}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .icon-btn{width:42px;height:42px;border-radius:var(--radius-md);display:grid;place-items:center;cursor:pointer;
+    background:var(--surface);border:1px solid var(--border);position:relative;color:var(--text-dim);
+    transition:.2s var(--ease-out);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);font-family:inherit}
+  .icon-btn:hover{background:var(--surface-hover);color:var(--ai-1);transform:translateY(-1px)}
+  .badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+    background:var(--danger);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg)}
+  .avatar{width:42px;height:42px;border-radius:var(--radius-md);background:var(--grad-ai);color:#fff;
+    display:grid;place-items:center;font-weight:700;cursor:pointer;position:relative;transition:.2s var(--ease-out);box-shadow:var(--glow-ai)}
+  .avatar::after{content:'';position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;
+    background:var(--ai-2);box-shadow:var(--glow-cyan);border:2px solid var(--bg)}
+
+  /* ---------- 布局 ---------- */
+  .layout{display:grid;grid-template-columns:240px 1fr;gap:22px;max-width:1400px;margin:0 auto;padding:22px;align-items:start}
+  @media(max-width:900px){.layout{grid-template-columns:1fr;padding:14px}.sidebar{display:none}}
+
+  .panel{background:var(--glass-bg);border:var(--glass-border);border-radius:var(--radius-lg);
+    box-shadow:var(--glass-shadow),var(--glass-highlight);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+
+  /* ---------- 左侧 ---------- */
+  .sidebar{position:sticky;top:calc(var(--nav-h) + 22px);display:flex;flex-direction:column;gap:16px}
+  .side-p{padding:14px}
+  .side-title{font-size:11px;letter-spacing:1px;color:var(--text-mute);text-transform:uppercase;padding:4px 8px 8px;font-weight:700}
+  .filt{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:var(--radius-md);cursor:pointer;
+    transition:.15s var(--ease-out);color:var(--text-dim);font-size:13px}
+  .filt:hover{background:var(--surface-hover);color:var(--text)}
+  .filt.active{background:rgba(99,102,241,.14);color:var(--ai-1);font-weight:600}
+  .light .filt.active{background:rgba(124,111,240,.1)}
+  .filt .cnt{margin-left:auto;font-size:11px;color:var(--text-mute)}
+  .filt.active .cnt{color:var(--ai-1)}
+  .filt svg{width:16px;height:16px;flex-shrink:0}
+
+  /* ---------- 打卡日历卡 ---------- */
+  .streak-card{padding:20px;text-align:center;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%,rgba(99,102,241,.18),transparent 70%),
+      var(--glass-bg);
+    border:var(--glass-border);border-radius:var(--radius-lg);
+    box-shadow:var(--glass-shadow),var(--glass-highlight);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+  .streak-num{font-size:40px;font-weight:900;background:var(--grad-text);
+    -webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+  .streak-lbl{color:var(--text-dim);font-size:13px;margin-top:4px}
+  .streak-fire{display:inline-flex;align-items:center;justify-content:center;
+    width:44px;height:44px;border-radius:50%;background:rgba(99,102,241,.14);margin-bottom:6px}
+  .streak-fire svg{width:24px;height:24px;stroke:var(--ai-1);fill:none;stroke-width:1.5}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:14px}
+  .cal .d{aspect-ratio:1;border-radius:var(--radius-sm);background:var(--surface-hover);
+    display:grid;place-items:center;font-size:10px;color:var(--text-mute);font-weight:500}
+  .cal .d.done{background:var(--grad-ai);color:#fff;font-weight:700}
+  .cal .d.today{outline:2px solid var(--ai-2);color:var(--ai-2);font-weight:700;background:rgba(34,211,238,.12)}
+
+  /* ---------- 主区 ---------- */
+  .main{min-width:0}
+  .diary-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+  .diary-head h1{font-size:22px;font-weight:800;flex:1;display:flex;align-items:center;gap:8px}
+  .diary-head h1 svg{width:24px;height:24px;stroke:var(--ai-1);fill:none;stroke-width:1.5}
+  .diary-head h1 span{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .btn{padding:11px 20px;border-radius:var(--radius-md);font-weight:700;cursor:pointer;
+    border:1px solid transparent;transition:.25s var(--ease-out);font-size:14px;
+    display:inline-flex;align-items:center;gap:7px}
+  .btn svg{width:18px;height:18px}
+  .btn-primary{background:var(--grad-ai);color:#fff;box-shadow:var(--glow-ai)}
+  .btn-primary:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 0 32px rgba(99,102,241,.5)}
+  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .tab{padding:8px 16px;border-radius:var(--radius-full);background:var(--surface);border:1px solid var(--border);
+    cursor:pointer;font-size:13px;font-weight:600;color:var(--text-dim);
+    transition:.2s var(--ease-out);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+  .tab:hover{color:var(--text);background:var(--surface-hover)}
+  .tab.active{background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.4);color:var(--ai-1)}
+  .light .tab.active{background:rgba(124,111,240,.1);border-color:rgba(124,111,240,.3)}
+
+  /* ---------- 瀑布流 ---------- */
+  .masonry{columns:3;column-gap:18px}
+  @media(max-width:1200px){.masonry{columns:2}}
+  @media(max-width:640px){.masonry{columns:1}}
+  .dcard{break-inside:avoid;margin-bottom:18px;
+    background:var(--glass-bg);border:var(--glass-border);border-radius:var(--radius-lg);
+    padding:18px;transition:.25s var(--ease-out);cursor:pointer;position:relative;overflow:hidden;
+    box-shadow:var(--glass-shadow),var(--glass-highlight);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+  .dcard:hover{transform:translateY(-4px);box-shadow:0 14px 40px rgba(0,0,0,.5),var(--glass-highlight);border-color:var(--border-strong)}
+  .light .dcard:hover{box-shadow:0 14px 40px rgba(80,80,160,.16),var(--glass-highlight)}
+  .dcard .mood{position:absolute;top:14px;right:16px;width:30px;height:30px;border-radius:var(--radius-full);
+    display:grid;place-items:center}
+  .dcard .mood svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .mood-tired{background:rgba(148,163,184,.16);color:#cbd5e1}
+  .mood-cheer{background:rgba(52,211,153,.16);color:#34d399}
+  .mood-wronged{background:rgba(96,165,250,.16);color:#60a5fa}
+  .mood-escape{background:rgba(34,211,238,.16);color:#22d3ee}
+  .mood-numb{background:rgba(100,116,139,.2);color:#94a3b8}
+  .mood-broken{background:rgba(192,132,252,.16);color:#c084fc}
+  .mood-grow{background:rgba(52,211,153,.16);color:#34d399}
+  .dcard h3{font-size:16px;font-weight:700;margin-bottom:8px;padding-right:34px;color:var(--text)}
+  .dcard .content{color:var(--text-dim);font-size:13px;margin-bottom:14px;line-height:1.7}
+  .dcard .banner{height:120px;border-radius:var(--radius-md);margin-bottom:12px;display:grid;place-items:center;
+    position:relative;overflow:hidden}
+  .dcard .banner svg{width:44px;height:44px;stroke:#fff;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.92;filter:drop-shadow(0 2px 8px rgba(0,0,0,.25))}
+  .dcard-foot{display:flex;align-items:center;gap:10px;padding-top:12px;border-top:1px solid var(--border)}
+  .author{display:flex;align-items:center;gap:8px}
+  .a-ava{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff}
+  .a-name{font-size:12px;font-weight:600;color:var(--text)}
+  .a-date{font-size:11px;color:var(--text-mute)}
+  .empathy{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-full);
+    cursor:pointer;background:var(--empathy-soft);border:1px solid rgba(52,211,153,.3);color:var(--empathy);
+    font-weight:600;font-size:12px;transition:.25s var(--ease-out)}
+  .empathy svg{width:16px;height:16px;stroke-width:1.5;transition:transform .25s var(--ease-spring)}
+  .empathy:hover{background:rgba(52,211,153,.2);box-shadow:var(--glow-empathy);transform:scale(1.05)}
+  .empathy:hover svg{transform:scale(1.3)}
+  .empathy.on{background:var(--grad-empathy);color:#fff;border-color:transparent;box-shadow:var(--glow-empathy)}
+  .day-badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:var(--radius-full);
+    background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.28);color:var(--ai-1);
+    font-weight:700;margin-bottom:10px}
+  .light .day-badge{background:rgba(124,111,240,.1);border-color:rgba(124,111,240,.18)}
+</style>
+</head>
+<body>
+  <nav class="topnav">
+    <a class="logo" href="01-home.html">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="m9 10 2 2 4-4"/></svg>
+      </span>
+      <span class="name">Alike</span>
+    </a>
+    <div class="search">
+      <span class="ic"><svg class="icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+      <input placeholder="搜索打工日记…" aria-label="搜索打工日记">
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn" id="themeToggle" type="button" title="切换主题" aria-label="切换主题" onclick="toggleTheme()"></button>
+      <button class="icon-btn" type="button" aria-label="通知，5 条未读"><svg class="icon" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="badge" aria-hidden="true">5</span></button>
+      <a class="avatar" href="05-profile.html" aria-label="我的主页">牛</a>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="streak-card">
+        <div class="streak-fire"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5Z"/></svg></div>
+        <div class="streak-num">28</div>
+        <div class="streak-lbl">连续打卡天数</div>
+        <div class="cal">
+          <div class="d">一</div><div class="d">二</div><div class="d">三</div><div class="d">四</div><div class="d">五</div><div class="d">六</div><div class="d">日</div>
+          <div class="d done">17</div><div class="d done">18</div><div class="d done">19</div><div class="d done">20</div><div class="d done">21</div><div class="d done">22</div><div class="d done">23</div>
+          <div class="d done">24</div><div class="d done">25</div><div class="d done">26</div><div class="d done">27</div><div class="d done">28</div><div class="d done">29</div><div class="d today">30</div>
+        </div>
+      </div>
+      <div class="panel side-p">
+        <div class="side-title">日记分类</div>
+        <div class="filt active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> 全部日记 <span class="cnt">3.1k</span></div>
+        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> 今日份疲惫 <span class="cnt">842</span></div>
+        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg> 小确幸 <span class="cnt">521</span></div>
+        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> 破防瞬间 <span class="cnt">433</span></div>
+        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg> 搞钱记录 <span class="cnt">318</span></div>
+        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7Z"/></svg> 成长复盘 <span class="cnt">276</span></div>
+        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> 我的私密 <span class="cnt">45</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="diary-head">
+        <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>打工<span>日记</span>广场</h1>
+        <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>写今日日记</button>
+      </div>
+      <div class="tabs">
+        <div class="tab active">最热</div>
+        <div class="tab">最新</div>
+        <div class="tab">最多共情</div>
+        <div class="tab">精选</div>
+      </div>
+
+      <div class="masonry">
+        <article class="dcard">
+          <span class="mood mood-tired" role="img" aria-label="心情：疲惫"><svg viewBox="0 0 24 24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg></span>
+          <span class="day-badge">连续第 156 天</span>
+          <h3>又是被闹钟叫醒的一天</h3>
+          <div class="content">6点半的天还是黑的，地铁挤到怀疑人生。列车报站的声音像在念我的判决书。可是想想房贷，我又默默站直了。今天也要假装很有干劲。</div>
+          <div class="dcard-foot">
+            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#60a5fa,#6366f1)">早</div>
+              <div><div class="a-name">早八人自救</div><div class="a-date">今天 07:12</div></div></div>
+            <div class="empathy on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 421</div>
+          </div>
+        </article>
+
+        <article class="dcard">
+          <span class="mood mood-cheer" role="img" aria-label="心情：加油"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span>
+          <div class="banner" style="background:linear-gradient(135deg,#34d399,#10b981)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 2 11 5.5 14.5 4 13 7.5 16.5 9 13 10.5 14.5 14 11 12.5 9.5 16 8 12.5 4.5 14 6 10.5 2.5 9 6 7.5 4.5 4 8 5.5z"/><circle cx="18" cy="17" r="1"/><circle cx="6" cy="19" r="1"/><circle cx="19" cy="6" r="1"/></svg></div>
+          <h3>今天居然准点下班了！</h3>
+          <div class="content">难以置信，六点整走出公司大门的那一刻，夕阳打在脸上，我差点哭出来。原来正常人的生活是这样的。奖励自己一顿好的。</div>
+          <div class="dcard-foot">
+            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#34d399,#10b981)">准</div>
+              <div><div class="a-name">准点下班星人</div><div class="a-date">今天 18:03</div></div></div>
+            <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 892</div>
+          </div>
+        </article>
+
+        <article class="dcard">
+          <span class="mood mood-wronged" role="img" aria-label="心情：委屈"><svg viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg></span>
+          <h3>被领导当众批评了</h3>
+          <div class="content">会议室里，二十几个人看着我。其实不是我的锅，但我什么都没说。回到工位偷偷抹眼泪，然后继续改那个不是我造成的 bug。成年人的体面，真贵。</div>
+          <div class="dcard-foot">
+            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#f87171,#fb923c)">忍</div>
+              <div><div class="a-name">忍者神龟</div><div class="a-date">昨天 20:41</div></div></div>
+            <div class="empathy on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 1.2k</div>
+          </div>
+        </article>
+
+        <article class="dcard">
+          <span class="mood mood-escape" role="img" aria-label="心情：想润"><svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></span>
+          <span class="day-badge">连续第 30 天</span>
+          <h3>裸辞倒计时 15 天</h3>
+          <div class="content">存款够撑半年了，今天正式提了。HR 的脸色很精彩，但我心里的石头落地了。人生不是只有这一条路，我要去看看别的风景。</div>
+          <div class="dcard-foot">
+            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#a78bfa,#6366f1)">润</div>
+              <div><div class="a-name">已经在看机票了</div><div class="a-date">昨天 15:22</div></div></div>
+            <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 673</div>
+          </div>
+        </article>
+
+        <article class="dcard">
+          <span class="mood mood-numb" role="img" aria-label="心情：麻木"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+          <h3>麻了，真的麻了</h3>
+          <div class="content">今天第 3 次改需求，我已经没有任何情绪了。改就改吧，反正明天还会再改。躺平的尽头是佛系，佛系的尽头是麻木。</div>
+          <div class="dcard-foot">
+            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#94a3b8,#64748b)">麻</div>
+              <div><div class="a-name">已读乱回</div><div class="a-date">昨天 11:08</div></div></div>
+            <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 355</div>
+          </div>
+        </article>
+
+        <article class="dcard">
+          <span class="mood mood-broken" role="img" aria-label="心情：崩溃"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+          <div class="banner" style="background:linear-gradient(135deg,#6366f1,#22d3ee)"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+          <h3>甲方的第 8 版需求</h3>
+          <div class="content">"就改一个小地方，很简单的。" —— 这句话我今年听了 200 遍。每次都是重做。我的头发和我的耐心一起消失了。</div>
+          <div class="dcard-foot">
+            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">设</div>
+              <div><div class="a-name">设计狗汪汪</div><div class="a-date">前天 22:15</div></div></div>
+            <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 508</div>
+          </div>
+        </article>
+
+        <article class="dcard">
+          <span class="mood mood-grow" role="img" aria-label="心情：成长"><svg viewBox="0 0 24 24"><path d="M7 20h10"/><path d="M12 20c0-6 0-8 3-11"/><path d="M12 13C8 13 5 10 5 5c5 0 7 3 7 8z"/><path d="M12 12c0-3 2-5 6-5 0 4-3 6-6 6z"/></svg></span>
+          <h3>今天学会了对无理要求说不</h3>
+          <div class="content">同事又想把活甩给我，这次我笑着拒绝了。天没有塌，反而觉得轻松。原来边界感是可以练出来的。给自己点个赞。</div>
+          <div class="dcard-foot">
+            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#34d399,#10b981)">边</div>
+              <div><div class="a-name">边界感修炼中</div><div class="a-date">前天 19:30</div></div></div>
+            <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 744</div>
+          </div>
+        </article>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    var SUN='<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+    var MOON='<svg class="icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+    function updateThemeIcon(){
+      var isLight=document.documentElement.classList.contains('light');
+      document.getElementById('themeToggle').innerHTML=isLight?MOON:SUN;
+    }
+    function toggleTheme(){
+      document.documentElement.classList.toggle('light');
+      var isLight=document.documentElement.classList.contains('light');
+      localStorage.setItem('theme',isLight?'light':'dark');
+      updateThemeIcon();
+    }
+    (function(){
+      if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light');
+      updateThemeIcon();
+    })();
+    document.querySelectorAll('.empathy').forEach(function(e){
+      e.setAttribute('role','button');e.setAttribute('tabindex','0');e.setAttribute('aria-pressed',e.classList.contains('on'));
+      function toggle(ev){ev.stopPropagation();e.classList.toggle('on');e.setAttribute('aria-pressed',e.classList.contains('on'));}
+      e.addEventListener('click',toggle);
+      e.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();toggle(ev);}});
+    });
+    document.querySelectorAll('.tab,.filt').forEach(function(t){
+      t.setAttribute('role','button');t.setAttribute('tabindex','0');
+      function activate(){
+        var sel=t.classList.contains('tab')?'.tab':'.filt';
+        t.parentElement.querySelectorAll(sel).forEach(function(s){s.classList.remove('active')});
+        t.classList.add('active');
+      }
+      t.addEventListener('click',activate);
+      t.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();activate();}});
+    });
+  </script>
+</body>
+</html>

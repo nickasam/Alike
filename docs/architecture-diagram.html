@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alike 系统架构图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0e1a; --bg-2:#0b1220;
+    --surface:rgba(26,34,54,.6);
+    --surface-solid:#111729; --surface-hover:#1a2236;
+    --border:rgba(255,255,255,.08);
+    --border-strong:rgba(255,255,255,.14);
+    --shadow:0 8px 32px rgba(0,0,0,.4);
+    --text:#f1f5f9; --text-dim:#94a3b8; --text-mute:#64748b;
+    --ai-1:#6366f1; --ai-2:#22d3ee; --ai-3:#a78bfa;
+    --grad-ai:linear-gradient(135deg,#6366f1,#22d3ee);
+    --grad-text:linear-gradient(135deg,#6366f1,#22d3ee,#a78bfa);
+    --radius-lg:16px; --radius-xl:20px;
+    --glass-bg:rgba(26,34,54,.6);
+    --glass-border:1px solid rgba(255,255,255,.08);
+    --glass-blur:blur(20px);
+    --glass-shadow:0 8px 32px rgba(0,0,0,.4);
+    --glass-highlight:inset 0 1px 0 rgba(255,255,255,.06);
+    /* 分层配色 */
+    --frontend:#22d3ee;   /* 前端 青色 */
+    --backend:#34d399;    /* 后端 翠绿 */
+    --database:#a78bfa;   /* 数据库 紫色 */
+    --cloud:#fbbf24;      /* 云服务 琥珀 */
+    --security:#fb7185;   /* 安全 玫红 */
+    --bus:#fb923c;        /* 消息总线 橙色 */
+    /* SVG 卡片填充（玻璃拟态半透明） */
+    --svg-front:rgba(34,211,238,.08);
+    --svg-back:rgba(52,211,153,.08);
+    --svg-db:rgba(167,139,250,.08);
+    --svg-cloud:rgba(251,191,36,.08);
+    --svg-sec:rgba(251,113,133,.08);
+    --svg-bus:rgba(251,146,60,.08);
+    --svg-mod:rgba(52,211,153,.06);
+    --svg-modcloud:rgba(251,191,36,.06);
+    --svg-modbus:rgba(251,146,60,.08);
+    --svg-strip:rgba(26,34,54,.5);
+    --svg-role1:rgba(139,92,246,.1);
+    --svg-role2:rgba(251,146,60,.1);
+    --card-glow:0 30px 80px -40px rgba(0,0,0,0.9);
+  }
+  .light {
+    --bg:#FAFBFF; --bg-2:#F0F2FA;
+    --surface:rgba(255,255,255,.72);
+    --surface-solid:#FFFFFF; --surface-hover:#F5F6FC;
+    --border:rgba(124,111,240,.14);
+    --border-strong:rgba(124,111,240,.22);
+    --shadow:0 8px 30px rgba(80,80,160,.08);
+    --text:#1E2340; --text-dim:#5B6178; --text-mute:#9AA0B8;
+    --ai-1:#7C6FF0; --ai-2:#4A90FF; --ai-3:#22D3EE;
+    --grad-ai:linear-gradient(120deg,#7C6FF0,#4A90FF,#22D3EE);
+    --grad-text:linear-gradient(120deg,#7C6FF0,#4A90FF,#22D3EE);
+    --glass-bg:rgba(255,255,255,.72);
+    --glass-border:1px solid rgba(124,111,240,.14);
+    --glass-shadow:0 8px 30px rgba(80,80,160,.08);
+    --glass-highlight:inset 0 1px 0 rgba(255,255,255,.8);
+    --frontend:#0891b2; --backend:#059669; --database:#7c3aed;
+    --cloud:#d97706; --security:#e11d48; --bus:#ea580c;
+    --svg-front:rgba(34,211,238,.10);
+    --svg-back:rgba(16,185,129,.10);
+    --svg-db:rgba(124,58,237,.08);
+    --svg-cloud:rgba(217,119,6,.08);
+    --svg-sec:rgba(225,29,72,.07);
+    --svg-bus:rgba(234,88,12,.08);
+    --svg-mod:rgba(16,185,129,.06);
+    --svg-modcloud:rgba(217,119,6,.06);
+    --svg-modbus:rgba(234,88,12,.08);
+    --svg-strip:rgba(255,255,255,.6);
+    --svg-role1:rgba(124,58,237,.08);
+    --svg-role2:rgba(234,88,12,.08);
+    --card-glow:0 20px 50px -30px rgba(80,80,160,0.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    color: var(--text);
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 0%, rgba(99,102,241,.15), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 10%, rgba(34,211,238,.10), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 100%, rgba(167,139,250,.08), transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+    min-height: 100vh;
+    transition: color .3s;
+  }
+  .light body {
+    background:
+      radial-gradient(ellipse 70% 50% at 15% 0%, rgba(124,111,240,.06), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 85% 10%, rgba(34,211,238,.05), transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+
+  .wrap { max-width: 1360px; margin: 0 auto; padding: 48px 24px 72px; }
+
+  header.page-head { text-align: center; margin-bottom: 40px; }
+  header.page-head .badge {
+    display: inline-block; font-size: 12px; letter-spacing: 3px;
+    color: var(--ai-2);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    border-radius: 999px; padding: 7px 18px; margin-bottom: 18px;
+    box-shadow: var(--glass-highlight);
+  }
+  header.page-head h1 {
+    font-size: 38px; font-weight: 800; letter-spacing: 1px;
+    background: var(--grad-text);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  header.page-head p { margin-top: 12px; color: var(--text-dim); font-size: 14px; letter-spacing: 0.5px; }
+
+  /* 主题切换 */
+  .theme-toggle {
+    position: fixed; top: 24px; right: 24px; z-index: 60;
+    width: 46px; height: 46px; border-radius: 14px;
+    display: grid; place-items: center; cursor: pointer;
+    background: var(--surface); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border); color: var(--text-dim);
+    box-shadow: var(--glass-shadow), var(--glass-highlight); transition: .2s;
+  }
+  .theme-toggle:hover { color: var(--text); transform: translateY(-2px); }
+  .theme-toggle svg { width: 20px; height: 20px; }
+
+  /* Legend */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 10px 22px; justify-content: center;
+    margin: 28px auto 34px; padding: 16px 22px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border); border-radius: var(--radius-lg);
+    max-width: 1100px; box-shadow: var(--glass-shadow), var(--glass-highlight);
+  }
+  .legend .item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-dim); }
+  .legend .dot { width: 13px; height: 13px; border-radius: 4px; box-shadow: 0 0 10px currentColor; }
+  .legend .line { width: 26px; height: 0; border-top: 2px dashed currentColor; }
+
+  .diagram-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-radius: var(--radius-xl); padding: 20px;
+    box-shadow: var(--card-glow), var(--glass-highlight);
+  }
+  svg { width: 100%; height: auto; display: block; }
+
+  /* SVG text defaults */
+  .svg-title { font: 700 15px 'JetBrains Mono', monospace; }
+  .svg-sub   { font: 400 11px 'JetBrains Mono', monospace; }
+  .svg-mod   { font: 600 12px 'JetBrains Mono', monospace; }
+  .svg-mods  { font: 400 9.5px 'JetBrains Mono', monospace; }
+  .svg-label { font: 600 10.5px 'JetBrains Mono', monospace; }
+  .svg-layer { font: 700 12px 'JetBrains Mono', monospace; letter-spacing: 2px; }
+
+  /* Bottom info cards */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 40px; }
+  .info-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-radius: var(--radius-lg); padding: 24px; position: relative; overflow: hidden;
+    box-shadow: var(--glass-shadow), var(--glass-highlight); transition: .2s;
+  }
+  .info-card:hover { transform: translateY(-2px); border-color: var(--border-strong); }
+  .info-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .info-card.tech::before { background: linear-gradient(90deg, var(--backend), var(--frontend)); }
+  .info-card.flow::before { background: linear-gradient(90deg, var(--bus), var(--cloud)); }
+  .info-card.feat::before { background: linear-gradient(90deg, var(--security), var(--database)); }
+  .info-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .info-card.tech h3 { color: var(--backend); }
+  .info-card.flow h3 { color: var(--bus); }
+  .info-card.feat h3 { color: var(--security); }
+  .info-card .ico { width: 32px; height: 32px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; }
+  .info-card .ico svg { width: 17px; height: 17px; }
+  .info-card.tech .ico { background: rgba(52,211,153,0.12); color: var(--backend); }
+  .info-card.flow .ico { background: rgba(251,146,60,0.12); color: var(--bus); }
+  .info-card.feat .ico { background: rgba(251,113,133,0.12); color: var(--security); }
+  .info-card ul { list-style: none; }
+  .info-card li { font-size: 12.5px; color: var(--text-dim); line-height: 1.85; padding-left: 18px; position: relative; }
+  .info-card li::before { content: "▹"; position: absolute; left: 0; color: inherit; opacity: 0.7; }
+  .info-card.tech li strong { color: var(--frontend); font-weight: 600; }
+  .info-card.flow li strong { color: var(--cloud); font-weight: 600; }
+  .info-card.feat li strong { color: var(--database); font-weight: 600; }
+
+  footer.page-foot { text-align: center; color: var(--text-mute); font-size: 11.5px; margin-top: 44px; letter-spacing: 1px; }
+
+  @media (max-width: 900px) {
+    .cards { grid-template-columns: 1fr; }
+    header.page-head h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="theme-toggle" id="themeToggle" title="切换主题"></div>
+<div class="wrap">
+
+  <header class="page-head">
+    <div class="badge">SYSTEM ARCHITECTURE</div>
+    <h1>Alike · 情感共鸣聊天社区</h1>
+    <p>汇聚天下牛马，总有人懂你的辛苦 &nbsp;·&nbsp; Vue 3 / Nuxt 3 &nbsp;+&nbsp; Go &nbsp;+&nbsp; PostgreSQL / Redis / MinIO</p>
+  </header>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="item" style="color:var(--frontend)"><span class="dot" style="background:var(--frontend)"></span>前端 Frontend</div>
+    <div class="item" style="color:var(--backend)"><span class="dot" style="background:var(--backend)"></span>后端 Backend</div>
+    <div class="item" style="color:var(--database)"><span class="dot" style="background:var(--database)"></span>数据库 Database</div>
+    <div class="item" style="color:var(--cloud)"><span class="dot" style="background:var(--cloud)"></span>云服务 Storage</div>
+    <div class="item" style="color:var(--security)"><span class="dot" style="background:var(--security)"></span>安全 Security</div>
+    <div class="item" style="color:var(--bus)"><span class="dot" style="background:var(--bus)"></span>消息总线 Bus</div>
+    <div class="item" style="color:var(--frontend)"><span class="line" style="color:var(--frontend)"></span>HTTP / REST</div>
+    <div class="item" style="color:var(--bus)"><span class="line" style="color:var(--bus)"></span>WebSocket</div>
+    <div class="item" style="color:var(--database)"><span class="line" style="color:var(--database)"></span>Redis Pub/Sub</div>
+  </div>
+
+  <!-- Diagram -->
+  <div class="diagram-card">
+  <svg viewBox="0 0 1300 1180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Alike 系统架构图">
+    <defs>
+      <!-- arrow markers per color -->
+      <marker id="arrowFront" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#22d3ee"/>
+      </marker>
+      <marker id="arrowBus" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#fb923c"/>
+      </marker>
+      <marker id="arrowDb" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#a78bfa"/>
+      </marker>
+      <marker id="arrowBack" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#34d399"/>
+      </marker>
+      <marker id="arrowCloud" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#fbbf24"/>
+      </marker>
+      <marker id="arrowSec" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#fb7185"/>
+      </marker>
+      <marker id="arrowAI" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#6366f1"/>
+      </marker>
+
+      <!-- AI 渐变连线 -->
+      <linearGradient id="lineAI" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#22d3ee"/>
+      </linearGradient>
+      <linearGradient id="lineFrontBus" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#fb923c"/>
+      </linearGradient>
+      <linearGradient id="lineSecBack" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fb7185"/><stop offset="1" stop-color="#34d399"/>
+      </linearGradient>
+      <linearGradient id="lineBackDb" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#a78bfa"/>
+      </linearGradient>
+      <linearGradient id="lineBusCloud" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#fbbf24"/>
+      </linearGradient>
+
+      <!-- 卡片渐变描边（AI 极光） -->
+      <linearGradient id="strokeFront" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#6366f1"/>
+      </linearGradient>
+      <linearGradient id="strokeBack" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#22d3ee"/>
+      </linearGradient>
+      <linearGradient id="strokeBus" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#fbbf24"/>
+      </linearGradient>
+
+      <!-- 卡片玻璃填充 -->
+      <linearGradient id="gFront" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#22d3ee" stop-opacity="0.14"/><stop offset="1" stop-color="#6366f1" stop-opacity="0.06"/>
+      </linearGradient>
+      <linearGradient id="gBack" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#34d399" stop-opacity="0.12"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0.05"/>
+      </linearGradient>
+      <linearGradient id="gDb" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#a78bfa" stop-opacity="0.14"/><stop offset="1" stop-color="#6366f1" stop-opacity="0.06"/>
+      </linearGradient>
+      <linearGradient id="gCloud" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fbbf24" stop-opacity="0.14"/><stop offset="1" stop-color="#fb923c" stop-opacity="0.06"/>
+      </linearGradient>
+      <linearGradient id="gSec" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fb7185" stop-opacity="0.13"/><stop offset="1" stop-color="#f43f5e" stop-opacity="0.05"/>
+      </linearGradient>
+      <linearGradient id="gBus" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fb923c" stop-opacity="0.14"/><stop offset="1" stop-color="#f97316" stop-opacity="0.06"/>
+      </linearGradient>
+    </defs>
+
+    <!-- ============ LAYER 1: BROWSER ============ -->
+    <g>
+      <rect x="380" y="30" width="540" height="86" rx="14" fill="url(#gFront)" stroke="url(#strokeFront)" stroke-width="1.5"/>
+      <text x="650" y="62" text-anchor="middle" class="svg-title" fill="#22d3ee">用户浏览器 · Browser</text>
+      <text x="650" y="84" text-anchor="middle" class="svg-sub" fill="#7dd3fc">Vue 3 + Nuxt 3 (SSR / SPA 混合) · Pinia · Tailwind</text>
+      <text x="650" y="102" text-anchor="middle" class="svg-sub" fill="#94a3b8">useWebSocket · useAuth · useApi · 情绪看板 · 抱团取暖动画</text>
+    </g>
+
+    <!-- Browser -> Nginx : HTTP (left) + WS (right) -->
+    <path d="M560,116 L560,168" stroke="url(#lineAI)" stroke-width="2.5" fill="none" marker-end="url(#arrowFront)"/>
+    <text x="500" y="146" text-anchor="middle" class="svg-label" fill="#22d3ee">HTTP / REST</text>
+    <path d="M740,116 L740,168" stroke="url(#lineFrontBus)" stroke-width="2.5" stroke-dasharray="6 4" fill="none" marker-end="url(#arrowBus)"/>
+    <text x="808" y="146" text-anchor="middle" class="svg-label" fill="#fb923c">WebSocket</text>
+
+    <!-- ============ LAYER 2: NGINX ============ -->
+    <g>
+      <rect x="380" y="170" width="540" height="70" rx="12" fill="url(#gSec)" stroke="#fb7185" stroke-width="1.5"/>
+      <text x="650" y="200" text-anchor="middle" class="svg-title" fill="#fb7185">Nginx · 反向代理</text>
+      <text x="650" y="222" text-anchor="middle" class="svg-sub" fill="#fda4af">TLS 终止 · 静态资源 · 负载均衡 · /api 代理 · /ws 升级</text>
+    </g>
+
+    <!-- Nginx -> Backend -->
+    <path d="M650,240 L650,292" stroke="url(#lineSecBack)" stroke-width="2.5" fill="none" marker-end="url(#arrowBack)"/>
+    <text x="650" y="270" text-anchor="middle" class="svg-label" fill="#fb7185">经中间件鉴权 / 限流 / CORS</text>
+
+    <!-- ============ LAYER 3: GO BACKEND ============ -->
+    <g>
+      <rect x="120" y="294" width="1060" height="360" rx="18" fill="url(#gBack)" stroke="url(#strokeBack)" stroke-width="1.5"/>
+      <text x="150" y="326" class="svg-layer" fill="#34d399">GO BACKEND · Gin</text>
+      <text x="1150" y="326" text-anchor="end" class="svg-sub" fill="#6ee7b7">高性能 · goroutine 并发</text>
+
+      <!-- middleware bar (security) -->
+      <rect x="150" y="342" width="1000" height="40" rx="9" fill="url(#gSec)" stroke="#fb7185" stroke-width="1.2"/>
+      <text x="170" y="367" class="svg-mod" fill="#fb7185">middleware</text>
+      <text x="1130" y="367" text-anchor="end" class="svg-sub" fill="#fda4af">JWT 鉴权 · 限流 RateLimit · CORS · 请求日志 Logger</text>
+
+      <!-- module grid : 11 business modules -->
+      <!-- row 1 -->
+      <g>
+        <rect x="150" y="398" width="150" height="66" rx="10" fill="rgba(52,211,153,0.07)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="225" y="428" text-anchor="middle" class="svg-mod" fill="#6ee7b7">auth</text>
+        <text x="225" y="448" text-anchor="middle" class="svg-mods" fill="#94a3b8">注册·登录·JWT·匿名</text>
+      </g>
+      <g>
+        <rect x="316" y="398" width="150" height="66" rx="10" fill="rgba(52,211,153,0.07)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="391" y="428" text-anchor="middle" class="svg-mod" fill="#6ee7b7">user</text>
+        <text x="391" y="448" text-anchor="middle" class="svg-mods" fill="#94a3b8">资料·牛马等级·主页</text>
+      </g>
+      <g>
+        <rect x="482" y="398" width="150" height="66" rx="10" fill="rgba(52,211,153,0.07)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="557" y="428" text-anchor="middle" class="svg-mod" fill="#6ee7b7">channel</text>
+        <text x="557" y="448" text-anchor="middle" class="svg-mods" fill="#94a3b8">频道CRUD·成员管理</text>
+      </g>
+      <g>
+        <rect x="648" y="398" width="150" height="66" rx="10" fill="rgba(52,211,153,0.07)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="723" y="428" text-anchor="middle" class="svg-mod" fill="#6ee7b7">message</text>
+        <text x="723" y="448" text-anchor="middle" class="svg-mods" fill="#94a3b8">消息·线程·历史</text>
+      </g>
+      <g>
+        <rect x="814" y="398" width="150" height="66" rx="10" fill="rgba(52,211,153,0.07)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="889" y="428" text-anchor="middle" class="svg-mod" fill="#6ee7b7">emotion</text>
+        <text x="889" y="448" text-anchor="middle" class="svg-mods" fill="#94a3b8">情绪标签·看板·趋势</text>
+      </g>
+      <g>
+        <rect x="980" y="398" width="170" height="66" rx="10" fill="rgba(52,211,153,0.07)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="1065" y="428" text-anchor="middle" class="svg-mod" fill="#6ee7b7">empathy</text>
+        <text x="1065" y="448" text-anchor="middle" class="svg-mods" fill="#94a3b8">抱团取暖·共情榜</text>
+      </g>
+      <!-- row 2 -->
+      <g>
+        <rect x="150" y="474" width="150" height="66" rx="10" fill="rgba(52,211,153,0.07)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="225" y="504" text-anchor="middle" class="svg-mod" fill="#6ee7b7">diary</text>
+        <text x="225" y="524" text-anchor="middle" class="svg-mods" fill="#94a3b8">打工日记·打卡</text>
+      </g>
+      <g>
+        <rect x="316" y="474" width="150" height="66" rx="10" fill="rgba(52,211,153,0.07)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="391" y="504" text-anchor="middle" class="svg-mod" fill="#6ee7b7">notification</text>
+        <text x="391" y="524" text-anchor="middle" class="svg-mods" fill="#94a3b8">@提及·共情·回复</text>
+      </g>
+      <g>
+        <rect x="482" y="474" width="150" height="66" rx="10" fill="rgba(52,211,153,0.07)" stroke="#34d399" stroke-width="1.2"/>
+        <text x="557" y="504" text-anchor="middle" class="svg-mod" fill="#6ee7b7">search</text>
+        <text x="557" y="524" text-anchor="middle" class="svg-mods" fill="#94a3b8">消息·日记全文搜索</text>
+      </g>
+      <g>
+        <rect x="648" y="474" width="150" height="66" rx="10" fill="url(#gCloud)" stroke="#fbbf24" stroke-width="1.2"/>
+        <text x="723" y="504" text-anchor="middle" class="svg-mod" fill="#fcd34d">storage</text>
+        <text x="723" y="524" text-anchor="middle" class="svg-mods" fill="#d4a017">文件上传→MinIO</text>
+      </g>
+      <!-- ws module spans (bus) -->
+      <g>
+        <rect x="814" y="474" width="336" height="66" rx="10" fill="url(#gBus)" stroke="#fb923c" stroke-width="1.4"/>
+        <text x="982" y="502" text-anchor="middle" class="svg-mod" fill="#fdba74">ws · WebSocket 模块</text>
+        <text x="982" y="522" text-anchor="middle" class="svg-mods" fill="#e08c50">升级连接 · 事件编解码 · 订阅频道广播</text>
+      </g>
+
+      <!-- WebSocket Hub bar (bus) -->
+      <g>
+        <rect x="150" y="556" width="1000" height="80" rx="12" fill="url(#gBus)" stroke="url(#strokeBus)" stroke-width="1.6"/>
+        <text x="650" y="588" text-anchor="middle" class="svg-title" fill="#fb923c">WebSocket Hub · 实时连接管理</text>
+        <text x="650" y="612" text-anchor="middle" class="svg-sub" fill="#fdba74">在线连接注册表 · 频道房间 (rooms) · 广播分发 · 心跳 · 订阅 Redis Pub/Sub 跨实例扩散</text>
+      </g>
+    </g>
+
+    <!-- Backend -> Data layer arrows -->
+    <!-- to Postgres (green: SQL) -->
+    <path d="M300,654 L300,742" stroke="url(#lineBackDb)" stroke-width="2.5" fill="none" marker-end="url(#arrowDb)"/>
+    <text x="300" y="700" text-anchor="middle" class="svg-label" fill="#34d399">SQL 读写</text>
+
+    <!-- Hub <-> Redis (purple: pub/sub, bidirectional) -->
+    <path d="M620,636 L620,742" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="6 4" fill="none" marker-end="url(#arrowDb)"/>
+    <path d="M680,742 L680,636" stroke="#fb923c" stroke-width="2.5" stroke-dasharray="6 4" fill="none" marker-end="url(#arrowBus)"/>
+    <text x="650" y="695" text-anchor="middle" class="svg-label" fill="#a78bfa">Redis Pub/Sub</text>
+    <text x="650" y="712" text-anchor="middle" class="svg-mods" fill="#94a3b8">发布 / 订阅广播</text>
+
+    <!-- storage -> MinIO (amber) -->
+    <path d="M1000,654 L1000,742" stroke="url(#lineBusCloud)" stroke-width="2.5" fill="none" marker-end="url(#arrowCloud)"/>
+    <text x="1000" y="700" text-anchor="middle" class="svg-label" fill="#fbbf24">对象存储 API</text>
+
+    <!-- ============ LAYER 4: DATA ============ -->
+    <!-- PostgreSQL -->
+    <g>
+      <rect x="150" y="744" width="300" height="150" rx="16" fill="url(#gDb)" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="300" y="782" text-anchor="middle" class="svg-title" fill="#c4b5fd">PostgreSQL</text>
+      <text x="300" y="804" text-anchor="middle" class="svg-sub" fill="#a78bfa">源数据存储 · 关系型</text>
+      <text x="300" y="832" text-anchor="middle" class="svg-mods" fill="#94a3b8">users · channels · messages</text>
+      <text x="300" y="850" text-anchor="middle" class="svg-mods" fill="#94a3b8">empathies · diaries · notifications</text>
+      <text x="300" y="868" text-anchor="middle" class="svg-mods" fill="#94a3b8">channel_members · attachments</text>
+      <text x="300" y="886" text-anchor="middle" class="svg-mods" fill="#94a3b8">全文索引 · 分页查询索引</text>
+    </g>
+
+    <!-- Redis -->
+    <g>
+      <rect x="478" y="744" width="344" height="150" rx="16" fill="url(#gDb)" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="650" y="782" text-anchor="middle" class="svg-title" fill="#c4b5fd">Redis</text>
+      <text x="650" y="804" text-anchor="middle" class="svg-sub" fill="#a78bfa">内存缓存 · 双角色</text>
+      <!-- role 1 -->
+      <rect x="500" y="818" width="145" height="60" rx="9" fill="rgba(139,92,246,0.12)" stroke="#8b5cf6" stroke-width="1"/>
+      <text x="572" y="842" text-anchor="middle" class="svg-mods" fill="#c4b5fd" style="font-weight:600">① 会话管理</text>
+      <text x="572" y="860" text-anchor="middle" class="svg-mods" fill="#94a3b8">Session · JWT</text>
+      <!-- role 2 (bus tint) -->
+      <rect x="655" y="818" width="145" height="60" rx="9" fill="rgba(251,146,60,0.12)" stroke="#fb923c" stroke-width="1"/>
+      <text x="727" y="842" text-anchor="middle" class="svg-mods" fill="#fdba74" style="font-weight:600">② Pub/Sub 广播</text>
+      <text x="727" y="860" text-anchor="middle" class="svg-mods" fill="#94a3b8">跨实例事件扩散</text>
+    </g>
+
+    <!-- MinIO / S3 -->
+    <g>
+      <rect x="850" y="744" width="300" height="150" rx="16" fill="url(#gCloud)" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="1000" y="782" text-anchor="middle" class="svg-title" fill="#fcd34d">MinIO / S3</text>
+      <text x="1000" y="804" text-anchor="middle" class="svg-sub" fill="#fbbf24">对象存储 · 云服务</text>
+      <text x="1000" y="834" text-anchor="middle" class="svg-mods" fill="#94a3b8">图片 · 文档 · 附件</text>
+      <text x="1000" y="854" text-anchor="middle" class="svg-mods" fill="#94a3b8">头像 · 上传文件</text>
+      <text x="1000" y="874" text-anchor="middle" class="svg-mods" fill="#94a3b8">类型 / 大小限制 · 图片压缩</text>
+    </g>
+
+    <!-- ============ DATA FLOW STRIP ============ -->
+    <g>
+      <rect x="120" y="936" width="1060" height="210" rx="16" fill="rgba(99,102,241,0.05)" stroke="url(#lineAI)" stroke-width="1.2"/>
+      <text x="150" y="968" class="svg-layer" fill="#94a3b8">典型数据流 · DATA FLOW</text>
+
+      <!-- Flow A: message publish -->
+      <text x="150" y="1000" class="svg-mod" fill="#fb923c">▎消息发布</text>
+      <text x="150" y="1024" class="svg-mods" fill="#cbd5e1">
+        <tspan fill="#22d3ee">前端输入</tspan> → <tspan fill="#22d3ee">POST /api/messages</tspan> → <tspan fill="#34d399">message 写入 PostgreSQL</tspan> → <tspan fill="#a78bfa">发布 Redis Pub/Sub</tspan> → <tspan fill="#fb923c">WS Hub 订阅广播</tspan> → <tspan fill="#22d3ee">在线成员实时显示</tspan>
+      </text>
+
+      <!-- Flow B: empathy -->
+      <text x="150" y="1064" class="svg-mod" fill="#fb7185">▎抱团取暖（共情）</text>
+      <text x="150" y="1088" class="svg-mods" fill="#cbd5e1">
+        <tspan fill="#22d3ee">点击"我懂你"</tspan> → <tspan fill="#22d3ee">POST /api/messages/:id/empathy</tspan> → <tspan fill="#34d399">写 empathies + 更新统计</tspan> → <tspan fill="#a78bfa">Redis Pub/Sub</tspan> → <tspan fill="#fb923c">WS 推送被共情者</tspan> → <tspan fill="#22d3ee">动画 + 数字更新</tspan>
+      </text>
+
+      <!-- Flow C: file upload -->
+      <text x="150" y="1128" class="svg-mod" fill="#fbbf24">▎文件上传</text>
+      <text x="270" y="1128" class="svg-mods" fill="#cbd5e1">
+        <tspan fill="#22d3ee">前端选择文件</tspan> → <tspan fill="#22d3ee">POST /api/upload</tspan> → <tspan fill="#34d399">storage 模块</tspan> → <tspan fill="#fbbf24">MinIO/S3 存储</tspan> → <tspan fill="#34d399">attachments 记录 URL</tspan>
+      </text>
+    </g>
+  </svg>
+  </div>
+
+  <!-- Bottom info cards -->
+  <div class="cards">
+    <div class="info-card tech">
+      <h3><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>技术栈亮点</h3>
+      <ul>
+        <li><strong>Vue 3 + Nuxt 3</strong> — SSR/SPA 混合，SEO 友好</li>
+        <li><strong>Go (Gin)</strong> — goroutine 高并发，低延迟</li>
+        <li><strong>PostgreSQL</strong> — 关系模型 + 全文索引</li>
+        <li><strong>Redis</strong> — 会话缓存 + Pub/Sub 广播</li>
+        <li><strong>WebSocket Hub</strong> — 房间制实时推送</li>
+        <li><strong>MinIO / S3</strong> — 对象存储，兼容 S3 API</li>
+        <li><strong>Docker Compose</strong> — 一键容器化部署</li>
+      </ul>
+    </div>
+
+    <div class="info-card flow">
+      <h3><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 8 4 4-4 4"/><path d="M2 12h20"/><path d="m6 8-4 4 4 4"/></svg></span>核心数据流</h3>
+      <ul>
+        <li><strong>REST 写路径</strong> — 前端 → Nginx → Go → PostgreSQL</li>
+        <li><strong>实时广播</strong> — DB 落库后 publish 到 Redis</li>
+        <li><strong>Pub/Sub 扩散</strong> — 多实例 Hub 订阅同一频道</li>
+        <li><strong>WS 下行</strong> — Hub 推送在线频道成员</li>
+        <li><strong>共情通知</strong> — 定向推送被共情者</li>
+        <li><strong>文件旁路</strong> — storage 直传 MinIO 存 URL</li>
+      </ul>
+    </div>
+
+    <div class="info-card feat">
+      <h3><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></span>特色功能</h3>
+      <ul>
+        <li><strong>情绪系统</strong> — 情绪标签 + 频道情绪热力看板</li>
+        <li><strong>抱团取暖</strong> — 不是"赞"，是"我懂你"</li>
+        <li><strong>牛马等级</strong> — 活跃/被共情累积自动升级</li>
+        <li><strong>打工日记</strong> — 每日打卡 + 连续徽章</li>
+        <li><strong>排行榜</strong> — 最受共情 / 最惨 / 最活跃</li>
+        <li><strong>匿名模式</strong> — 隐藏身份健康宣泄</li>
+        <li><strong>线程讨论</strong> — Slack 式回复 + @提及</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer class="page-foot">
+    Alike Architecture · 生成于架构设计文档 docs/plans/architecture-design.md · Aurora 极光主题 · JetBrains Mono
+  </footer>
+
+</div>
+<script>
+  var sunIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+  var moonIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+  var toggle=document.getElementById('themeToggle');
+  function applyTheme(t){
+    if(t==='light'){document.documentElement.classList.add('light');toggle.innerHTML=moonIcon;}
+    else{document.documentElement.classList.remove('light');toggle.innerHTML=sunIcon;}
+  }
+  applyTheme(localStorage.getItem('alike-theme')||'dark');
+  toggle.addEventListener('click',function(){
+    var isLight=document.documentElement.classList.toggle('light');
+    localStorage.setItem('alike-theme',isLight?'light':'dark');
+    toggle.innerHTML=isLight?moonIcon:sunIcon;
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alike · #程序员 频道</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --bg-2:#0b1220;
+    --surface:rgba(26,34,54,.6); --surface-solid:#111729; --surface-hover:#1a2236;
+    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.14);
+    --shadow:0 8px 32px rgba(0,0,0,.4);
+    --text:#f1f5f9; --text-dim:#94a3b8; --text-mute:#7d8b9e;
+    --ai-1:#6366f1; --ai-2:#22d3ee; --ai-3:#a78bfa;
+    --grad-ai:linear-gradient(135deg,#6366f1,#22d3ee);
+    --grad-text:linear-gradient(135deg,#6366f1,#22d3ee,#a78bfa);
+    --warm:#fb923c; --warm-deep:#f97316;
+    --grad-warm:linear-gradient(135deg,#fb923c,#f97316);
+    --empathy:#34d399; --empathy-soft:rgba(52,211,153,.12);
+    --grad-empathy:linear-gradient(135deg,#34d399,#10b981);
+    --danger:#f87171; --info:#60a5fa; --gold:#fbbf24;
+    --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-xl:20px;
+    --radius-full:999px; --nav-h:64px;
+    --glass-bg:rgba(26,34,54,.6);
+    --glass-border:1px solid rgba(255,255,255,.08);
+    --glass-blur:blur(20px);
+    --glass-shadow:0 8px 32px rgba(0,0,0,.4);
+    --glass-highlight:inset 0 1px 0 rgba(255,255,255,.06);
+    --glow-ai:0 0 24px rgba(99,102,241,.4);
+    --glow-cyan:0 0 24px rgba(34,211,238,.4);
+    --glow-warm:0 0 24px rgba(251,146,60,.4);
+    --glow-empathy:0 0 24px rgba(52,211,153,.4);
+    --ease-out:cubic-bezier(0.16,1,0.3,1);
+    --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .light{
+    --bg:#FAFBFF; --bg-2:#F0F2FA;
+    --surface:rgba(255,255,255,.72); --surface-solid:#FFFFFF; --surface-hover:#F5F6FC;
+    --border:rgba(124,111,240,.14); --border-strong:rgba(124,111,240,.22);
+    --shadow:0 8px 30px rgba(80,80,160,.08);
+    --text:#1E2340; --text-dim:#5B6178; --text-mute:#6b7186;
+    --ai-1:#7C6FF0; --ai-2:#4A90FF; --ai-3:#22D3EE;
+    --grad-ai:linear-gradient(120deg,#7C6FF0,#4A90FF,#22D3EE);
+    --grad-text:linear-gradient(120deg,#7C6FF0,#4A90FF,#22D3EE);
+    --warm:#fb923c; --warm-deep:#f97316;
+    --grad-warm:linear-gradient(135deg,#fb923c,#f97316);
+    --empathy:#14B8A6; --empathy-soft:rgba(20,184,166,.10);
+    --grad-empathy:linear-gradient(135deg,#14B8A6,#2DD4BF);
+    --danger:#FB7185; --info:#60A5FA; --gold:#F59E0B;
+    --glass-bg:rgba(255,255,255,.72);
+    --glass-border:1px solid rgba(124,111,240,.14);
+    --glass-shadow:0 8px 30px rgba(80,80,160,.08);
+    --glass-highlight:inset 0 1px 0 rgba(255,255,255,.8);
+    --glow-ai:0 0 24px rgba(124,111,240,.25);
+    --glow-cyan:0 0 24px rgba(34,211,238,.25);
+    --glow-warm:0 0 24px rgba(251,146,60,.25);
+    --glow-empathy:0 0 24px rgba(20,184,166,.25);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:14px;line-height:1.6;color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased;
+    transition:background .4s var(--ease-out),color .3s var(--ease-out);
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 0%,rgba(99,102,241,.15),transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 10%,rgba(34,211,238,.10),transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 100%,rgba(167,139,250,.08),transparent 60%),
+      var(--bg)}
+  .light body{
+    background:
+      radial-gradient(ellipse 70% 50% at 15% 0%,rgba(124,111,240,.06),transparent 60%),
+      radial-gradient(ellipse 60% 40% at 85% 10%,rgba(34,211,238,.05),transparent 60%),
+      var(--bg)}
+  a{color:inherit;text-decoration:none}
+  ::-webkit-scrollbar{width:7px;height:7px}
+  ::-webkit-scrollbar-thumb{background:rgba(148,163,184,.3);border-radius:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .icon-sm{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+  /* ---------- 顶部导航 ---------- */
+  .topnav{height:var(--nav-h);display:flex;align-items:center;gap:20px;padding:0 20px;
+    background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border-bottom:var(--glass-border);flex-shrink:0;box-shadow:var(--glass-shadow)}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;flex-shrink:0}
+  .logo .mark{width:36px;height:36px;border-radius:var(--radius-md);display:grid;place-items:center;
+    background:var(--grad-ai);box-shadow:var(--glow-ai);color:#fff}
+  .logo .mark svg{width:20px;height:20px;stroke:#fff}
+  .logo .name{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .search{flex:1;max-width:420px;position:relative}
+  .search input{width:100%;height:42px;border-radius:var(--radius-md);border:1px solid var(--border);
+    background:var(--surface);color:var(--text);padding:0 14px 0 42px;font-size:14px;outline:none;
+    transition:.25s var(--ease-out);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+  .search input::placeholder{color:var(--text-mute)}
+  .search input:focus{border-color:var(--ai-1);box-shadow:0 0 0 3px rgba(99,102,241,.18)}
+  .search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-mute)}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .icon-btn{width:42px;height:42px;border-radius:var(--radius-md);display:grid;place-items:center;cursor:pointer;
+    background:var(--surface);border:1px solid var(--border);position:relative;transition:.2s var(--ease-out);
+    color:var(--text-dim);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);font-family:inherit}
+  .icon-btn:hover{background:var(--surface-hover);color:var(--ai-1);transform:translateY(-1px)}
+  .badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+    background:var(--danger);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg)}
+  .avatar{width:40px;height:40px;border-radius:var(--radius-md);background:var(--grad-ai);
+    display:grid;place-items:center;font-weight:700;cursor:pointer;color:#fff;position:relative;box-shadow:var(--glow-ai)}
+  .avatar::after{content:'';position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;
+    background:var(--ai-2);box-shadow:var(--glow-cyan);border:2px solid var(--bg)}
+
+  /* ---------- 主体三列 ---------- */
+  .shell{display:flex;height:calc(100vh - var(--nav-h))}
+  .sidebar{width:250px;overflow-y:auto;padding:14px 10px;flex-shrink:0;
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-right:1px solid var(--border)}
+  .side-title{font-size:11px;letter-spacing:1px;color:var(--text-mute);text-transform:uppercase;padding:12px 10px 4px;font-weight:700}
+  .chan{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--radius-md);cursor:pointer;
+    transition:.15s var(--ease-out);color:var(--text-dim)}
+  .chan:hover{background:var(--surface-hover);color:var(--text)}
+  .chan.active{background:rgba(99,102,241,.14);color:var(--ai-1);font-weight:600}
+  .light .chan.active{background:rgba(124,111,240,.1)}
+  .chan .hash{font-weight:700;color:var(--text-mute)}
+  .chan.active .hash{color:var(--ai-1)}
+  .chan .cname{flex:1}
+  .chan .cnt{font-size:11px;color:var(--text-mute)}
+  @media(max-width:768px){.sidebar{display:none}}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+
+  /* ---------- 频道头 ---------- */
+  .chan-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);box-shadow:var(--glass-shadow)}
+  .chan-head .head-icon{width:46px;height:46px;border-radius:var(--radius-md);display:grid;place-items:center;
+    background:var(--grad-ai);color:#fff;flex-shrink:0;box-shadow:var(--glow-ai)}
+  .chan-head .head-icon svg{width:24px;height:24px;stroke:#fff}
+  .chan-info h2{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .chan-info h2 .hash{color:var(--ai-1)}
+  .chan-info .desc{color:var(--text-dim);font-size:12px;margin-top:1px}
+  .chan-head .spacer{flex:1}
+  .members{display:flex;align-items:center;gap:6px;color:var(--text-dim);font-size:13px;margin-right:6px}
+  .members .stack{display:flex}
+  .members .m{width:28px;height:28px;border-radius:50%;border:2px solid var(--bg);margin-left:-8px;
+    display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff}
+  .board-btn{padding:9px 16px;border-radius:var(--radius-md);background:var(--surface-solid);
+    border:1px solid var(--border-strong);color:var(--text);cursor:pointer;font-weight:600;font-size:13px;
+    transition:.25s var(--ease-out);display:flex;align-items:center;gap:7px;box-shadow:var(--shadow);font-family:inherit}
+  .board-btn:hover{border-color:var(--ai-1);color:var(--ai-1);box-shadow:var(--glow-ai);transform:translateY(-1px)}
+  @media(max-width:768px){.chan-info .desc{display:none}.members .m:nth-child(n+3){display:none}}
+
+  /* ---------- 消息流 ---------- */
+  .stream{flex:1;overflow-y:auto;padding:10px 20px 20px}
+  .day-split{display:flex;align-items:center;gap:12px;margin:18px 0 8px;color:var(--text-mute);font-size:12px}
+  .day-split:before,.day-split:after{content:"";flex:1;height:1px;background:var(--border)}
+  .day-split .pill{background:var(--surface-solid);border:1px solid var(--border);padding:3px 14px;
+    border-radius:var(--radius-full);font-weight:600;box-shadow:var(--shadow)}
+
+  .msg{display:flex;gap:12px;padding:10px 10px;border-radius:var(--radius-md);transition:.15s var(--ease-out)}
+  .msg:hover{background:var(--surface-hover)}
+  .msg:hover .msg-actions{opacity:1}
+  .m-ava{width:40px;height:40px;border-radius:var(--radius-md);display:grid;place-items:center;
+    font-weight:700;font-size:14px;flex-shrink:0;color:#fff}
+  .m-body{flex:1;min-width:0}
+  .m-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px}
+  .m-name{font-weight:700;color:var(--text)}
+  .m-time{font-size:11px;color:var(--text-mute)}
+  .emo-tag{font-size:11px;padding:3px 11px;border-radius:var(--radius-full);font-weight:600;
+    transition:.2s var(--ease-out);background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.24);color:#a5b4fc;
+    display:inline-flex;align-items:center;gap:5px}
+  /* 情绪色标（对齐 interaction-spec §2.1；紫色默认基色，按情绪覆盖） */
+  .emo-ic{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .emo-tired{background:rgba(148,163,184,.14);border-color:rgba(148,163,184,.3);color:#cbd5e1}
+  .emo-angry{background:rgba(248,113,113,.14);border-color:rgba(248,113,113,.3);color:#f87171}
+  .emo-wronged{background:rgba(96,165,250,.14);border-color:rgba(96,165,250,.3);color:#60a5fa}
+  .emo-broken{background:rgba(192,132,252,.14);border-color:rgba(192,132,252,.3);color:#c084fc}
+  .emo-numb{background:rgba(100,116,139,.18);border-color:rgba(100,116,139,.32);color:#94a3b8}
+  .emo-escape{background:rgba(34,211,238,.14);border-color:rgba(34,211,238,.3);color:#22d3ee}
+  .emo-anxious{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.3);color:#fbbf24}
+  .emo-cheer{background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.3);color:#34d399}
+  .anon{font-size:11px;color:var(--text-mute);background:var(--surface-hover);padding:1px 9px;border-radius:var(--radius-sm);
+    border:1px solid var(--border);display:inline-flex;align-items:center;gap:3px}
+  .anon svg{width:12px;height:12px}
+  .m-text{color:var(--text)}
+  .m-img{margin-top:8px;border-radius:var(--radius-md);overflow:hidden;max-width:320px;border:1px solid var(--border);box-shadow:var(--shadow)}
+  .m-img .ph{height:150px;background:linear-gradient(135deg,rgba(99,102,241,.14),rgba(34,211,238,.14));
+    display:flex;align-items:center;justify-content:center;gap:8px;color:var(--text-mute);font-size:13px}
+  .m-img .ph svg{width:20px;height:20px}
+  .msg-actions{display:flex;align-items:center;gap:8px;margin-top:10px;opacity:.7;transition:.25s var(--ease-out);flex-wrap:wrap}
+
+  .empathy{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-full);cursor:pointer;
+    background:var(--empathy-soft);border:1px solid rgba(52,211,153,.3);color:var(--empathy);
+    font-weight:600;font-size:12px;transition:.25s var(--ease-out)}
+  .empathy svg{width:14px;height:14px;transition:transform .35s var(--ease-spring)}
+  .empathy:hover{background:rgba(52,211,153,.2);box-shadow:var(--glow-empathy);transform:scale(1.04)}
+  .empathy:hover svg{transform:scale(1.3) rotate(-8deg)}
+  .empathy.on{background:var(--grad-empathy);color:#fff;border-color:transparent;box-shadow:var(--glow-empathy)}
+  .act{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--radius-full);cursor:pointer;
+    color:var(--text-dim);font-size:12px;transition:.2s var(--ease-out)}
+  .act svg{width:14px;height:14px}
+  .act:hover{background:var(--surface-hover);color:var(--text)}
+  .act.open-thread{color:var(--ai-2)}
+  .thread-preview{margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:var(--radius-full);
+    background:rgba(34,211,238,.08);cursor:pointer;font-size:12px;color:var(--ai-2);transition:.2s var(--ease-out)}
+  .thread-preview:hover{background:rgba(34,211,238,.16)}
+  .thread-preview .faces{display:flex}
+  .thread-preview .f{width:20px;height:20px;border-radius:50%;margin-left:-6px;border:2px solid var(--bg);font-size:9px;
+    display:grid;place-items:center;font-weight:700;color:#fff}
+
+  /* ---------- 输入区 ---------- */
+  .composer{border-top:1px solid var(--border);padding:12px 20px 16px;
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+  .emo-picker{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .emo-chip{padding:6px 13px;border-radius:var(--radius-full);background:var(--surface-solid);
+    border:1px solid var(--border);cursor:pointer;font-size:12px;font-weight:600;
+    transition:.2s var(--ease-out);color:var(--text-dim);font-family:inherit;
+    display:inline-flex;align-items:center;gap:5px}
+  .emo-chip:hover{border-color:var(--ai-1);color:var(--text);transform:translateY(-1px)}
+  .emo-chip.sel{background:rgba(99,102,241,.14);border-color:var(--ai-1);color:var(--ai-1);box-shadow:0 0 12px rgba(99,102,241,.25)}
+  .input-row{display:flex;align-items:flex-end;gap:10px;background:var(--surface-solid);border:1px solid var(--border);
+    border-radius:var(--radius-md);padding:8px 10px;box-shadow:var(--shadow);transition:.25s var(--ease-out)}
+  .input-row:focus-within{border-color:var(--ai-1);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+  .input-row textarea{flex:1;background:transparent;border:none;outline:none;color:var(--text);resize:none;
+    font-size:14px;font-family:inherit;max-height:120px;line-height:1.5;padding:6px 4px}
+  .input-row textarea::placeholder{color:var(--text-mute)}
+  .tool{width:34px;height:34px;border-radius:var(--radius-sm);display:grid;place-items:center;cursor:pointer;
+    color:var(--text-dim);transition:.2s var(--ease-out);flex-shrink:0;background:transparent;border:none;font-family:inherit}
+  .tool:hover{background:var(--surface-hover);color:var(--ai-1)}
+  .send{padding:9px 20px;border-radius:var(--radius-md);border:none;cursor:pointer;font-weight:700;font-size:14px;
+    flex-shrink:0;background:var(--grad-ai);color:#fff;transition:.25s var(--ease-out);box-shadow:var(--glow-ai);
+    display:flex;align-items:center;gap:6px}
+  .send svg{width:16px;height:16px;stroke:#fff}
+  .send:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 0 32px rgba(99,102,241,.5)}
+  .anon-toggle{display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--text-dim);font-size:12px;user-select:none}
+  .anon-toggle svg{width:14px;height:14px}
+  .switch{width:38px;height:22px;border-radius:12px;background:var(--surface-hover);border:1px solid var(--border);position:relative;transition:.25s var(--ease-out);flex-shrink:0}
+  .switch:before{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
+    background:#fff;transition:.25s var(--ease-spring);box-shadow:var(--shadow)}
+  .anon-toggle.on .switch{background:var(--grad-ai);border-color:transparent}
+  .anon-toggle.on .switch:before{transform:translateX(16px)}
+  .anon-toggle.on{color:var(--ai-1)}
+  .composer-foot{display:flex;align-items:center;gap:14px;margin-top:8px;color:var(--text-mute);font-size:12px}
+
+  /* ---------- 线程面板（右侧滑出） ---------- */
+  .thread-panel{width:380px;border-left:1px solid var(--border);
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);display:flex;flex-direction:column;flex-shrink:0;
+    transition:margin-right .3s var(--ease-out);box-shadow:var(--glass-shadow)}
+  .thread-panel.closed{margin-right:-380px}
+  .tp-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .tp-head h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .tp-head h3 svg{width:16px;height:16px;stroke:var(--ai-2)}
+  .tp-head .close{cursor:pointer;color:var(--text-dim);width:30px;height:30px;border-radius:var(--radius-sm);
+    display:grid;place-items:center;transition:.2s var(--ease-out);background:transparent;border:none;font-family:inherit}
+  .tp-head .close:hover{background:var(--surface-hover);color:var(--text)}
+  .tp-body{flex:1;overflow-y:auto;padding:14px 16px}
+  .tp-origin{background:var(--surface-solid);border-radius:var(--radius-md);padding:12px;margin-bottom:14px;
+    border:1px solid var(--border);box-shadow:var(--shadow)}
+  .tp-count{color:var(--text-mute);font-size:12px;margin:6px 0 14px;text-align:center}
+  .tp-reply{display:flex;gap:10px;padding:10px 0}
+  .tp-reply .m-ava{width:32px;height:32px;font-size:12px;border-radius:var(--radius-sm)}
+  .tp-composer{border-top:1px solid var(--border);padding:12px 16px}
+  @media(max-width:1100px){.thread-panel{position:fixed;right:0;top:var(--nav-h);height:calc(100vh - var(--nav-h));
+    z-index:40;box-shadow:-10px 0 40px rgba(0,0,0,.5)}}
+  @media(max-width:768px){.thread-panel{width:100%}.thread-panel.closed{margin-right:-100%}}
+</style>
+</head>
+<body>
+  <nav class="topnav">
+    <a class="logo" href="01-home.html">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <span class="name">Alike</span>
+    </a>
+    <div class="search">
+      <span class="ic"><svg class="icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+      <input placeholder="在 #程序员 中搜索…" aria-label="在 #程序员 中搜索">
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn" id="themeToggle" type="button" title="切换主题" aria-label="切换主题" onclick="toggleTheme()"></button>
+      <button class="icon-btn" type="button" aria-label="通知，5 条未读">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="badge" aria-hidden="true">5</span>
+      </button>
+      <a class="avatar" href="05-profile.html" aria-label="我的主页">牛</a>
+    </div>
+  </nav>
+
+  <div class="shell">
+    <!-- 频道侧栏 -->
+    <aside class="sidebar">
+      <div class="side-title">岗位频道</div>
+      <div class="chan active"><span class="hash">#</span><span class="cname">程序员</span><span class="cnt">1.8k</span></div>
+      <div class="chan"><span class="hash">#</span><span class="cname">产品经理</span><span class="cnt">743</span></div>
+      <div class="chan"><span class="hash">#</span><span class="cname">设计师</span><span class="cnt">521</span></div>
+      <div class="side-title">行业频道</div>
+      <div class="chan"><span class="hash">#</span><span class="cname">互联网</span><span class="cnt">2.3k</span></div>
+      <div class="chan"><span class="hash">#</span><span class="cname">工厂流水线</span><span class="cnt">891</span></div>
+      <div class="chan"><span class="hash">#</span><span class="cname">外卖骑手</span><span class="cnt">640</span></div>
+      <div class="side-title">主题频道</div>
+      <div class="chan"><span class="hash">#</span><span class="cname">吐槽大会</span><span class="cnt">4.2k</span></div>
+      <div class="chan"><span class="hash">#</span><span class="cname">摸鱼技巧</span><span class="cnt">1.2k</span></div>
+      <div class="chan"><span class="hash">#</span><span class="cname">薪资揭秘</span><span class="cnt">2.7k</span></div>
+    </aside>
+
+    <!-- 消息区 -->
+    <div class="main">
+      <div class="chan-head">
+        <div class="head-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+        <div class="chan-info">
+          <h2><span class="hash">#</span> 程序员</h2>
+          <div class="desc">CRUD 工程师の自留地 · 加班、需求、老板画饼，都在这吐</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="members">
+          <div class="stack">
+            <div class="m" style="background:var(--ai-2)">A</div>
+            <div class="m" style="background:var(--ai-3)">B</div>
+            <div class="m" style="background:var(--warm)">C</div>
+            <div class="m" style="background:var(--gold)">D</div>
+          </div>
+          <span>1,842 位牛马</span>
+        </div>
+        <button class="board-btn" type="button">
+          <svg class="icon-sm" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-6 4 4 5-7"/></svg>
+          情绪看板
+        </button>
+      </div>
+
+      <div class="stream">
+        <div class="day-split"><span class="pill">今天</span></div>
+
+        <div class="msg">
+          <div class="m-ava" style="background:linear-gradient(135deg,#4A90FF,#7C6FF0)">阿</div>
+          <div class="m-body">
+            <div class="m-head">
+              <span class="m-name">阿强不想上班</span>
+              <span class="emo-tag emo-tired"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>疲惫</span>
+              <span class="m-time">09:12</span>
+            </div>
+            <div class="m-text">连续加班第 21 天，今天又是凌晨到家。需求改了七版，测试还说要今晚上线，我真的会谢。</div>
+            <div class="msg-actions">
+              <div class="empathy on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 我懂你 · 328</div>
+              <div class="act open-thread"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> 46 条回复</div>
+              <div class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg> 回复</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="msg">
+          <div class="m-ava" style="background:linear-gradient(135deg,#f87171,#fb923c)">匿</div>
+          <div class="m-body">
+            <div class="m-head">
+              <span class="m-name">匿名牛马</span>
+              <span class="anon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>已隐身</span>
+              <span class="emo-tag emo-angry"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>愤怒</span>
+              <span class="m-time">09:34</span>
+            </div>
+            <div class="m-text">团建又选在周末，还要 AA。这是团建还是团灭？不去显得不合群，去了浪费我唯一的休息日。</div>
+            <div class="msg-actions">
+              <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 我懂你 · 156</div>
+              <div class="act open-thread"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> 23 条回复</div>
+              <div class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg> 回复</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="msg">
+          <div class="m-ava" style="background:linear-gradient(135deg,#22d3ee,#34d399)">键</div>
+          <div class="m-body">
+            <div class="m-head">
+              <span class="m-name">键盘敲烂了</span>
+              <span class="emo-tag emo-broken"><svg class="emo-ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>崩溃</span>
+              <span class="m-time">10:02</span>
+            </div>
+            <div class="m-text">生产环境炸了，回滚发现备份也是坏的。此刻我的内心毫无波澜，甚至有点想笑。</div>
+            <div class="m-img" role="img" aria-label="图片：崩溃现场.png"><div class="ph"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> 崩溃现场.png</div></div>
+            <div class="msg-actions">
+              <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 我懂你 · 89</div>
+              <div class="act open-thread"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> 12 条回复</div>
+              <div class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg> 回复</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-split"><span class="pill">刚刚</span></div>
+
+        <div class="msg">
+          <div class="m-ava" style="background:linear-gradient(135deg,#a78bfa,#6366f1)">润</div>
+          <div class="m-body">
+            <div class="m-head">
+              <span class="m-name">已经在看机票了</span>
+              <span class="emo-tag emo-escape"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>想润</span>
+              <span class="m-time">11:20</span>
+            </div>
+            <div class="m-text">面了个外企，居然不问八股文，就聊我做过什么。世界上真的有正常公司啊。</div>
+            <div class="msg-actions">
+              <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 我懂你 · 201</div>
+              <div class="act open-thread"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> 34 条回复</div>
+              <div class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg> 回复</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 输入区 -->
+      <div class="composer">
+        <div class="emo-picker" role="listbox" aria-label="选择情绪">
+          <button class="emo-chip sel" type="button" role="option" aria-selected="true"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>疲惫</button>
+          <button class="emo-chip" type="button" role="option" aria-selected="false"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>愤怒</button>
+          <button class="emo-chip" type="button" role="option" aria-selected="false"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg>委屈</button>
+          <button class="emo-chip" type="button" role="option" aria-selected="false"><svg class="emo-ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>崩溃</button>
+          <button class="emo-chip" type="button" role="option" aria-selected="false"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>麻木</button>
+          <button class="emo-chip" type="button" role="option" aria-selected="false"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>想润</button>
+        </div>
+        <div class="input-row">
+          <button class="tool" type="button" title="表情" aria-label="插入表情"><svg class="icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
+          <button class="tool" type="button" title="图片" aria-label="上传图片"><svg class="icon-sm" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+          <textarea rows="1" placeholder="在 #程序员 里说点什么…今天也辛苦了" aria-label="消息输入框"></textarea>
+          <button class="send">发送 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+        </div>
+        <div class="composer-foot">
+          <div class="anon-toggle" id="anonToggle" role="switch" tabindex="0" aria-checked="false" aria-label="匿名发布" onclick="this.classList.toggle('on');this.setAttribute('aria-checked',this.classList.contains('on'))">
+            <div class="switch"></div>
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+            <span>匿名发布</span>
+          </div>
+          <span>· Enter 发送，Shift+Enter 换行</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 线程面板 -->
+    <aside class="thread-panel" id="threadPanel">
+      <div class="tp-head">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> 线程</h3>
+        <button class="close" type="button" aria-label="关闭线程面板" onclick="document.getElementById('threadPanel').classList.add('closed')">
+          <svg class="icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="tp-body">
+        <div class="tp-origin">
+          <div class="m-head" style="margin-bottom:4px">
+            <span class="m-name">阿强不想上班</span>
+            <span class="emo-tag emo-tired"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>疲惫</span>
+          </div>
+          <div class="m-text">连续加班第 21 天，今天又是凌晨到家。需求改了七版，测试还说要今晚上线，我真的会谢。</div>
+          <div class="msg-actions"><div class="empathy on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 我懂你 · 328</div></div>
+        </div>
+        <div class="tp-count">— 46 条回复 —</div>
+
+        <div class="tp-reply">
+          <div class="m-ava" style="background:linear-gradient(135deg,#22d3ee,#34d399)">同</div>
+          <div class="m-body">
+            <div class="m-head"><span class="m-name">同是天涯沦落人</span><span class="m-time">09:15</span></div>
+            <div class="m-text">兄弟保重，我上个月刚从这种项目逃出来。命是自己的。</div>
+            <div class="msg-actions"><div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 我懂你 · 42</div></div>
+          </div>
+        </div>
+        <div class="tp-reply">
+          <div class="m-ava" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">摸</div>
+          <div class="m-body">
+            <div class="m-head"><span class="m-name">摸鱼冠军</span><span class="m-time">09:18</span></div>
+            <div class="m-text">改需求就摆烂，反正改了还得改。别太认真，身体第一。</div>
+            <div class="msg-actions"><div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 我懂你 · 18</div></div>
+          </div>
+        </div>
+        <div class="tp-reply">
+          <div class="m-ava" style="background:linear-gradient(135deg,#f87171,#fb923c)">匿</div>
+          <div class="m-body">
+            <div class="m-head"><span class="m-name">匿名牛马</span><span class="anon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg></span><span class="m-time">09:22</span></div>
+            <div class="m-text">抱抱，我今天也是凌晨两点睡。我们都会好起来的。</div>
+            <div class="msg-actions"><div class="empathy on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 我懂你 · 67</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="tp-composer">
+        <div class="input-row">
+          <textarea rows="1" placeholder="回复这条线程…"></textarea>
+          <button class="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    var SUN='<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+    var MOON='<svg class="icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+    function updateThemeIcon(){
+      var isLight=document.documentElement.classList.contains('light');
+      document.getElementById('themeToggle').innerHTML=isLight?MOON:SUN;
+    }
+    function toggleTheme(){
+      document.documentElement.classList.toggle('light');
+      var isLight=document.documentElement.classList.contains('light');
+      localStorage.setItem('theme',isLight?'light':'dark');
+      updateThemeIcon();
+    }
+    (function(){
+      if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light');
+      updateThemeIcon();
+    })();
+    // 点击「回复」打开线程面板
+    document.querySelectorAll('.open-thread').forEach(function(el){
+      el.setAttribute('role','button');el.setAttribute('tabindex','0');
+      function open(){document.getElementById('threadPanel').classList.remove('closed');}
+      el.addEventListener('click',open);
+      el.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();open();}});
+    });
+    // 频道项键盘可达
+    document.querySelectorAll('.chan').forEach(function(c){
+      c.setAttribute('role','button');c.setAttribute('tabindex','0');
+      c.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();c.click();}});
+    });
+    // 情绪 chip 单选
+    document.querySelectorAll('.emo-chip').forEach(function(c){
+      c.addEventListener('click',function(){
+        document.querySelectorAll('.emo-chip').forEach(function(x){x.classList.remove('sel');x.setAttribute('aria-selected','false')});
+        c.classList.add('sel');c.setAttribute('aria-selected','true');
+      });
+    });
+    // 共情按钮切换
+    document.querySelectorAll('.empathy').forEach(function(e){
+      e.setAttribute('role','button');e.setAttribute('tabindex','0');e.setAttribute('aria-pressed',e.classList.contains('on'));
+      function toggle(ev){ev.stopPropagation();e.classList.toggle('on');e.setAttribute('aria-pressed',e.classList.contains('on'));}
+      e.addEventListener('click',toggle);
+      e.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();toggle(ev);}});
+    });
+    // 匿名开关键盘可达
+    var anon=document.getElementById('anonToggle');
+    anon.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();anon.click();}});
+  </script>
+</body>
+</html>

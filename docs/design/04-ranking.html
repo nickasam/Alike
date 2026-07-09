@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alike · 牛马排行榜</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --bg-2:#0b1220;
+    --surface:rgba(26,34,54,.6);
+    --surface-solid:#111729; --surface-hover:#1a2236;
+    --border:rgba(255,255,255,.08);
+    --border-strong:rgba(255,255,255,.14);
+    --shadow:0 8px 32px rgba(0,0,0,.4);
+    --text:#f1f5f9; --text-dim:#94a3b8; --text-mute:#7d8b9e;
+    --ai-1:#6366f1; --ai-2:#22d3ee; --ai-3:#a78bfa;
+    --grad-ai:linear-gradient(135deg,#6366f1,#22d3ee);
+    --grad-text:linear-gradient(135deg,#6366f1,#22d3ee,#a78bfa);
+    --warm:#fb923c; --warm-deep:#f97316;
+    --grad-warm:linear-gradient(135deg,#fb923c,#f97316);
+    --empathy:#34d399; --empathy-soft:rgba(52,211,153,.12);
+    --grad-empathy:linear-gradient(135deg,#34d399,#10b981);
+    --danger:#f87171; --info:#60a5fa; --gold:#fbbf24;
+    --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-xl:20px;
+    --radius-full:999px; --nav-h:64px;
+    --glass-bg:rgba(26,34,54,.6);
+    --glass-border:1px solid rgba(255,255,255,.08);
+    --glass-blur:blur(20px);
+    --glass-shadow:0 8px 32px rgba(0,0,0,.4);
+    --glass-highlight:inset 0 1px 0 rgba(255,255,255,.06);
+    --glow-ai:0 0 24px rgba(99,102,241,.4);
+    --glow-cyan:0 0 24px rgba(34,211,238,.4);
+    --glow-warm:0 0 24px rgba(251,146,60,.4);
+    --glow-empathy:0 0 24px rgba(52,211,153,.4);
+    /* 奖牌柔和渐变 */
+    --grad-gold:linear-gradient(135deg,#fcd34d,#f59e0b);
+    --grad-silver:linear-gradient(135deg,#e2e8f0,#94a3b8);
+    --grad-bronze:linear-gradient(135deg,#f0a875,#c2703c);
+    --gold-soft:rgba(251,191,36,.14);
+    --silver-soft:rgba(203,213,225,.14);
+    --bronze-soft:rgba(224,149,95,.14);
+  }
+  .light{
+    --bg:#FAFBFF; --bg-2:#F0F2FA;
+    --surface:rgba(255,255,255,.72);
+    --surface-solid:#FFFFFF; --surface-hover:#F5F6FC;
+    --border:rgba(124,111,240,.14);
+    --border-strong:rgba(124,111,240,.22);
+    --shadow:0 8px 30px rgba(80,80,160,.08);
+    --text:#1E2340; --text-dim:#5B6178; --text-mute:#6b7186;
+    --ai-1:#7C6FF0; --ai-2:#4A90FF; --ai-3:#22D3EE;
+    --grad-ai:linear-gradient(120deg,#7C6FF0,#4A90FF,#22D3EE);
+    --grad-text:linear-gradient(120deg,#7C6FF0,#4A90FF,#22D3EE);
+    --warm:#fb923c; --warm-deep:#f97316;
+    --grad-warm:linear-gradient(135deg,#fb923c,#f97316);
+    --empathy:#14B8A6; --empathy-soft:rgba(20,184,166,.10);
+    --grad-empathy:linear-gradient(135deg,#14B8A6,#2DD4BF);
+    --danger:#FB7185; --info:#60A5FA; --gold:#F59E0B;
+    --glass-bg:rgba(255,255,255,.72);
+    --glass-border:1px solid rgba(124,111,240,.14);
+    --glass-shadow:0 8px 30px rgba(80,80,160,.08);
+    --glass-highlight:inset 0 1px 0 rgba(255,255,255,.8);
+    --glow-ai:0 0 24px rgba(124,111,240,.25);
+    --glow-cyan:0 0 24px rgba(34,211,238,.25);
+    --glow-warm:0 0 24px rgba(251,146,60,.25);
+    --glow-empathy:0 0 24px rgba(20,184,166,.25);
+    --grad-gold:linear-gradient(135deg,#fde68a,#f59e0b);
+    --grad-silver:linear-gradient(135deg,#f1f5f9,#a8b3c8);
+    --grad-bronze:linear-gradient(135deg,#f5c197,#d1834f);
+    --gold-soft:rgba(245,158,11,.12);
+    --silver-soft:rgba(148,163,184,.14);
+    --bronze-soft:rgba(209,131,79,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--text);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 0%, rgba(99,102,241,.15), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 10%, rgba(34,211,238,.10), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 100%, rgba(167,139,250,.08), transparent 60%),
+      var(--bg);
+    background-attachment:fixed;min-height:100vh;transition:color .3s}
+  .light body{background:
+      radial-gradient(ellipse 70% 50% at 15% 0%, rgba(124,111,240,.06), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 85% 10%, rgba(34,211,238,.05), transparent 60%),
+      var(--bg);background-attachment:fixed}
+  a{color:inherit;text-decoration:none}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:8px}
+
+  .topnav{position:sticky;top:0;z-index:50;height:var(--nav-h);display:flex;align-items:center;gap:20px;padding:0 20px;
+    background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border-bottom:var(--glass-border);box-shadow:var(--glass-highlight)}
+  .logo{display:flex;align-items:center;gap:11px;font-weight:800;font-size:20px}
+  .logo .mark{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
+    background:var(--grad-ai);box-shadow:var(--glow-ai)}
+  .logo .mark svg{width:20px;height:20px;color:#fff}
+  .logo .name{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .search{flex:1;max-width:420px;position:relative}
+  .search input{width:100%;height:42px;border-radius:var(--radius-md);border:var(--glass-border);
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    color:var(--text);padding:0 14px 0 42px;outline:none;font-size:14px;transition:.2s}
+  .search input::placeholder{color:var(--text-mute)}
+  .search input:focus{border-color:var(--ai-1);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+  .search .ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-mute);display:grid;place-items:center}
+  .search .ic svg{width:18px;height:18px}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .icon-btn{width:42px;height:42px;border-radius:var(--radius-md);display:grid;place-items:center;cursor:pointer;
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border:var(--glass-border);position:relative;color:var(--text-dim);transition:.2s;font-family:inherit}
+  .icon-btn:hover{background:var(--surface-hover);color:var(--text);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .icon-btn svg{width:19px;height:19px}
+  .badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+    background:var(--danger);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg)}
+  .avatar{width:42px;height:42px;border-radius:var(--radius-md);background:var(--grad-ai);display:grid;place-items:center;font-weight:700;color:#fff;box-shadow:var(--glow-ai)}
+
+  .wrap{max-width:920px;margin:0 auto;padding:30px 20px 60px}
+  .page-title{text-align:center;margin-bottom:8px}
+  .page-title h1{font-size:30px;font-weight:900;display:inline-flex;align-items:center;gap:12px}
+  .page-title h1 .crown-ic{width:32px;height:32px;color:var(--gold)}
+  .page-title h1 .grad{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .page-title p{color:var(--text-dim);margin-top:6px}
+
+  /* Tabs */
+  .tabs{display:flex;gap:10px;justify-content:center;margin:24px 0 28px;flex-wrap:wrap}
+  .tab{padding:10px 20px;border-radius:var(--radius-full);background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border:var(--glass-border);cursor:pointer;font-weight:700;font-size:14px;color:var(--text-dim);transition:.2s;display:flex;align-items:center;gap:8px;font-family:inherit}
+  .tab svg{width:16px;height:16px}
+  .tab:hover{color:var(--text);border-color:var(--border-strong);transform:translateY(-2px)}
+  .tab.active{background:var(--grad-ai);color:#fff;border-color:transparent;box-shadow:var(--glow-ai)}
+
+  /* 前三名领奖台 */
+  .podium{display:flex;align-items:flex-end;justify-content:center;gap:16px;margin-bottom:30px}
+  .pod{flex:1;max-width:220px;background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border:var(--glass-border);border-radius:var(--radius-lg);padding:22px 14px 20px;text-align:center;position:relative;transition:.2s;
+    box-shadow:var(--glass-shadow),var(--glass-highlight)}
+  .pod:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(0,0,0,.5),var(--glass-highlight)}
+  .light .pod:hover{box-shadow:0 14px 40px rgba(80,80,160,.14),var(--glass-highlight)}
+  .pod .crown{position:absolute;top:-18px;left:50%;transform:translateX(-50%);color:var(--gold);filter:drop-shadow(0 2px 8px rgba(251,191,36,.5))}
+  .pod .crown svg{width:30px;height:30px}
+  .pod .p-ava{width:66px;height:66px;border-radius:20px;margin:8px auto 12px;display:grid;place-items:center;font-weight:800;font-size:22px;color:#fff;position:relative;box-shadow:var(--shadow)}
+  .pod .medal{position:absolute;bottom:-8px;right:-8px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+    font-size:13px;font-weight:800;color:#3d2c00;border:3px solid var(--surface-solid)}
+  .pod .p-name{font-weight:800;font-size:15px;margin-bottom:6px}
+  .pod .p-lv{font-size:11px;padding:3px 10px;border-radius:var(--radius-full);font-weight:700;display:inline-block;margin-bottom:12px}
+  .pod .p-val{font-size:26px;font-weight:900;line-height:1;background-clip:text;-webkit-background-clip:text;color:transparent}
+  .pod .p-unit{font-size:11px;color:var(--text-mute);margin-top:4px}
+  .pod.rank1{order:2;transform:scale(1.06)}
+  .pod.rank1:hover{transform:scale(1.06) translateY(-2px)}
+  .pod.rank2{order:1}
+  .pod.rank3{order:3}
+  .pod.rank1{border-color:rgba(251,191,36,.4);background:linear-gradient(180deg,var(--gold-soft),var(--glass-bg))}
+  .pod.rank2{border-color:rgba(203,213,225,.35);background:linear-gradient(180deg,var(--silver-soft),var(--glass-bg))}
+  .pod.rank3{border-color:rgba(224,149,95,.35);background:linear-gradient(180deg,var(--bronze-soft),var(--glass-bg))}
+  .val-gold{background-image:var(--grad-gold)}
+  .val-silver{background-image:var(--grad-silver)}
+  .val-bronze{background-image:var(--grad-bronze)}
+  @media(max-width:640px){.podium{gap:8px}.pod{padding:18px 8px 16px}.pod .p-ava{width:54px;height:54px;font-size:18px}}
+
+  /* 榜单列表 */
+  .board{background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border:var(--glass-border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--glass-shadow),var(--glass-highlight)}
+  .board-h{padding:16px 20px;border-bottom:var(--glass-border);font-weight:700;display:flex;align-items:center;gap:9px}
+  .board-h svg{width:18px;height:18px;color:var(--ai-2)}
+  .rrow{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:var(--glass-border);transition:.15s;cursor:pointer}
+  .rrow:last-child{border-bottom:none}
+  .rrow:hover{background:var(--surface-hover)}
+  .rno{width:32px;text-align:center;font-weight:900;font-size:16px;color:var(--text-mute);flex-shrink:0}
+  .r-ava{width:44px;height:44px;border-radius:var(--radius-md);display:grid;place-items:center;font-weight:700;font-size:15px;flex-shrink:0;color:#fff}
+  .r-info{flex:1;min-width:0}
+  .r-name{font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .r-lv{font-size:11px;padding:2px 9px;border-radius:var(--radius-full);font-weight:700}
+  .r-sub{font-size:12px;color:var(--text-mute);margin-top:2px}
+  .r-metric{text-align:right;flex-shrink:0}
+  .r-metric .v{font-size:18px;font-weight:800}
+  .r-metric .u{font-size:11px;color:var(--text-mute);display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:2px}
+  .r-metric .u svg{width:12px;height:12px}
+  /* 牛马等级体系 */
+  .lv-king{background:var(--grad-gold);color:#3d2c00}
+  .lv-old{background:rgba(251,146,60,.14);color:var(--warm)}
+  .lv-young{background:var(--empathy-soft);color:var(--empathy)}
+  .empathy-val{color:var(--empathy)}
+  .streak-val{color:var(--warm)}
+  .active-val{color:var(--info)}
+  .my-rank{margin-top:16px;background:linear-gradient(135deg,rgba(99,102,241,.12),var(--glass-bg));
+    backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border:1px dashed var(--ai-1);border-radius:var(--radius-lg);padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:var(--glass-highlight)}
+  .my-rank .rno{color:var(--ai-1)}
+  .my-rank .tagme{font-size:11px;background:var(--grad-ai);color:#fff;padding:2px 9px;border-radius:var(--radius-full);font-weight:800}
+</style>
+</head>
+<body>
+  <nav class="topnav">
+    <a class="logo" href="01-home.html">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M16 3v3a2 2 0 0 0 2 2h3"/><path d="M12 12v6"/><path d="M9 15h6"/><rect x="3" y="8" width="18" height="13" rx="3"/></svg></span>
+      <span class="name">Alike</span>
+    </a>
+    <div class="search">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+      <input placeholder="搜索牛马…" aria-label="搜索牛马">
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn" id="themeToggle" type="button" title="切换主题" aria-label="切换主题"></button>
+      <button class="icon-btn" type="button" aria-label="通知，5 条未读"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span class="badge" aria-hidden="true">5</span></button>
+      <a class="avatar" href="05-profile.html" aria-label="我的主页">牛</a>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <div class="page-title">
+      <h1><svg class="crown-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg>牛马<span class="grad">排行榜</span></h1>
+      <p>最努力扛住生活的人，值得被看见</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="排行榜类型">
+      <button class="tab active" type="button" role="tab" aria-selected="true" data-b="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>最受共情帖子</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-b="streak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>连续打卡牛马</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-b="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>本周最活跃</button>
+    </div>
+
+    <!-- 领奖台 -->
+    <div class="podium">
+      <div class="pod rank2">
+        <div class="p-ava" style="background:linear-gradient(135deg,#94a3b8,#64748b)">匿
+          <span class="medal" style="background:var(--grad-silver)">2</span></div>
+        <div class="p-name">匿名牛马</div>
+        <div class="p-lv lv-old">老牛马</div>
+        <div class="p-val val-silver">512</div>
+        <div class="p-unit">被共情次数</div>
+      </div>
+      <div class="pod rank1">
+        <div class="crown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg></div>
+        <div class="p-ava" style="background:var(--grad-gold);color:#3d2c00">李
+          <span class="medal" style="background:var(--grad-gold)">1</span></div>
+        <div class="p-name">加班之王老李</div>
+        <div class="p-lv lv-king">牛马之王</div>
+        <div class="p-val val-gold">674</div>
+        <div class="p-unit">被共情次数</div>
+      </div>
+      <div class="pod rank3">
+        <div class="p-ava" style="background:var(--grad-bronze)">阿
+          <span class="medal" style="background:var(--grad-bronze)">3</span></div>
+        <div class="p-name">阿强不想上班</div>
+        <div class="p-lv lv-old">老牛马</div>
+        <div class="p-val val-bronze">328</div>
+        <div class="p-unit">被共情次数</div>
+      </div>
+    </div>
+
+    <!-- 4名以后 -->
+    <div class="board">
+      <div class="board-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>完整榜单 · 最受共情</div>
+      <div class="rrow">
+        <span class="rno">4</span>
+        <div class="r-ava" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6)">润</div>
+        <div class="r-info"><div class="r-name">已经在看机票了 <span class="r-lv lv-young">小牛马</span></div>
+          <div class="r-sub"># 摸鱼技巧 · "裸辞倒计时 15 天"</div></div>
+        <div class="r-metric"><div class="v empathy-val">233</div><div class="u"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>共情</div></div>
+      </div>
+      <div class="rrow">
+        <span class="rno">5</span>
+        <div class="r-ava" style="background:linear-gradient(135deg,#34d399,#10b981)">摸</div>
+        <div class="r-info"><div class="r-name">摸鱼冠军 <span class="r-lv lv-young">小牛马</span></div>
+          <div class="r-sub"># 吐槽大会 · "带薪拉屎是打工人最后的尊严"</div></div>
+        <div class="r-metric"><div class="v empathy-val">198</div><div class="u"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>共情</div></div>
+      </div>
+      <div class="rrow">
+        <span class="rno">6</span>
+        <div class="r-ava" style="background:linear-gradient(135deg,#60a5fa,#818cf8)">键</div>
+        <div class="r-info"><div class="r-name">键盘敲烂了 <span class="r-lv lv-old">老牛马</span></div>
+          <div class="r-sub"># 程序员 · "生产环境炸了，备份也是坏的"</div></div>
+        <div class="r-metric"><div class="v empathy-val">176</div><div class="u"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>共情</div></div>
+      </div>
+      <div class="rrow">
+        <span class="rno">7</span>
+        <div class="r-ava" style="background:linear-gradient(135deg,#f472b6,#fb7185)">忍</div>
+        <div class="r-info"><div class="r-name">忍者神龟 <span class="r-lv lv-young">小牛马</span></div>
+          <div class="r-sub"># 打工日记 · "被领导当众批评了"</div></div>
+        <div class="r-metric"><div class="v empathy-val">154</div><div class="u"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>共情</div></div>
+      </div>
+      <div class="rrow">
+        <span class="rno">8</span>
+        <div class="r-ava" style="background:var(--grad-gold);color:#3d2c00">设</div>
+        <div class="r-info"><div class="r-name">设计狗汪汪 <span class="r-lv lv-young">小牛马</span></div>
+          <div class="r-sub"># 设计师 · "甲方的第 8 版需求"</div></div>
+        <div class="r-metric"><div class="v empathy-val">132</div><div class="u"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>共情</div></div>
+      </div>
+      <div class="rrow">
+        <span class="rno">9</span>
+        <div class="r-ava" style="background:linear-gradient(135deg,#94a3b8,#64748b)">麻</div>
+        <div class="r-info"><div class="r-name">已读乱回 <span class="r-lv lv-young">小牛马</span></div>
+          <div class="r-sub"># 吐槽大会 · "麻了，真的麻了"</div></div>
+        <div class="r-metric"><div class="v empathy-val">118</div><div class="u"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>共情</div></div>
+      </div>
+      <div class="rrow">
+        <span class="rno">10</span>
+        <div class="r-ava" style="background:linear-gradient(135deg,#f87171,#ef4444)">夜</div>
+        <div class="r-info"><div class="r-name">小夜班护士 <span class="r-lv lv-old">老牛马</span></div>
+          <div class="r-sub"># 医护 · "第 6 个夜班，被家属骂哭了"</div></div>
+        <div class="r-metric"><div class="v empathy-val">97</div><div class="u"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>共情</div></div>
+      </div>
+    </div>
+
+    <!-- 我的排名 -->
+    <div class="my-rank">
+      <span class="rno">#42</span>
+      <div class="r-ava" style="background:var(--grad-warm)">牛</div>
+      <div class="r-info"><div class="r-name">我 <span class="tagme">就是你</span> <span class="r-lv lv-young">小牛马</span></div>
+        <div class="r-sub">再被共情 8 次就能进前 40 啦，继续加油 <svg aria-hidden="true" style="width:13px;height:13px;vertical-align:-2px;stroke:var(--warm)" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div></div>
+      <div class="r-metric"><div class="v empathy-val">63</div><div class="u"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>共情</div></div>
+    </div>
+  </div>
+
+  <script>
+    // 主题切换
+    var sunIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+    var moonIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+    var toggle=document.getElementById('themeToggle');
+    function applyTheme(t){
+      if(t==='light'){document.documentElement.classList.add('light');toggle.innerHTML=moonIcon;}
+      else{document.documentElement.classList.remove('light');toggle.innerHTML=sunIcon;}
+    }
+    applyTheme(localStorage.getItem('theme')||'dark');
+    toggle.addEventListener('click',function(){
+      var isLight=document.documentElement.classList.toggle('light');
+      localStorage.setItem('theme',isLight?'light':'dark');
+      toggle.innerHTML=isLight?moonIcon:sunIcon;
+    });
+
+    document.querySelectorAll('.tab').forEach(function(t){
+      t.addEventListener('click',function(){
+        document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');x.setAttribute('aria-selected','false')});
+        t.classList.add('active');t.setAttribute('aria-selected','true');
+      });
+    });
+  </script>
+</body>
+</html>
