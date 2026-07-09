@@ -82,15 +82,16 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 		messages.GET("/:id/empathy-users", empathyHandler.Users)
 	}
 
-	// 打工日记（v1.5）
+	// 打工日记（v1.5）：注入 DB 依赖。
+	diaryHandler := diary.NewHandler(diary.NewRepository(deps.DB))
 	diaries := api.Group("/diaries")
 	{
-		diaries.GET("", diary.ListHandler)
-		diaries.POST("", authMW, diary.CreateHandler)
-		diaries.GET("/:id", diary.GetHandler)
-		diaries.GET("/:id/comments", diary.CommentsHandler)
-		diaries.POST("/:id/comments", authMW, diary.CreateCommentHandler)
-		diaries.GET("/streak/:user_id", diary.StreakHandler)
+		diaries.GET("", diaryHandler.List)
+		diaries.POST("", authMW, diaryHandler.Create)
+		diaries.GET("/:id", diaryHandler.Get)
+		diaries.GET("/:id/comments", diaryHandler.Comments)
+		diaries.POST("/:id/comments", authMW, diaryHandler.CreateComment)
+		diaries.GET("/streak/:user_id", diaryHandler.Streak)
 	}
 
 	// 排行榜
@@ -98,16 +99,17 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 	{
 		ranking.GET("/empathy", empathyHandler.RankingEmpathy)
 		ranking.GET("/warmest", empathyHandler.RankingWarmest)
-		ranking.GET("/streak", diary.RankingStreakHandler)
+		ranking.GET("/streak", diaryHandler.RankingStreak)
 		ranking.GET("/active", empathyHandler.RankingActive)
 	}
 
-	// 通知
+	// 通知：注入 DB 依赖。
+	notificationHandler := notification.NewHandler(notification.NewRepository(deps.DB))
 	notifications := api.Group("/notifications", authMW)
 	{
-		notifications.GET("", notification.ListHandler)
-		notifications.PUT("/:id/read", notification.ReadHandler)
-		notifications.PUT("/read-all", notification.ReadAllHandler)
+		notifications.GET("", notificationHandler.List)
+		notifications.PUT("/:id/read", notificationHandler.Read)
+		notifications.PUT("/read-all", notificationHandler.ReadAll)
 	}
 
 	// 搜索
