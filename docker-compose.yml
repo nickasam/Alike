@@ -1,0 +1,186 @@
+# ============================================================
+# Alike 开发环境编排
+# 用法：  make dev   （等价于 docker compose up -d --build）
+# 环境变量来自同目录 .env（参考 .env.example）
+# ============================================================
+
+services:
+  # ---------------- PostgreSQL ----------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: alike-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-alike}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-alike}
+      POSTGRES_DB: ${POSTGRES_DB:-alike}
+      TZ: ${TZ:-Asia/Shanghai}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      # 首次启动自动执行：建 citext 扩展（其余建表交给 make migrate）
+      - ./backend/migrations:/migrations:ro
+      - ./nginx/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-alike} -d ${POSTGRES_DB:-alike}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - alike-net
+
+  # ---------------- Redis ----------------
+  redis:
+    image: redis:7-alpine
+    container_name: alike-redis
+    restart: unless-stopped
+    command: >
+      sh -c "redis-server --appendonly yes
+      ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}"
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      # 带密码时 redis-cli 需 -a；未设密码时该变量为空亦可用
+      test: ["CMD-SHELL", "redis-cli ${REDIS_PASSWORD:+-a $REDIS_PASSWORD} ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - alike-net
+
+  # ---------------- MinIO（对象存储） ----------------
+  minio:
+    image: minio/minio:latest
+    container_name: alike-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-alike_minio_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"       # S3 API
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"   # Web 控制台
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - alike-net
+
+  # ---------------- MinIO 初始化：自动建默认 bucket ----------------
+  createbuckets:
+    image: minio/mc:latest
+    container_name: alike-minio-init
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint: >
+      /bin/sh -c "
+      until (mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD}) do echo 'waiting for minio...' && sleep 2; done;
+      mc mb --ignore-existing local/$${MINIO_BUCKET};
+      mc anonymous set download local/$${MINIO_BUCKET};
+      echo 'bucket ready: '$${MINIO_BUCKET};
+      exit 0;
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-alike_minio_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-alike-uploads}
+    networks:
+      - alike-net
+
+  # ---------------- Go 后端 ----------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: alike-backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      GIN_MODE: ${GIN_MODE:-debug}
+      BACKEND_PORT: ${BACKEND_PORT:-8080}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER:-alike}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-alike}
+      POSTGRES_DB: ${POSTGRES_DB:-alike}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
+      JWT_SECRET: ${JWT_SECRET:-dev_secret}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-15m}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-168h}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio:9000}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-alike_minio_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-alike-uploads}
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      TZ: ${TZ:-Asia/Shanghai}
+    expose:
+      - "${BACKEND_PORT:-8080}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    networks:
+      - alike-net
+
+  # ---------------- Nuxt 前端 ----------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: alike-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${APP_ENV:-development}
+      NITRO_PORT: ${FRONTEND_PORT:-3000}
+      NITRO_HOST: "0.0.0.0"
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-/api}
+      NUXT_PUBLIC_WS_BASE: ${NUXT_PUBLIC_WS_BASE:-/ws}
+      TZ: ${TZ:-Asia/Shanghai}
+    expose:
+      - "${FRONTEND_PORT:-3000}"
+    depends_on:
+      - backend
+    networks:
+      - alike-net
+
+  # ---------------- Nginx 反向代理 ----------------
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: alike-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - alike-net
+
+volumes:
+  pg_data:
+  redis_data:
+  minio_data:
+
+networks:
+  alike-net:
+    driver: bridge
