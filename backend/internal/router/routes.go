@@ -12,6 +12,7 @@ import (
 	"github.com/Alike/backend/internal/middleware"
 	"github.com/Alike/backend/internal/notification"
 	"github.com/Alike/backend/internal/search"
+	"github.com/Alike/backend/internal/storage"
 	"github.com/Alike/backend/internal/user"
 	"github.com/Alike/backend/internal/ws"
 )
@@ -112,8 +113,15 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 		notifications.PUT("/read-all", notificationHandler.ReadAll)
 	}
 
-	// 搜索
-	api.GET("/search", search.SearchHandler)
+	// 搜索：注入 DB 依赖。
+	searchHandler := search.NewHandler(search.NewRepository(deps.DB))
+	api.GET("/search", searchHandler.Search)
+
+	// 文件上传：MinIO 不可用时跳过路由注册。
+	if store, err := storage.New(deps.Cfg); err == nil {
+		storageHandler := storage.NewHandler(store)
+		api.POST("/upload", authMW, storageHandler.Upload)
+	}
 
 	// WebSocket 端点
 	api.GET("/ws", wsHandler.Handle)

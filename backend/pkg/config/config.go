@@ -28,6 +28,16 @@ type Config struct {
 	JWTSecret        string
 	JWTAccessExpire  time.Duration // access token 有效期
 	JWTRefreshExpire time.Duration // refresh token 有效期
+
+	MinIOEndpoint  string // MinIO/S3 访问地址（host:port）
+	MinIOAccessKey string // access key（MINIO_ROOT_USER）
+	MinIOSecretKey string // secret key（MINIO_ROOT_PASSWORD）
+	MinIOBucket    string // 默认 bucket
+	MinIOUseSSL    bool   // 是否走 HTTPS
+	MinIOPublicURL string // 对外可访问的基地址（用于拼接返回 URL），缺省用 endpoint
+
+	UploadMaxImageBytes int64 // 图片上传上限（字节）
+	UploadMaxDocBytes   int64 // 文档上传上限（字节）
 }
 
 // Load 优先加载 .env（若存在）到环境变量，再从环境变量读取配置。
@@ -54,6 +64,16 @@ func Load() *Config {
 		JWTSecret:        getEnv("JWT_SECRET", "alike-dev-secret-change-me"),
 		JWTAccessExpire:  getEnvDuration("JWT_ACCESS_TTL", 120*time.Minute),
 		JWTRefreshExpire: getEnvDuration("JWT_REFRESH_TTL", 168*time.Hour),
+
+		MinIOEndpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),
+		MinIOAccessKey: firstEnv([]string{"MINIO_ROOT_USER", "MINIO_ACCESS_KEY"}, "alike_minio_admin"),
+		MinIOSecretKey: firstEnv([]string{"MINIO_ROOT_PASSWORD", "MINIO_SECRET_KEY"}, "minioadmin"),
+		MinIOBucket:    getEnv("MINIO_BUCKET", "alike-uploads"),
+		MinIOUseSSL:    getEnvBool("MINIO_USE_SSL", false),
+		MinIOPublicURL: getEnv("MINIO_PUBLIC_URL", ""),
+
+		UploadMaxImageBytes: int64(getEnvInt("UPLOAD_MAX_IMAGE_MB", 5)) << 20,
+		UploadMaxDocBytes:   int64(getEnvInt("UPLOAD_MAX_DOC_MB", 10)) << 20,
 	}
 }
 
@@ -114,6 +134,16 @@ func getEnvInt(key string, def int) int {
 	if v, ok := os.LookupEnv(key); ok {
 		if n, err := strconv.Atoi(v); err == nil {
 			return n
+		}
+	}
+	return def
+}
+
+// getEnvBool 解析布尔环境变量（true/1/yes/on 视为真），未设置或解析失败返回默认值。
+func getEnvBool(key string, def bool) bool {
+	if v, ok := os.LookupEnv(key); ok && v != "" {
+		if b, err := strconv.ParseBool(v); err == nil {
+			return b
 		}
 	}
 	return def
