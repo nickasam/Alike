@@ -45,6 +45,14 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 	// 频道：注入 DB 依赖。
 	channelHandler := channel.NewHandler(channel.NewRepository(deps.DB))
 	channels := api.Group("/channels")
+
+	// 消息 + WebSocket：Hub 依赖 message 服务，message handler 反向依赖 Hub 广播。
+	msgRepo := message.NewRepository(deps.DB)
+	pubsub := ws.NewPubSub(deps.Redis)
+	hub := ws.NewHub(message.NewService(msgRepo), pubsub)
+	messageHandler := message.NewHandler(msgRepo, hub)
+	wsHandler := ws.NewHandler(hub, deps.JWT)
+
 	{
 		channels.GET("", channelHandler.List)
 		channels.POST("", authMW, channelHandler.Create)
@@ -54,16 +62,16 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 		channels.GET("/:id/members", channelHandler.Members)
 		channels.GET("/:id/emotion-board", channelHandler.EmotionBoard)
 		// 频道内消息
-		channels.GET("/:id/messages", message.ListHandler)
-		channels.POST("/:id/messages", authMW, message.CreateHandler)
+		channels.GET("/:id/messages", messageHandler.List)
+		channels.POST("/:id/messages", authMW, messageHandler.Create)
 	}
 
 	// 消息 / 线程 / 共情
 	messages := api.Group("/messages")
 	{
-		messages.GET("/:id/threads", message.ThreadsHandler)
-		messages.POST("/:id/replies", authMW, message.ReplyHandler)
-		messages.DELETE("/:id", authMW, message.DeleteHandler)
+		messages.GET("/:id/threads", messageHandler.Threads)
+		messages.POST("/:id/replies", authMW, messageHandler.Reply)
+		messages.DELETE("/:id", authMW, messageHandler.Delete)
 		messages.POST("/:id/empathy", authMW, empathy.CreateHandler)
 		messages.DELETE("/:id/empathy", authMW, empathy.DeleteHandler)
 		messages.GET("/:id/empathy-users", empathy.UsersHandler)
@@ -101,5 +109,5 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 	api.GET("/search", search.SearchHandler)
 
 	// WebSocket 端点
-	api.GET("/ws", ws.Handler)
+	api.GET("/ws", wsHandler.Handle)
 }
