@@ -15,8 +15,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-alike}
       POSTGRES_DB: ${POSTGRES_DB:-alike}
       TZ: ${TZ:-Asia/Shanghai}
-    ports:
-      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    # 数据库仅供内部网络访问，不对宿主机暴露端口（更安全，避免端口冲突）
+    expose:
+      - "5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
       # 首次启动自动执行：建 citext 扩展（其余建表交给 make migrate）
@@ -39,8 +40,9 @@ services:
     command: >
       sh -c "redis-server --appendonly yes
       ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}"
-    ports:
-      - "${REDIS_HOST_PORT:-6379}:6379"
+    # Redis 仅供内部网络访问，不对宿主机暴露端口
+    expose:
+      - "6379"
     volumes:
       - redis_data:/data
     healthcheck:

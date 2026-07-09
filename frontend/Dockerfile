@@ -9,6 +9,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# 国内网络：使用 npmmirror 加速依赖下载
+ENV npm_config_registry=https://registry.npmmirror.com
+
 # 先拷贝依赖清单，利用层缓存（兼容 npm / pnpm / yarn 锁文件）
 COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
 RUN if [ -f pnpm-lock.yaml ]; then \

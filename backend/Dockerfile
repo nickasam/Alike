@@ -9,6 +9,10 @@ FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
+# 国内网络：使用七牛 GOPROXY 加速依赖下载
+ENV GOPROXY=https://goproxy.cn,direct \
+    GO111MODULE=on
+
 # 先拷贝依赖清单，利用层缓存
 COPY go.mod go.sum* ./
 RUN go mod download

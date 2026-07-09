@@ -31,28 +31,40 @@ type Config struct {
 }
 
 // Load 优先加载 .env（若存在）到环境变量，再从环境变量读取配置。
+// 变量名与 docker-compose / .env 契约保持一致（POSTGRES_*/REDIS_HOST+PORT/BACKEND_PORT/JWT_*_TTL），
+// 并兼容旧命名（DB_*/REDIS_ADDR/SERVER_PORT）作为回退。
 func Load() *Config {
 	loadDotEnv(".env")
 
 	return &Config{
 		Env:        getEnv("APP_ENV", "development"),
-		ServerPort: getEnv("SERVER_PORT", "8080"),
+		ServerPort: firstEnv([]string{"BACKEND_PORT", "SERVER_PORT"}, "8080"),
 
-		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     getEnv("DB_PORT", "5432"),
-		DBUser:     getEnv("DB_USER", "alike"),
-		DBPassword: getEnv("DB_PASSWORD", "alike"),
-		DBName:     getEnv("DB_NAME", "alike"),
+		DBHost:     firstEnv([]string{"POSTGRES_HOST", "DB_HOST"}, "localhost"),
+		DBPort:     firstEnv([]string{"POSTGRES_PORT", "DB_PORT"}, "5432"),
+		DBUser:     firstEnv([]string{"POSTGRES_USER", "DB_USER"}, "alike"),
+		DBPassword: firstEnv([]string{"POSTGRES_PASSWORD", "DB_PASSWORD"}, "alike"),
+		DBName:     firstEnv([]string{"POSTGRES_DB", "DB_NAME"}, "alike"),
 		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
 
-		RedisAddr:     getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisAddr:     redisAddr(),
 		RedisPassword: getEnv("REDIS_PASSWORD", ""),
 		RedisDB:       getEnvInt("REDIS_DB", 0),
 
 		JWTSecret:        getEnv("JWT_SECRET", "alike-dev-secret-change-me"),
-		JWTAccessExpire:  time.Duration(getEnvInt("JWT_ACCESS_EXPIRE_MIN", 120)) * time.Minute,
-		JWTRefreshExpire: time.Duration(getEnvInt("JWT_REFRESH_EXPIRE_HOUR", 168)) * time.Hour,
+		JWTAccessExpire:  getEnvDuration("JWT_ACCESS_TTL", 120*time.Minute),
+		JWTRefreshExpire: getEnvDuration("JWT_REFRESH_TTL", 168*time.Hour),
 	}
+}
+
+// redisAddr 优先用 REDIS_ADDR；否则由 REDIS_HOST + REDIS_PORT 组装。
+func redisAddr() string {
+	if v, ok := os.LookupEnv("REDIS_ADDR"); ok && v != "" {
+		return v
+	}
+	host := getEnv("REDIS_HOST", "localhost")
+	port := getEnv("REDIS_PORT", "6379")
+	return host + ":" + port
 }
 
 // DSN 返回 PostgreSQL 连接字符串（pgx stdlib / database/sql 使用）。
@@ -102,6 +114,26 @@ func getEnvInt(key string, def int) int {
 	if v, ok := os.LookupEnv(key); ok {
 		if n, err := strconv.Atoi(v); err == nil {
 			return n
+		}
+	}
+	return def
+}
+
+// firstEnv 依次尝试多个键，返回第一个非空值，全空则返回默认值。
+func firstEnv(keys []string, def string) string {
+	for _, k := range keys {
+		if v, ok := os.LookupEnv(k); ok && v != "" {
+			return v
+		}
+	}
+	return def
+}
+
+// getEnvDuration 解析 Go duration 字符串（如 "15m"、"168h"），解析失败或未设置时返回默认值。
+func getEnvDuration(key string, def time.Duration) time.Duration {
+	if v, ok := os.LookupEnv(key); ok && v != "" {
+		if d, err := time.ParseDuration(v); err == nil {
+			return d
 		}
 	}
 	return def
