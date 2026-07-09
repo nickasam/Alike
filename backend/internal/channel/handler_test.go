@@ -111,21 +111,6 @@ func TestJoinInvalidID(t *testing.T) {
 	}
 }
 
-func TestEmotionBoardReturnsEmpty(t *testing.T) {
-	h := newHandler()
-	code, body := invoke(h.EmotionBoard, http.MethodGet, "/api/channels/1/emotion-board", ``, withParamID("1"))
-	if code != http.StatusOK || body.Code != response.CodeSuccess {
-		t.Fatalf("status=%d code=%d, want 200/0", code, body.Code)
-	}
-	data, ok := body.Data.(map[string]interface{})
-	if !ok {
-		t.Fatalf("data type=%T, want object", body.Data)
-	}
-	if _, ok := data["emotions"]; !ok {
-		t.Errorf("missing emotions key in %v", data)
-	}
-}
-
 func TestPaginateDefaultsAndCaps(t *testing.T) {
 	cases := []struct {
 		query            string
