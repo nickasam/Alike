@@ -112,7 +112,7 @@ func (h *Handler) Refresh(c *gin.Context) {
 		response.Fail(c, response.CodeInternalError)
 		return
 	}
-	response.Success(c, tokens)
+	response.Success(c, TokensResponse{Tokens: tokens})
 }
 
 // Logout 处理 POST /api/auth/logout。JWT 无状态，服务端无操作，前端清除本地 token 即可。

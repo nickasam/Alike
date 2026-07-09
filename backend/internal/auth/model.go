@@ -48,7 +48,14 @@ type TokenPair struct {
 }
 
 // AuthResponse 是登录/注册成功后的响应，包含用户信息与 token。
+// data: { "tokens": {...}, "user": {...} }
 type AuthResponse struct {
 	User   *User      `json:"user"`
+	Tokens *TokenPair `json:"tokens"`
+}
+
+// TokensResponse 是仅返回 token 的响应（如刷新 token）。
+// data: { "tokens": { "access_token": "...", "refresh_token": "..." } }
+type TokensResponse struct {
 	Tokens *TokenPair `json:"tokens"`
 }
