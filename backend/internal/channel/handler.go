@@ -156,15 +156,6 @@ func (h *Handler) Members(c *gin.Context) {
 	response.Page(c, nonNil(list), total, page, pageSize)
 }
 
-// EmotionBoard 处理 GET /api/channels/:id/emotion-board。
-// 阶段五由 emotion 模块提供数据，此处暂返回空看板。
-func (h *Handler) EmotionBoard(c *gin.Context) {
-	if _, ok := parseID(c); !ok {
-		return
-	}
-	response.Success(c, gin.H{"emotions": []any{}, "total": 0})
-}
-
 // parseID 解析路径参数 :id，非法时写入 404 响应并返回 false。
 func parseID(c *gin.Context) (int64, bool) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)

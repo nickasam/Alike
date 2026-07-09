@@ -6,6 +6,7 @@ import (
 	"github.com/Alike/backend/internal/auth"
 	"github.com/Alike/backend/internal/channel"
 	"github.com/Alike/backend/internal/diary"
+	"github.com/Alike/backend/internal/emotion"
 	"github.com/Alike/backend/internal/empathy"
 	"github.com/Alike/backend/internal/message"
 	"github.com/Alike/backend/internal/middleware"
@@ -46,6 +47,10 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 	channelHandler := channel.NewHandler(channel.NewRepository(deps.DB))
 	channels := api.Group("/channels")
 
+	// 情绪看板 + 共情：注入 DB 依赖。
+	emotionHandler := emotion.NewHandler(emotion.NewRepository(deps.DB))
+	empathyHandler := empathy.NewHandler(empathy.NewRepository(deps.DB))
+
 	// 消息 + WebSocket：Hub 依赖 message 服务，message handler 反向依赖 Hub 广播。
 	msgRepo := message.NewRepository(deps.DB)
 	pubsub := ws.NewPubSub(deps.Redis)
@@ -60,7 +65,7 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 		channels.POST("/:id/join", authMW, channelHandler.Join)
 		channels.POST("/:id/leave", authMW, channelHandler.Leave)
 		channels.GET("/:id/members", channelHandler.Members)
-		channels.GET("/:id/emotion-board", channelHandler.EmotionBoard)
+		channels.GET("/:id/emotion-board", emotionHandler.Board)
 		// 频道内消息
 		channels.GET("/:id/messages", messageHandler.List)
 		channels.POST("/:id/messages", authMW, messageHandler.Create)
@@ -72,9 +77,9 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 		messages.GET("/:id/threads", messageHandler.Threads)
 		messages.POST("/:id/replies", authMW, messageHandler.Reply)
 		messages.DELETE("/:id", authMW, messageHandler.Delete)
-		messages.POST("/:id/empathy", authMW, empathy.CreateHandler)
-		messages.DELETE("/:id/empathy", authMW, empathy.DeleteHandler)
-		messages.GET("/:id/empathy-users", empathy.UsersHandler)
+		messages.POST("/:id/empathy", authMW, empathyHandler.Create)
+		messages.DELETE("/:id/empathy", authMW, empathyHandler.Delete)
+		messages.GET("/:id/empathy-users", empathyHandler.Users)
 	}
 
 	// 打工日记（v1.5）
@@ -91,10 +96,10 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 	// 排行榜
 	ranking := api.Group("/ranking")
 	{
-		ranking.GET("/empathy", empathy.RankingEmpathyHandler)
-		ranking.GET("/warmest", empathy.RankingWarmestHandler)
+		ranking.GET("/empathy", empathyHandler.RankingEmpathy)
+		ranking.GET("/warmest", empathyHandler.RankingWarmest)
 		ranking.GET("/streak", diary.RankingStreakHandler)
-		ranking.GET("/active", empathy.RankingActiveHandler)
+		ranking.GET("/active", empathyHandler.RankingActive)
 	}
 
 	// 通知
