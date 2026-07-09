@@ -32,25 +32,27 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 		authGroup.GET("/me", authMW, authHandler.Me)
 	}
 
-	// 用户
+	// 用户：注入 DB 依赖。
+	userHandler := user.NewHandler(user.NewRepository(deps.DB))
 	users := api.Group("/users")
 	{
-		users.GET("/:id", user.GetHandler)
-		users.PUT("/:id", authMW, user.UpdateHandler)
+		users.GET("/:id", userHandler.Get)
+		users.PUT("/:id", authMW, userHandler.Update)
 		users.GET("/:id/diaries", user.DiariesHandler)
 		users.GET("/:id/stats", user.StatsHandler)
 	}
 
-	// 频道
+	// 频道：注入 DB 依赖。
+	channelHandler := channel.NewHandler(channel.NewRepository(deps.DB))
 	channels := api.Group("/channels")
 	{
-		channels.GET("", channel.ListHandler)
-		channels.POST("", authMW, channel.CreateHandler)
-		channels.GET("/:id", channel.GetHandler)
-		channels.POST("/:id/join", authMW, channel.JoinHandler)
-		channels.POST("/:id/leave", authMW, channel.LeaveHandler)
-		channels.GET("/:id/members", channel.MembersHandler)
-		channels.GET("/:id/emotion-board", channel.EmotionBoardHandler)
+		channels.GET("", channelHandler.List)
+		channels.POST("", authMW, channelHandler.Create)
+		channels.GET("/:id", channelHandler.Get)
+		channels.POST("/:id/join", authMW, channelHandler.Join)
+		channels.POST("/:id/leave", authMW, channelHandler.Leave)
+		channels.GET("/:id/members", channelHandler.Members)
+		channels.GET("/:id/emotion-board", channelHandler.EmotionBoard)
 		// 频道内消息
 		channels.GET("/:id/messages", message.ListHandler)
 		channels.POST("/:id/messages", authMW, message.CreateHandler)
