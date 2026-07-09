@@ -37,8 +37,8 @@ export default defineNuxtConfig({
     public: {
       // 后端 REST API 基址，可用环境变量 NUXT_PUBLIC_API_BASE 覆盖
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
-      // WebSocket 端点
-      wsBase: process.env.NUXT_PUBLIC_WS_BASE || '/ws',
+      // WebSocket 端点（与后端 api.GET("/ws") 对齐，走 /api 前缀）
+      wsBase: process.env.NUXT_PUBLIC_WS_BASE || '/api/ws',
     },
   },
 
