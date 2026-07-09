@@ -309,6 +309,30 @@ make clean      # 清理构建产物
 7. **提交信息格式** — `feat(模块): 描述` / `fix(模块): 描述` / `docs(模块): 描述`
 8. **不要修改 `docs/plans/architecture-design.md`** — 这是架构师的权威文档，如需变更请反馈
 
+## Git 工作流（自动化）
+
+所有 Claude Code 代理遵循以下 Git 流程：
+
+1. **分支** — 每个任务在新分支上开发：`feat/阶段-模块-描述`（如 `feat/2-auth-backend`）
+2. **提交** — 每个子任务完成后提交，提交信息格式：`feat(模块): 描述`
+3. **自测** — 提交前必须运行 `make test`（或对应子命令），测试通过才提交
+4. **不直接合并到 main** — Claude Code 完成后推送分支，由架构师 review 后合并
+5. **代码规范** — `make lint` 必须无错误
+6. **不要修改 CLAUDE.md 和 docs/plans/** — 架构文档不可改
+
+## 部署目标
+
+- **远程主机：** `ssh root@39.107.58.169`（密码见架构文档）
+- **部署方式：** Docker Compose，服务通过 Nginx 反代统一暴露 :80
+- **部署由 claude-devops 负责** — 通过 SSH 推送代码到远程主机后执行 `docker compose up -d --build`
+
+## 测试要求
+
+- 后端：每个模块至少有 handler 层的单元测试，使用 `database/sql` 的 mock 或真实测试库
+- 前端：核心 store 和 composable 有 Vitest 测试
+- 测试命令：`make test`（会同时跑前后端）
+- **提交前测试必须通过**
+
 ---
 
 ## 关键文档索引
