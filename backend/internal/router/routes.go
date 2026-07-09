@@ -18,19 +18,19 @@ import (
 // registerRoutes 注册各业务模块的路由分组骨架。
 // 阶段一仅搭建分组与占位 handler，具体业务在后续阶段填充。
 func registerRoutes(api *gin.RouterGroup, deps *Deps) {
-	// 认证（公开）
-	authGroup := api.Group("/auth")
-	{
-		authGroup.POST("/register", auth.RegisterHandler)
-		authGroup.POST("/login", auth.LoginHandler)
-		authGroup.POST("/refresh", auth.RefreshHandler)
-		authGroup.POST("/logout", auth.LogoutHandler)
-	}
-
-	// 需鉴权的路由
+	// 需鉴权的中间件
 	authMW := middleware.Auth(deps.JWT)
 
-	authGroup.GET("/me", authMW, auth.MeHandler)
+	// 认证：注入 DB / JWT 依赖。
+	authHandler := auth.NewHandler(auth.NewRepository(deps.DB), deps.JWT)
+	authGroup := api.Group("/auth")
+	{
+		authGroup.POST("/register", authHandler.Register)
+		authGroup.POST("/login", authHandler.Login)
+		authGroup.POST("/refresh", authHandler.Refresh)
+		authGroup.POST("/logout", authHandler.Logout)
+		authGroup.GET("/me", authMW, authHandler.Me)
+	}
 
 	// 用户
 	users := api.Group("/users")
