@@ -52,6 +52,7 @@ func TestRegisterValidation(t *testing.T) {
 		{"invalid email", `{"email":"not-an-email","password":"secret6","nickname":"牛马"}`},
 		{"short password", `{"email":"a@b.com","password":"123","nickname":"牛马"}`},
 		{"missing nickname", `{"email":"a@b.com","password":"secret6"}`},
+		{"work_years too large", `{"email":"a@b.com","password":"secret6","nickname":"牛马","work_years":100}`},
 		{"malformed json", `{`},
 	}
 	for _, tc := range cases {

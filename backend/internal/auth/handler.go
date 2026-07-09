@@ -37,7 +37,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	u, err := h.repo.Create(c.Request.Context(), req.Email, string(hash), req.Nickname)
+	u, err := h.repo.Create(c.Request.Context(), req, string(hash))
 	if errors.Is(err, ErrEmailConflict) {
 		response.Error(c, response.CodeConflict, "该邮箱已被注册")
 		return

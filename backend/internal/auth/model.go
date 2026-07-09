@@ -23,11 +23,14 @@ type User struct {
 	UpdatedAt        time.Time `json:"updated_at"`
 }
 
-// RegisterRequest 是注册请求体。
+// RegisterRequest 是注册请求体。industry/job_title/work_years 为选填。
 type RegisterRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
-	Nickname string `json:"nickname" binding:"required,min=1,max=100"`
+	Email     string `json:"email" binding:"required,email"`
+	Password  string `json:"password" binding:"required,min=6"`
+	Nickname  string `json:"nickname" binding:"required,min=1,max=100"`
+	Industry  string `json:"industry" binding:"max=100"`
+	JobTitle  string `json:"job_title" binding:"max=100"`
+	WorkYears int    `json:"work_years" binding:"min=0,max=60"`
 }
 
 // LoginRequest 是登录请求体。

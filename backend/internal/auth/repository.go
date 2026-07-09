@@ -35,12 +35,14 @@ const userColumns = `id, email, password, nickname,
 	created_at, updated_at`
 
 // Create 插入新用户并返回完整记录。邮箱唯一冲突时返回 ErrEmailConflict。
-func (r *Repository) Create(ctx context.Context, email, passwordHash, nickname string) (*User, error) {
-	const q = `INSERT INTO users (email, password, nickname)
-		VALUES ($1, $2, $3)
+// industry/job_title/work_years 为选填，随注册一并写入。
+func (r *Repository) Create(ctx context.Context, req RegisterRequest, passwordHash string) (*User, error) {
+	const q = `INSERT INTO users (email, password, nickname, industry, job_title, work_years)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING ` + userColumns
 
-	row := r.db.QueryRowContext(ctx, q, email, passwordHash, nickname)
+	row := r.db.QueryRowContext(ctx, q,
+		req.Email, passwordHash, req.Nickname, req.Industry, req.JobTitle, req.WorkYears)
 	u, err := scanUser(row)
 	if err != nil {
 		var pgErr *pgconn.PgError
