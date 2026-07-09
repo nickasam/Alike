@@ -7,6 +7,18 @@
 defineEmits<{ (e: 'toggle-drawer'): void }>()
 
 const { theme, toggle: toggleTheme, init: initTheme } = useTheme()
+const auth = useAuth()
+const router = useRouter()
+
+/** 头像首字：用户昵称首字，回退为“牛”。 */
+const avatarChar = computed(() => auth.user.value?.nickname?.[0] ?? '牛')
+const menuOpen = ref(false)
+
+async function onLogout() {
+  menuOpen.value = false
+  await auth.logout()
+  await router.push('/')
+}
 
 onMounted(() => initTheme())
 </script>
@@ -67,6 +79,7 @@ onMounted(() => initTheme())
 
       <!-- 通知 -->
       <button
+        v-if="auth.isAuthenticated.value"
         class="relative hidden h-10 w-10 place-items-center rounded-md border border-border bg-surface text-dim transition hover:text-ai-1 sm:grid"
         aria-label="通知"
       >
@@ -77,13 +90,70 @@ onMounted(() => initTheme())
         >
       </button>
 
-      <!-- 头像 -->
-      <button
-        class="grid h-10 w-10 place-items-center rounded-md text-white bg-grad-ai font-bold shadow-glow-ai"
-        aria-label="个人菜单"
-      >
-        牛
-      </button>
+      <!-- 已登录：头像 + 下拉菜单 -->
+      <div v-if="auth.isAuthenticated.value" class="relative">
+        <button
+          class="flex items-center gap-2 rounded-md text-white"
+          :aria-expanded="menuOpen"
+          aria-haspopup="menu"
+          aria-label="个人菜单"
+          @click="menuOpen = !menuOpen"
+        >
+          <img
+            v-if="auth.user.value?.avatar_url"
+            :src="auth.user.value.avatar_url"
+            :alt="auth.user.value?.nickname"
+            class="h-10 w-10 rounded-md object-cover shadow-glow-ai"
+          />
+          <span
+            v-else
+            class="grid h-10 w-10 place-items-center rounded-md bg-grad-ai font-bold shadow-glow-ai"
+          >
+            {{ avatarChar }}
+          </span>
+          <span class="hidden text-sm font-medium text-text md:inline">
+            {{ auth.user.value?.nickname }}
+          </span>
+        </button>
+
+        <div
+          v-if="menuOpen"
+          role="menu"
+          class="absolute right-0 top-12 z-50 w-44 overflow-hidden rounded-md border border-border bg-surface-solid shadow-lg"
+        >
+          <NuxtLink
+            :to="`/profile/${auth.user.value?.id}`"
+            role="menuitem"
+            class="flex items-center gap-2 px-4 py-2.5 text-sm text-text transition hover:bg-surface"
+            @click="menuOpen = false"
+          >
+            <AppIcon name="user" :size="18" />个人主页
+          </NuxtLink>
+          <button
+            role="menuitem"
+            class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-danger transition hover:bg-surface"
+            @click="onLogout"
+          >
+            <AppIcon name="log-out" :size="18" />退出登录
+          </button>
+        </div>
+      </div>
+
+      <!-- 未登录：登录 / 注册 -->
+      <template v-else>
+        <NuxtLink
+          to="/login"
+          class="rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-dim transition hover:text-ai-1"
+        >
+          登录
+        </NuxtLink>
+        <NuxtLink
+          to="/register"
+          class="btn-primary rounded-md px-3 py-2 text-sm font-semibold"
+        >
+          注册
+        </NuxtLink>
+      </template>
     </div>
   </header>
 </template>

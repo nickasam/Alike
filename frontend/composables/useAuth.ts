@@ -14,6 +14,9 @@ export interface RegisterPayload {
   email: string
   password: string
   nickname: string
+  industry?: string
+  job_title?: string
+  work_years?: number
 }
 
 /** 后端 /auth/login 与 /auth/register 返回结构（对齐后端 AuthResponse） */

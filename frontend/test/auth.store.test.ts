@@ -6,8 +6,10 @@ const sampleUser = {
   id: 1,
   nickname: '牛马一号',
   level: 3,
-  empathy_count: 42,
-  anonymous: false,
+  empathy_received: 42,
+  empathy_given: 7,
+  total_check_in_days: 15,
+  is_anonymous: false,
 }
 
 describe('auth store', () => {

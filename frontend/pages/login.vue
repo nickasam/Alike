@@ -1,23 +1,19 @@
 <script setup lang="ts">
 /**
- * 登录 / 注册页 —— 同一页面 Tab 切换。
- * Aurora 暗色玻璃拟态风格，居中卡片，不使用默认三列布局。
+ * 登录页 —— Aurora 暗色玻璃拟态风格，居中卡片，不使用默认三列布局。
+ * email + password，成功后跳转（支持 query.redirect 回跳，默认首页）。
  */
 import { ApiError } from '~/composables/useApi'
 
 definePageMeta({ layout: false, middleware: 'auth' })
-useHead({ title: 'Alike · 登录 / 注册' })
+useHead({ title: 'Alike · 登录' })
 
 const auth = useAuth()
 const route = useRoute()
 
-type Tab = 'login' | 'register'
-const tab = ref<Tab>('login')
-
 const form = reactive({
   email: '',
   password: '',
-  nickname: '',
 })
 
 const loading = ref(false)
@@ -25,24 +21,13 @@ const errorMsg = ref('')
 const fieldErrors = reactive({
   email: '',
   password: '',
-  nickname: '',
 })
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-function switchTab(next: Tab) {
-  if (tab.value === next) return
-  tab.value = next
-  errorMsg.value = ''
-  fieldErrors.email = ''
-  fieldErrors.password = ''
-  fieldErrors.nickname = ''
-}
-
 function validate(): boolean {
   fieldErrors.email = ''
   fieldErrors.password = ''
-  fieldErrors.nickname = ''
   let ok = true
 
   if (!EMAIL_RE.test(form.email.trim())) {
@@ -51,10 +36,6 @@ function validate(): boolean {
   }
   if (form.password.length < 6) {
     fieldErrors.password = '密码至少 6 位'
-    ok = false
-  }
-  if (tab.value === 'register' && !form.nickname.trim()) {
-    fieldErrors.nickname = '昵称不能为空'
     ok = false
   }
   return ok
@@ -66,29 +47,25 @@ async function onSubmit() {
 
   loading.value = true
   try {
-    if (tab.value === 'login') {
-      await auth.login({ email: form.email.trim(), password: form.password })
-    } else {
-      await auth.register({
-        email: form.email.trim(),
-        password: form.password,
-        nickname: form.nickname.trim(),
-      })
-    }
+    await auth.login({ email: form.email.trim(), password: form.password })
     const redirect =
       typeof route.query.redirect === 'string' ? route.query.redirect : '/'
     await navigateTo(redirect)
   } catch (err) {
     errorMsg.value =
-      err instanceof ApiError
-        ? err.message
-        : tab.value === 'login'
-          ? '登录失败，请稍后重试'
-          : '注册失败，请稍后重试'
+      err instanceof ApiError ? err.message : '登录失败，请稍后重试'
   } finally {
     loading.value = false
   }
 }
+
+const registerLink = computed(() => {
+  const redirect =
+    typeof route.query.redirect === 'string' ? route.query.redirect : undefined
+  return redirect
+    ? { path: '/register', query: { redirect } }
+    : { path: '/register' }
+})
 </script>
 
 <template>
@@ -98,41 +75,6 @@ async function onSubmit() {
       <div class="mb-6 text-center">
         <h1 class="text-gradient text-2xl font-extrabold">Alike</h1>
         <p class="mt-1 text-sm text-dim">汇聚天下牛马，总有人懂你的辛苦</p>
-      </div>
-
-      <!-- Tab 切换 -->
-      <div
-        class="mb-6 flex rounded-md border border-border p-1"
-        role="tablist"
-      >
-        <button
-          type="button"
-          role="tab"
-          :aria-selected="tab === 'login'"
-          class="flex-1 rounded-sm py-2 text-base font-medium transition"
-          :class="
-            tab === 'login'
-              ? 'bg-grad-ai text-white shadow-glow-ai'
-              : 'text-dim hover:text-text'
-          "
-          @click="switchTab('login')"
-        >
-          登录
-        </button>
-        <button
-          type="button"
-          role="tab"
-          :aria-selected="tab === 'register'"
-          class="flex-1 rounded-sm py-2 text-base font-medium transition"
-          :class="
-            tab === 'register'
-              ? 'bg-grad-ai text-white shadow-glow-ai'
-              : 'text-dim hover:text-text'
-          "
-          @click="switchTab('register')"
-        >
-          注册
-        </button>
       </div>
 
       <form class="flex flex-col gap-4" novalidate @submit.prevent="onSubmit">
@@ -145,9 +87,10 @@ async function onSubmit() {
             type="email"
             autocomplete="email"
             placeholder="you@example.com"
+            :aria-invalid="!!fieldErrors.email"
             class="rounded-md border border-border bg-surface-solid px-3 py-2 text-base text-text outline-none transition focus:border-ai-1"
           />
-          <p v-if="fieldErrors.email" class="text-xs text-danger">
+          <p v-if="fieldErrors.email" class="text-xs text-danger" role="alert">
             {{ fieldErrors.email }}
           </p>
         </div>
@@ -159,28 +102,13 @@ async function onSubmit() {
             id="password"
             v-model="form.password"
             type="password"
-            :autocomplete="tab === 'login' ? 'current-password' : 'new-password'"
+            autocomplete="current-password"
             placeholder="至少 6 位"
+            :aria-invalid="!!fieldErrors.password"
             class="rounded-md border border-border bg-surface-solid px-3 py-2 text-base text-text outline-none transition focus:border-ai-1"
           />
-          <p v-if="fieldErrors.password" class="text-xs text-danger">
+          <p v-if="fieldErrors.password" class="text-xs text-danger" role="alert">
             {{ fieldErrors.password }}
-          </p>
-        </div>
-
-        <!-- 昵称（仅注册） -->
-        <div v-if="tab === 'register'" class="flex flex-col gap-1">
-          <label for="nickname" class="text-sm text-dim">昵称</label>
-          <input
-            id="nickname"
-            v-model="form.nickname"
-            type="text"
-            autocomplete="nickname"
-            placeholder="给自己起个牛马名"
-            class="rounded-md border border-border bg-surface-solid px-3 py-2 text-base text-text outline-none transition focus:border-ai-1"
-          />
-          <p v-if="fieldErrors.nickname" class="text-xs text-danger">
-            {{ fieldErrors.nickname }}
           </p>
         </div>
 
@@ -198,19 +126,13 @@ async function onSubmit() {
           :disabled="loading"
           class="btn-primary mt-2 py-2.5 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {{ loading ? '处理中…' : tab === 'login' ? '登录' : '注册' }}
+          {{ loading ? '处理中…' : '登录' }}
         </button>
       </form>
 
       <p class="mt-5 text-center text-sm text-mute">
-        {{ tab === 'login' ? '还没有账号？' : '已有账号？' }}
-        <button
-          type="button"
-          class="text-ai-1 hover:underline"
-          @click="switchTab(tab === 'login' ? 'register' : 'login')"
-        >
-          {{ tab === 'login' ? '立即注册' : '去登录' }}
-        </button>
+        还没有账号？
+        <NuxtLink :to="registerLink" class="text-ai-1 hover:underline">立即注册</NuxtLink>
       </p>
     </div>
   </div>

@@ -7,16 +7,25 @@ import { defineStore } from 'pinia'
 
 export interface AuthUser {
   id: number
+  /** 仅 /auth/me 返回本人邮箱 */
+  email?: string
   nickname: string
-  avatar?: string
+  avatar_url?: string
+  bio?: string
   industry?: string
-  job?: string
+  job_title?: string
+  /** 工龄（年） */
+  work_years?: number
   /** 牛马等级 */
   level: number
-  /** 累计共情数 */
-  empathy_count: number
+  /** 被共情数 */
+  empathy_received: number
+  /** 给出共情数 */
+  empathy_given: number
+  /** 累计打卡天数 */
+  total_check_in_days: number
   /** 是否默认匿名 */
-  anonymous: boolean
+  is_anonymous: boolean
 }
 
 /** localStorage key —— 与 useApi/useAuth 保持一致 */
