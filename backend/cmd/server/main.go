@@ -20,6 +20,9 @@ import (
 
 func main() {
 	cfg := config.Load()
+	if err := cfg.Validate(); err != nil {
+		log.Fatalf("[FATAL] 配置校验失败: %v", err)
+	}
 
 	// DB / Redis 连接失败不阻断启动：记录错误，健康检查会反映为 down/unavailable。
 	db, err := database.New(cfg)
