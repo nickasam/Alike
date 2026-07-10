@@ -61,6 +61,8 @@ const authed = ref(false)
 const handlers = new Map<string, Set<Handler>>()
 // 已请求订阅的频道集合，重连后重放。
 const joinedChannels = new Set<number>()
+// 出站待发队列：连接/鉴权未就绪时暂存帧，auth_ok 后按序补发，避免静默丢弃。
+const outboundQueue: string[] = []
 let reconnectAttempts = 0
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 // 主动断开标记：为 true 时 onclose 不触发重连。
@@ -81,13 +83,32 @@ function resolveUrl(): string {
   return base
 }
 
-/** 发送一帧（连接未就绪则静默丢弃）。 */
+/** 发送一帧。auth 帧或连接已 OPEN 时直接发；否则入队待 auth_ok 后补发，
+ *  并确保连接已发起，避免"连接未就绪 → 消息静默丢弃"。 */
 function sendRaw(type: WsClientEvent, data?: unknown, channelId?: number) {
-  if (socket?.readyState !== WebSocket.OPEN) return
   const env: WsEnvelope = { type }
   if (data !== undefined) env.data = data
   if (channelId !== undefined) env.channel_id = channelId
-  socket.send(JSON.stringify(env))
+  const frame = JSON.stringify(env)
+
+  // auth 帧在 onopen 时发送，直接走；其余帧需连接 OPEN。
+  if (socket?.readyState === WebSocket.OPEN) {
+    socket.send(frame)
+    return
+  }
+  // 未就绪：入队（auth 帧不入队，onopen 会重发），并确保连接已发起。
+  if (type !== 'auth') {
+    outboundQueue.push(frame)
+    if (!socket || socket.readyState === WebSocket.CLOSED) open()
+  }
+}
+
+/** auth_ok 后按序补发排队的帧。 */
+function flushQueue() {
+  if (socket?.readyState !== WebSocket.OPEN) return
+  while (outboundQueue.length > 0) {
+    socket.send(outboundQueue.shift() as string)
+  }
 }
 
 function dispatch(env: WsEnvelope) {
@@ -131,8 +152,9 @@ function open() {
       case 'auth_ok':
         authed.value = true
         reconnectAttempts = 0
-        // 重连后重放订阅。
+        // 重连后重放订阅，再补发排队的出站帧（如连接未就绪时发的消息）。
         joinedChannels.forEach((id) => sendRaw('join_channel', { channel_id: id }))
+        flushQueue()
         break
       case 'ping':
         sendRaw('pong')
@@ -162,6 +184,7 @@ function close() {
   }
   reconnectAttempts = 0
   joinedChannels.clear()
+  outboundQueue.length = 0
   socket?.close()
   socket = null
   connected.value = false
