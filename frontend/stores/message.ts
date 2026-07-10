@@ -172,14 +172,24 @@ export const useMessageStore = defineStore('message', {
       upsertAscending(ch.list, msg)
     },
 
-    /** WebSocket thread_reply：追加到已打开线程并同步父消息回复数。 */
-    receiveThreadReply(payload: ThreadReplyPayload) {
-      if (!payload?.reply) return
-      const { parent_id, reply } = payload
-      if (this.threadOpen && this.threadParent?.id === parent_id) {
+    /** 线程回复入列（幂等）：REST 响应与 WS thread_reply 广播共用此路径。
+     *  仅当该回复 id 首次出现时才追加并对父消息 reply_count +1，
+     *  避免 REST 响应与广播先后到达导致重复显示或计数翻倍。 */
+    addThreadReply(parentId: number, reply: Message) {
+      if (!reply) return
+      const isNew =
+        this.threadReplies.findIndex((m) => m.id === reply.id) === -1
+      if (this.threadOpen && this.threadParent?.id === parentId) {
         upsertAscending(this.threadReplies, reply)
       }
-      this.bumpReplyCount(parent_id)
+      // 仅首次出现的回复才计数（无论线程面板是否打开）。
+      if (isNew) this.bumpReplyCount(parentId)
+    },
+
+    /** WebSocket thread_reply：委托 addThreadReply 幂等入列 + 计数。 */
+    receiveThreadReply(payload: ThreadReplyPayload) {
+      if (!payload?.reply) return
+      this.addThreadReply(payload.parent_id, payload.reply)
     },
 
     /** 同步某父消息的 reply_count（+1），并更新线程面板父引用。 */
@@ -279,9 +289,9 @@ export const useMessageStore = defineStore('message', {
     },
 
     /**
-     * REST 发送线程回复。后端在落库后经 WebSocket 广播 thread_reply，
-     * 本客户端已订阅该频道，故由 receiveThreadReply 统一入列 + 计数，
-     * 此处不做本地回显以免 reply_count 重复自增。
+     * REST 发送线程回复，返回落库后的回复对象。
+     * 调用方应将返回值传入 addThreadReply 即时入列（幂等）；
+     * 后端随后广播的 thread_reply 命中同 id 会被去重，不重复计数。
      */
     async sendReply(parentId: number, content: string, emotion?: string | null, isAnonymous = false) {
       return useApi().post<Message>(`/messages/${parentId}/replies`, {

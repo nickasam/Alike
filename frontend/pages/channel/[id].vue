@@ -122,13 +122,20 @@ function onCloseThread() {
   messageStore.closeThread()
 }
 
-/** 线程回复（REST，thread_reply 广播入列）。 */
+/** 线程回复（REST 发送，用响应即时入列；WS thread_reply 广播按 id 去重）。 */
 async function onReply(content: string) {
   const parent = messageStore.threadParent
   if (!parent || replySending.value) return
   replySending.value = true
   try {
-    await messageStore.sendReply(parent.id, content, null, auth.user?.is_anonymous ?? false)
+    const reply = await messageStore.sendReply(
+      parent.id,
+      content,
+      null,
+      auth.user?.is_anonymous ?? false,
+    )
+    // 用 REST 响应即时上屏，不依赖 WS 广播回环时机；广播到达按 id 去重。
+    messageStore.addThreadReply(parent.id, reply)
   } finally {
     replySending.value = false
   }
