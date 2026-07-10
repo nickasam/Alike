@@ -155,7 +155,7 @@ services:
       NITRO_PORT: ${FRONTEND_PORT:-3000}
       NITRO_HOST: "0.0.0.0"
       NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-/api}
-      NUXT_PUBLIC_WS_BASE: ${NUXT_PUBLIC_WS_BASE:-/ws}
+      NUXT_PUBLIC_WS_BASE: ${NUXT_PUBLIC_WS_BASE:-/api/ws}
       TZ: ${TZ:-Asia/Shanghai}
     expose:
       - "${FRONTEND_PORT:-3000}"
