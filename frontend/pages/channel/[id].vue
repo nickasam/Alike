@@ -135,9 +135,20 @@ async function onEmpathy({ message, action }: { message: Message; action: 'add' 
   }
 }
 
-/** 进入/切换频道：加载频道信息与首屏消息，订阅并 join。 */
+/** 确保当前用户是频道成员（后端发消息/WS 订阅均要求成员身份）。
+ *  幂等：已加入返回 409 亦视为成功；失败静默（发送时后端 error 帧会提示）。 */
+async function ensureMembership(id: number) {
+  try {
+    await api.post(`/channels/${id}/join`)
+  } catch {
+    // 已加入(409)或其它错误均不阻塞进入频道
+  }
+}
+
+/** 进入/切换频道：加载频道信息与首屏消息，确保成员身份后订阅并 join。 */
 async function enterChannel(id: number) {
   await loadChannel()
+  await ensureMembership(id)
   if (!messageStore.channelState(id).initialized) {
     await messageStore.loadInitial(id)
   }
