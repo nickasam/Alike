@@ -2,7 +2,7 @@
  * useEmotions — 情绪标签元数据（key / 中文标签 / 展示样式）。
  *
  * key 与后端 emotion.Tag 枚举严格一致（8 种），颜色取自 docs/design/02-channel.html
- * 的 .emo-* 规则，供 EmotionPicker、MessageList 情绪徽标复用。
+ * 的 .emo-* 规则，供 MessageInput、MessageList 情绪徽标复用。
  */
 
 export interface EmotionMeta {
