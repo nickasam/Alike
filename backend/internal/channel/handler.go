@@ -8,13 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Alike/backend/internal/middleware"
+	"github.com/Alike/backend/pkg/httputil"
 	"github.com/Alike/backend/pkg/response"
-)
-
-const (
-	defaultPage     = 1
-	defaultPageSize = 20
-	maxPageSize     = 50
 )
 
 // Handler 承载 channel 模块的依赖，替代阶段一的无状态包级函数。
@@ -30,14 +25,14 @@ func NewHandler(repo *Repository) *Handler {
 // List 处理 GET /api/channels，支持 category 过滤与分页。
 func (h *Handler) List(c *gin.Context) {
 	category := c.Query("category")
-	page, pageSize := paginate(c)
+	page, pageSize := httputil.Paginate(c)
 
 	list, total, err := h.repo.List(c.Request.Context(), category, page, pageSize)
 	if err != nil {
 		response.Fail(c, response.CodeInternalError)
 		return
 	}
-	response.Page(c, nonNil(list), total, page, pageSize)
+	response.Page(c, httputil.NonNil(list), total, page, pageSize)
 }
 
 // Create 处理 POST /api/channels，创建频道（需登录）。
@@ -142,7 +137,7 @@ func (h *Handler) Members(c *gin.Context) {
 	if !ok {
 		return
 	}
-	page, pageSize := paginate(c)
+	page, pageSize := httputil.Paginate(c)
 
 	list, total, err := h.repo.Members(c.Request.Context(), id, page, pageSize)
 	if errors.Is(err, ErrChannelNotFound) {
@@ -153,7 +148,7 @@ func (h *Handler) Members(c *gin.Context) {
 		response.Fail(c, response.CodeInternalError)
 		return
 	}
-	response.Page(c, nonNil(list), total, page, pageSize)
+	response.Page(c, httputil.NonNil(list), total, page, pageSize)
 }
 
 // parseID 解析路径参数 :id，非法时写入 404 响应并返回 false。
@@ -164,28 +159,4 @@ func parseID(c *gin.Context) (int64, bool) {
 		return 0, false
 	}
 	return id, true
-}
-
-// paginate 从 query 解析分页参数，应用默认值与上限。
-func paginate(c *gin.Context) (page, pageSize int) {
-	page, _ = strconv.Atoi(c.Query("page"))
-	if page < 1 {
-		page = defaultPage
-	}
-	pageSize, _ = strconv.Atoi(c.Query("page_size"))
-	if pageSize < 1 {
-		pageSize = defaultPageSize
-	}
-	if pageSize > maxPageSize {
-		pageSize = maxPageSize
-	}
-	return page, pageSize
-}
-
-// nonNil 保证空列表序列化为 [] 而非 null。
-func nonNil[T any](list []T) []T {
-	if list == nil {
-		return []T{}
-	}
-	return list
 }

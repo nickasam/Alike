@@ -7,14 +7,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/Alike/backend/pkg/httputil"
 	"github.com/Alike/backend/pkg/response"
 )
 
 const (
-	defaultPage     = 1
-	defaultPageSize = 20
-	maxPageSize     = 50
-	maxQueryLen     = 100
+	maxQueryLen = 100
 )
 
 // Handler 承载 search 模块的依赖。
@@ -39,22 +37,22 @@ func (h *Handler) Search(c *gin.Context) {
 		q = q[:maxQueryLen]
 	}
 
-	page, pageSize := paginate(c)
+	page, pageSize := httputil.Paginate(c)
 	ctx := c.Request.Context()
 
 	switch parseType(c.Query("type")) {
 	case TypeDiary:
 		list, total, err := h.repo.SearchDiaries(ctx, q, page, pageSize)
-		respond(c, nonNil(list), total, page, pageSize, err)
+		respond(c, httputil.NonNil(list), total, page, pageSize, err)
 	case TypeChannel:
 		list, total, err := h.repo.SearchChannels(ctx, q, page, pageSize)
-		respond(c, nonNil(list), total, page, pageSize, err)
+		respond(c, httputil.NonNil(list), total, page, pageSize, err)
 	case TypeUser:
 		list, total, err := h.repo.SearchUsers(ctx, q, page, pageSize)
-		respond(c, nonNil(list), total, page, pageSize, err)
+		respond(c, httputil.NonNil(list), total, page, pageSize, err)
 	default: // TypeMessage
 		list, total, err := h.repo.SearchMessages(ctx, q, parseChannelID(c), page, pageSize)
-		respond(c, nonNil(list), total, page, pageSize, err)
+		respond(c, httputil.NonNil(list), total, page, pageSize, err)
 	}
 }
 
@@ -88,28 +86,4 @@ func parseChannelID(c *gin.Context) int64 {
 		return 0
 	}
 	return id
-}
-
-// paginate 从 query 解析分页参数，应用默认值与上限。
-func paginate(c *gin.Context) (page, pageSize int) {
-	page, _ = strconv.Atoi(c.Query("page"))
-	if page < 1 {
-		page = defaultPage
-	}
-	pageSize, _ = strconv.Atoi(c.Query("page_size"))
-	if pageSize < 1 {
-		pageSize = defaultPageSize
-	}
-	if pageSize > maxPageSize {
-		pageSize = maxPageSize
-	}
-	return page, pageSize
-}
-
-// nonNil 保证空列表序列化为 [] 而非 null。
-func nonNil[T any](list []T) []T {
-	if list == nil {
-		return []T{}
-	}
-	return list
 }

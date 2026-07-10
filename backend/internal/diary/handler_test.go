@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Alike/backend/internal/middleware"
+	"github.com/Alike/backend/pkg/httputil"
 	"github.com/Alike/backend/pkg/response"
 )
 
@@ -105,15 +106,15 @@ func TestPaginateDefaultsAndCaps(t *testing.T) {
 		query            string
 		wantPage, wantPS int
 	}{
-		{"", defaultPage, defaultPageSize},
+		{"", httputil.DefaultPage, httputil.DefaultPageSize},
 		{"?page=3&page_size=10", 3, 10},
-		{"?page=0&page_size=0", defaultPage, defaultPageSize},
-		{"?page=-1&page_size=999", defaultPage, maxPageSize},
+		{"?page=0&page_size=0", httputil.DefaultPage, httputil.DefaultPageSize},
+		{"?page=-1&page_size=999", httputil.DefaultPage, httputil.MaxPageSize},
 	}
 	for _, tc := range cases {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest(http.MethodGet, "/x"+tc.query, nil)
-		page, ps := paginate(c)
+		page, ps := httputil.Paginate(c)
 		if page != tc.wantPage || ps != tc.wantPS {
 			t.Errorf("query=%q -> page=%d ps=%d, want %d/%d", tc.query, page, ps, tc.wantPage, tc.wantPS)
 		}

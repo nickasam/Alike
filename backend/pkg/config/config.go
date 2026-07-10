@@ -42,6 +42,10 @@ type Config struct {
 
 	UploadMaxImageBytes int64 // 图片上传上限（字节）
 	UploadMaxDocBytes   int64 // 文档上传上限（字节）
+
+	// CORSAllowedOrigins 是允许跨域的 Origin 白名单（精确匹配）。
+	// 空表示：开发环境放开（回显请求 Origin），生产环境拒绝所有跨域。
+	CORSAllowedOrigins []string
 }
 
 // Load 优先加载 .env（若存在）到环境变量，再从环境变量读取配置。
@@ -78,7 +82,24 @@ func Load() *Config {
 
 		UploadMaxImageBytes: int64(getEnvInt("UPLOAD_MAX_IMAGE_MB", 5)) << 20,
 		UploadMaxDocBytes:   int64(getEnvInt("UPLOAD_MAX_DOC_MB", 10)) << 20,
+
+		CORSAllowedOrigins: splitCSV(getEnv("CORS_ALLOWED_ORIGINS", "")),
 	}
+}
+
+// splitCSV 解析逗号分隔的配置值为去空白、去空项的字符串切片。
+func splitCSV(s string) []string {
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if v := strings.TrimSpace(p); v != "" {
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 // IsProduction 报告是否运行于生产环境（APP_ENV=production）。

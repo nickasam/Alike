@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/Alike/backend/pkg/httputil"
 	"github.com/Alike/backend/pkg/response"
 )
 
@@ -83,16 +84,16 @@ func TestPaginateDefaultsAndClamps(t *testing.T) {
 		query            string
 		wantPage, wantPS int
 	}{
-		{"/s?q=x", defaultPage, defaultPageSize},
-		{"/s?q=x&page=0&page_size=0", defaultPage, defaultPageSize},
-		{"/s?q=x&page=-3&page_size=-1", defaultPage, defaultPageSize},
+		{"/s?q=x", httputil.DefaultPage, httputil.DefaultPageSize},
+		{"/s?q=x&page=0&page_size=0", httputil.DefaultPage, httputil.DefaultPageSize},
+		{"/s?q=x&page=-3&page_size=-1", httputil.DefaultPage, httputil.DefaultPageSize},
 		{"/s?q=x&page=2&page_size=10", 2, 10},
-		{"/s?q=x&page_size=999", defaultPage, maxPageSize},
+		{"/s?q=x&page_size=999", httputil.DefaultPage, httputil.MaxPageSize},
 	}
 	for _, tc := range cases {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest(http.MethodGet, tc.query, nil)
-		page, ps := paginate(c)
+		page, ps := httputil.Paginate(c)
 		if page != tc.wantPage || ps != tc.wantPS {
 			t.Errorf("paginate(%q) = (%d,%d), want (%d,%d)", tc.query, page, ps, tc.wantPage, tc.wantPS)
 		}
@@ -117,11 +118,11 @@ func TestParseChannelID(t *testing.T) {
 
 func TestNonNilReturnsEmptySlice(t *testing.T) {
 	var nilSlice []int
-	if got := nonNil(nilSlice); got == nil || len(got) != 0 {
+	if got := httputil.NonNil(nilSlice); got == nil || len(got) != 0 {
 		t.Fatalf("nonNil(nil) = %v, want empty non-nil slice", got)
 	}
 	full := []int{1, 2}
-	if got := nonNil(full); len(got) != 2 {
+	if got := httputil.NonNil(full); len(got) != 2 {
 		t.Fatalf("nonNil(%v) mutated slice: %v", full, got)
 	}
 }
