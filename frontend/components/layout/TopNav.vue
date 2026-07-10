@@ -129,6 +129,14 @@ onMounted(() => initTheme())
           >
             <AppIcon name="user" :size="18" />个人主页
           </NuxtLink>
+          <NuxtLink
+            to="/settings"
+            role="menuitem"
+            class="flex items-center gap-2 px-4 py-2.5 text-sm text-text transition hover:bg-surface"
+            @click="menuOpen = false"
+          >
+            <AppIcon name="user" :size="18" />编辑资料
+          </NuxtLink>
           <button
             role="menuitem"
             class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-danger transition hover:bg-surface"

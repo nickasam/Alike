@@ -1,6 +1,9 @@
 package router
 
 import (
+	"context"
+	"log"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/Alike/backend/internal/auth"
@@ -135,6 +138,11 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 
 	// 文件上传：MinIO 不可用时跳过路由注册。
 	if store, err := storage.New(deps.Cfg); err == nil {
+		// 确保目标 bucket 存在（幂等），否则首次上传会因 bucket 缺失失败。
+		// 失败不阻断路由注册，仅记录，上传时会返回相应错误。
+		if err := store.EnsureBucket(context.Background()); err != nil {
+			log.Printf("storage: ensure bucket failed: %v", err)
+		}
 		storageHandler := storage.NewHandler(store)
 		api.POST("/upload", authMW, writeRL, storageHandler.Upload)
 	}
