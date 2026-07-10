@@ -191,8 +191,8 @@ JWT_EXPIRE_HOURS=24
 | P3 | 取消共情 | DELETE `/api/messages/:id/empathy`，删除记录，empathy_count -1，count 不为负 |
 | P4 | 共情用户列表 | GET `/api/messages/:id/empathy-users`，返回共情过该消息的用户列表，支持分页 |
 | P5 | 共情排行榜 | GET `/api/ranking/empathy`，按 empathy_count DESC 排序，返回最受共情帖子列表 |
-| P6 | 共情实时推送 | 共情后 WebSocket 推送 `empathy` 事件，包含 message_id、from_user、更新后 count |
-| P7 | 匿名共情 | 匿名用户的共情行为不暴露真实身份，from_user 显示"匿名牛马" |
+| P6 | 共情实时推送 | 共情后 WebSocket 向频道推送 `empathy` 事件，data 含 `message_id` 与更新后 `empathy_count`；操作方本地用 HTTP 响应乐观更新 |
+| P7 | 禁止自我共情 | 不能对自己的消息共情（后端返回 403），防自刷排行榜 |
 
 ### 4.6 Diary 模块（打工日记）
 
@@ -210,10 +210,10 @@ JWT_EXPIRE_HOURS=24
 
 | # | 测试用例 | 要点 |
 |---|----------|------|
-| W1 | WebSocket 连接建立 | WS `/ws?token=<JWT>`，有效 token 连接成功；无 token 或无效 token 连接被拒（401 关闭） |
+| W1 | WebSocket 连接建立 | 连接 `/api/ws`，首帧发 `{type:auth,data:{token}}`；有效 token 收到 `auth_ok`，无效/超时（5s）连接被断开 |
 | W2 | 加入/离开频道 | 发送 `join_channel` 后，该连接收到频道内 `new_message` 事件；`leave_channel` 后不再收到 |
 | W3 | 实时消息推送 | 用户 A 发送 `send_message`，同频道用户 B 收到 `new_message` 事件，data 内容与 DB 一致 |
-| W4 | 输入中状态广播 | 用户 A 发送 `typing` 事件，同频道其他用户收到 typing 通知，is_typing=false 时停止 |
+| W4 | 输入中状态广播 | 用户 A 发送 `typing`（data 含 channel_id），同频道其他成员收到 `typing` 通知（data 含 user_id） |
 | W5 | 断线重连 | 主动断开连接后重新连接，JWT 仍有效则连接成功，重新加入之前的频道，消息不丢失（补拉 REST 历史） |
 | W6 | 多连接并发 | 同一用户多设备同时连接，消息推送到所有连接；连接超时自动清理 |
 | W7 | 共情事件推送 | 用户 A 对消息共情，被共情者收到 `empathy` 类型 WebSocket 事件，包含 message_id 和更新后的 count |

@@ -194,8 +194,8 @@
 ### 3.4 WebSocket 事件协议
 
 > **连接鉴权：** JWT 不放在 URL query（会写入 Nginx access log 泄露），改用首帧鉴权 —
-> 连接建立后客户端首帧发送 `{ "type": "auth", "token": "<JWT>" }`，服务端校验通过前不接受其他消息，
-> 超时（5s）未鉴权则断开。备选：`Sec-WebSocket-Protocol` 子协议头携带 token。
+> 连接建立后客户端首帧发送 `{ "type": "auth", "data": { "token": "<JWT>" } }`，服务端校验通过前不接受其他消息，
+> 超时（5s）未鉴权则断开。鉴权成功后服务端回 `auth_ok`。
 >
 > **心跳与重连：** 服务端每 30s 发 `ping`，客户端回 `pong`；客户端断线后指数退避重连（1s→2s→4s…上限 30s），重连后重新 `auth` 并 `join_channel`。
 >
@@ -204,24 +204,25 @@
 > **幂等与去重：** 客户端为 `send_message` 附带 `client_msg_id`（UUID）用于去重；服务端多实例经 Redis Pub/Sub 广播时，发送方实例本地已推送的连接跳过再投，避免同实例双投。
 
 ```json
-// 客户端 → 服务端
-{ "type": "auth", "token": "<JWT>" }
-{ "type": "join_channel", "channel_id": 123 }
-{ "type": "leave_channel", "channel_id": 123 }
-{ "type": "typing", "channel_id": 123, "is_typing": true }
-{ "type": "send_message", "channel_id": 123, "content": "...", "emotion": "tired", "client_msg_id": "uuid" }
+// 客户端 → 服务端（业务字段统一放在 data 内）
+{ "type": "auth", "data": { "token": "<JWT>" } }
+{ "type": "join_channel", "data": { "channel_id": 123 } }
+{ "type": "leave_channel", "data": { "channel_id": 123 } }
+{ "type": "typing", "data": { "channel_id": 123 } }
+{ "type": "send_message", "data": { "channel_id": 123, "content": "...", "emotion": "tired", "is_anonymous": false, "client_msg_id": "uuid" } }
 { "type": "pong" }
 
 // 服务端 → 客户端
 { "type": "ping" }
 { "type": "auth_ok", "data": { "user_id": 1 } }
-{ "type": "new_message", "data": { "id": 1, "user": "...", "content": "...", "emotion": "tired" } }
+{ "type": "new_message", "data": { "id": 1, "channel_id": 123, "content": "...", "emotion": "tired", "author": {...}, "client_msg_id": "uuid" } }
 { "type": "thread_reply", "data": { "parent_id": 1, "reply": {...} } }
-{ "type": "empathy", "data": { "message_id": 1, "from_user": "...", "count": 42 } }
-{ "type": "user_joined", "data": { "user": "...", "channel_id": 123 } }
+{ "type": "message_deleted", "data": { "message_id": 1 } }
+{ "type": "empathy", "data": { "message_id": 1, "empathy_count": 42 } }
+{ "type": "user_joined", "data": { "user_id": 1, "channel_id": 123 } }
 { "type": "emotion_update", "data": { "channel_id": 123, "board": {...} } }
 { "type": "notification", "data": { "type": "mention", "content": "..." } }
-{ "type": "error", "data": { "code": 4001, "message": "unauthorized" } }
+{ "type": "error", "data": { "message": "..." } }
 ```
 
 ---
@@ -485,8 +486,10 @@ CREATE INDEX idx_diary_comments_diary ON diary_comments(diary_id, created_at) WH
 ### 5.2 WebSocket 端点
 
 ```
-WS /ws?token=<JWT>
+WS /api/ws
 ```
+
+> 鉴权走首帧 `auth` 消息（见 3.4 节），不放 URL query。
 
 事件类型见上方 3.4 节。
 
