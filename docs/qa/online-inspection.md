@@ -9,23 +9,30 @@
 ## 当前加固清单（按优先级，滚动更新）
 
 ### 🔴 需要修复的 Bug
-- 暂无。核心链路（health / 认证鉴权 / 限流 / 分页边界 / 错误码语义 / 防枚举 / 上传鉴权）连续 3 轮探测均正确。
+- 暂无应用层 bug。但第 4 轮发生**线上宕机事故**（见下），根因为 OOM，属基础设施缺陷，加固项已升级。
 
 ### 🟠 需要加固
 
 | 优先级 | 项 | 现状 | 建议 |
 |--------|----|------|------|
+| **🔴P0** | **内存不足致 OOM 宕机** | 第4轮实测：内核 OOM 杀死 dockerd，6 容器全 Exited、服务中断 ≥13 分钟无人知 | ①compose 全服务加 `restart: always` / `unless-stopped` 确保 OOM 后自愈；②各容器设 `mem_limit`（尤其 Postgres/MinIO）；③加 swap；④清理服务器上无关容器（openclaw 等挤占内存）；⑤升级内存 |
 | **P1** | 无 HTTPS | 仅 HTTP，:443 不通，JWT/密码明文传输 | Let's Encrypt + nginx 443 + HSTS |
-| **P1** | 磁盘 74%(28G/40G) + Docker 日志无轮转 | 稳定未增长；主体为数据卷（Docker JSON 日志仅 208K，已排除） | 配 Docker 日志 `max-size`/`max-file` + Postgres 定时 pg_dump 备份清理 |
-| **P2** | 无监控告警 | 磁盘/内存/错误率/daemon 健康无告警，靠人工发现 | 接 Prometheus + 告警 |
-| **P2** | 无结构化日志 + request_id | 仅 `log.Printf` 文本，线上排障困难 | 引入 slog JSON + X-Request-ID 中间件 |
-| **P2** | CI 未接部署门禁 | 部署仍手动 rsync+rebuild（踩过 rsync -az 漏传、nginx bind-mount 需 force-recreate） | CI 接 PR 门禁 + 部署脚本固定 `rsync -avc` |
-| **P3** | 内存 1.8G 偏小 | 当前用 ~800M 有余量，无冗余 | 确认 swap；关注数据增长后余量 |
-| **⚠️ 跟踪** | Docker daemon / 磁盘 I/O 重操作不稳定 | 连续 2 轮：`docker system df` 返回 `docker.sock EOF`、`du -xh /` 全盘扫描超时；轻命令(`df`/`docker compose ps`/HTTP API)全部正常 | 查 `dmesg`/`journalctl` I/O error 或 OOM；`docker system prune` 清构建缓存；关注云盘限速/坏道 |
+| **P1** | 磁盘 74%(28G/40G) + Docker 日志无轮转 | 稳定未增长；主体为数据卷 | 配 Docker 日志 `max-size`/`max-file` + Postgres 定时备份清理 |
+| **P1** | 无监控告警 | OOM 宕机 13 分钟无告警，靠巡检偶然发现 | 接 Prometheus + 内存/存活/错误率告警（本次事故直接证明其必要性） |
+| **P2** | 无结构化日志 + request_id | 仅 `log.Printf` 文本，线上排障困难 | slog JSON + X-Request-ID 中间件 |
+| **P2** | CI 未接部署门禁 | 部署仍手动 rsync+rebuild | CI 接 PR 门禁 + 部署脚本固定 `rsync -avc` |
+| **⚠️ 跟踪** | 服务器混部无关容器 | 存在 `dk_openclaw-*`、`condescending_chaplygin` 等非本项目容器 | 评估迁出或限制其资源，避免挤占 Alike |
 
 ---
 
 ## 巡检历史
+
+### 第 4 轮（2026-07-10）🔴 线上宕机事故
+- ❌ **首次探测全部 000（连接被拒）——服务中断**。诊断：主机 ping/SSH 通、负载正常，但 :80 无监听、`docker compose ps` 空。
+- 根因：`docker ps -a` 显示 6 容器 **13 分钟前同时 Exited(0)**；`dmesg` 确认 **内核 OOM 杀死 dockerd**（`Out of memory: Killed process dockerd`）。内存打满 → OOM 杀 dockerd → daemon 重启后容器未自动拉起（compose 未配 restart 策略）。
+- 加剧因素：服务器混部了 `dk_openclaw-*`、`condescending_chaplygin` 等非本项目容器，挤占 1.8G 内存。
+- 处置：`docker compose up -d` 手动拉起，验证 health ok、接口 200、6 容器 healthy，服务恢复。
+- **教训**：前几轮标记的"内存偏小(P3)""docker daemon 不稳定(跟踪)"两隐患合流爆发 → 升级为 **P0**；无 restart 策略 + 无告警使 13 分钟宕机无人知。
 
 ### 第 3 轮（2026-07-10）
 - ✅ health `database/redis/minio` 全 ok；首页/频道/搜索 200；鉴权 401；限流 429 正常。
