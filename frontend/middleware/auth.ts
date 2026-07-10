@@ -6,7 +6,8 @@
  *
  * 规则：
  *   - 未登录访问受保护页 → 跳 /login（带 redirect 参数）
- *   - 已登录访问 /login  → 跳首页
+ *   - 已登录访问 /login 或 /register → 跳首页
+ *   - /login、/register 为公开认证页，未登录可直接访问
  *
  * 登录态在客户端由 stores/auth 的 init() 从 localStorage 恢复
  * （见 plugins/auth.client.ts）。SSR 阶段无 localStorage，
@@ -20,7 +21,8 @@ export default defineNuxtRouteMiddleware((to) => {
 
   const authed = store.isAuthenticated
 
-  if (to.path === '/login') {
+  // 公开认证页：未登录可访问；已登录则跳首页，避免重复登录/注册
+  if (to.path === '/login' || to.path === '/register') {
     if (authed) return navigateTo('/')
     return
   }
