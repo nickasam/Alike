@@ -67,6 +67,35 @@ func (r *Repository) IsMember(ctx context.Context, channelID, userID int64) (boo
 	return exists, err
 }
 
+// EnsureMember 幂等地将用户加入频道（若尚未加入），并维护 member_count。
+// 用于"发消息即自动入群"，消除前端异步加入与发送之间的竞态。
+// 频道不存在返回 ErrChannelNotFound。
+func (r *Repository) EnsureMember(ctx context.Context, channelID, userID int64) error {
+	var exists bool
+	if err := r.db.QueryRowContext(ctx,
+		`SELECT EXISTS(SELECT 1 FROM channels WHERE id = $1)`, channelID).Scan(&exists); err != nil {
+		return err
+	}
+	if !exists {
+		return ErrChannelNotFound
+	}
+	// ON CONFLICT DO NOTHING 保证幂等；仅真正新增时才 +1 member_count。
+	res, err := r.db.ExecContext(ctx,
+		`INSERT INTO channel_members (channel_id, user_id) VALUES ($1, $2)
+		 ON CONFLICT (channel_id, user_id) DO NOTHING`,
+		channelID, userID)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n > 0 {
+		if _, err := r.db.ExecContext(ctx,
+			`UPDATE channels SET member_count = member_count + 1 WHERE id = $1`, channelID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // ListByChannel 返回频道主消息列表（parent_id IS NULL），按 created_at DESC 游标分页。
 // before>0 时仅返回早于该消息的记录（用其 created_at + id 作游标，避免 OFFSET 深翻）。
 // viewerID 用于判定每条消息当前用户是否已共情（<=0 表示未登录，恒 false）。
