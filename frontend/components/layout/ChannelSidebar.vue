@@ -1,9 +1,11 @@
 <script setup lang="ts">
 /**
- * ChannelSidebar — 频道侧边栏（占位骨架）。
- * 按分类（行业/岗位/主题/自建）分组展示频道，底部创建频道入口。
- * 阶段三接入真实频道数据与搜索/折叠/未读逻辑。
+ * ChannelSidebar — 频道侧边栏。
+ * 按分类（行业/岗位/主题/自建）分组展示从后端拉取的真实频道，
+ * 保证侧边栏点击的 id 与后端频道一致（避免文字与实际频道对不上）。
  */
+import { useChannelStore, type Channel, type ChannelCategory } from '~/stores/channel'
+
 interface NavLink {
   to: string
   label: string
@@ -16,30 +18,38 @@ const nav: NavLink[] = [
   { to: '/ranking', label: '排行榜', icon: 'trophy' },
 ]
 
-// 占位频道数据（阶段三由 channel store 提供）
-const groups: { title: string; channels: { id: number; name: string }[] }[] = [
-  {
-    title: '行业',
-    channels: [
-      { id: 1, name: '互联网大厂' },
-      { id: 2, name: '制造业' },
-    ],
-  },
-  {
-    title: '岗位',
-    channels: [
-      { id: 3, name: '程序员' },
-      { id: 4, name: '设计师' },
-    ],
-  },
-  {
-    title: '主题',
-    channels: [
-      { id: 5, name: '摸鱼交流' },
-      { id: 6, name: '离职天堂' },
-    ],
-  },
+const api = useApi()
+const channelStore = useChannelStore()
+
+// 分类展示顺序与标题。
+const categoryOrder: { key: ChannelCategory; title: string }[] = [
+  { key: 'industry', title: '行业' },
+  { key: 'job', title: '岗位' },
+  { key: 'topic', title: '主题' },
+  { key: 'custom', title: '自建' },
 ]
+
+const groups = computed(() =>
+  categoryOrder
+    .map(({ key, title }) => ({ title, channels: channelStore.byCategory(key) }))
+    .filter((g) => g.channels.length > 0),
+)
+
+/** 频道名可能已含 # 前缀，去掉后模板统一处理。 */
+function displayName(name: string): string {
+  return name.replace(/^#/, '')
+}
+
+onMounted(async () => {
+  // 已有数据则复用，避免重复拉取。
+  if (channelStore.channels.length > 0) return
+  try {
+    const res = await api.get<{ list: Channel[] }>('/channels?page=1&page_size=50')
+    channelStore.setChannels(res?.list ?? [])
+  } catch {
+    // 拉取失败时侧边栏仅显示主导航
+  }
+})
 </script>
 
 <template>
@@ -75,7 +85,7 @@ const groups: { title: string; channels: { id: number; name: string }[] }[] = [
         active-class="bg-surface-hover text-text"
       >
         <AppIcon name="hash" :size="16" />
-        <span class="truncate text-base">{{ ch.name }}</span>
+        <span class="truncate text-base">{{ displayName(ch.name) }}</span>
       </NuxtLink>
     </div>
 
