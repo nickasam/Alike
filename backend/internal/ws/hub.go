@@ -13,6 +13,8 @@ import (
 type MsgService interface {
 	// IsMember 报告用户是否为频道成员。
 	IsMember(ctx context.Context, channelID, userID int64) (bool, error)
+	// EnsureMember 幂等地将用户加入频道（发消息/订阅即自动入群，消除加入竞态）。
+	EnsureMember(ctx context.Context, channelID, userID int64) error
 	// CreateMessage 落库一条主消息，返回可序列化的消息对象（已脱敏）。
 	// clientMsgID 为发送者客户端幂等标识，回显于广播供发送端去重（可为空）。
 	CreateMessage(ctx context.Context, channelID, userID int64, content, emotion string, anonymous bool, clientMsgID string) (any, error)
@@ -235,13 +237,9 @@ func (h *Hub) onJoin(c *Client, env Envelope) {
 		return
 	}
 	if h.svc != nil {
-		ok, err := h.svc.IsMember(context.Background(), d.ChannelID, c.userID)
-		if err != nil {
+		// 订阅频道即自动入群（幂等），消除前端异步加入与订阅/发送之间的竞态。
+		if err := h.svc.EnsureMember(context.Background(), d.ChannelID, c.userID); err != nil {
 			c.sendEvent(errorEvent("加入频道失败"))
-			return
-		}
-		if !ok {
-			c.sendEvent(errorEvent("请先加入该频道"))
 			return
 		}
 	}
@@ -290,6 +288,15 @@ func (h *Hub) onSendMessage(c *Client, env Envelope) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+	// 发消息即自动入群（幂等），消除前端异步加入与发送之间的竞态。
+	if err := h.svc.EnsureMember(ctx, d.ChannelID, c.userID); err != nil {
+		c.sendEvent(errorEvent("发送失败：" + err.Error()))
+		return
+	}
+	// 确保本连接已订阅该频道，否则收不到自己消息的广播回显。
+	if !c.isSubscribed(d.ChannelID) {
+		h.joinChannel(c, d.ChannelID)
+	}
 	payload, err := h.svc.CreateMessage(ctx, d.ChannelID, c.userID, d.Content, d.Emotion, d.IsAnonymous, d.ClientMsgID)
 	if err != nil {
 		c.sendEvent(errorEvent("发送失败：" + err.Error()))

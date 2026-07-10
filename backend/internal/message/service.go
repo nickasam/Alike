@@ -18,6 +18,11 @@ func (s *Service) IsMember(ctx context.Context, channelID, userID int64) (bool, 
 	return s.repo.IsMember(ctx, channelID, userID)
 }
 
+// EnsureMember 幂等地将用户加入频道（发消息/订阅即自动入群）。
+func (s *Service) EnsureMember(ctx context.Context, channelID, userID int64) error {
+	return s.repo.EnsureMember(ctx, channelID, userID)
+}
+
 // CreateMessage 落库一条主消息并返回脱敏后的消息对象（供 WebSocket 广播）。
 // clientMsgID 回显于返回对象，供发送端将回环消息与本地乐观条目合并去重。
 func (s *Service) CreateMessage(ctx context.Context, channelID, userID int64, content, emotion string, anonymous bool, clientMsgID string) (any, error) {
