@@ -281,7 +281,10 @@ func (r *Repository) SoftDelete(ctx context.Context, messageID, userID int64) (i
 		return channelID, tx.Commit()
 	}
 
-	// 统计该消息收到的共情数，回收作者 empathy_received（不降到 0 以下）。
+	// 回收该消息的共情计数，保持聚合与 empathies 行一致：
+	//   1) 作者 empathy_received 扣减该消息收到的共情数；
+	//   2) 每个共情者 empathy_given 各扣 1（否则暖榜 empathy_given DESC 永久虚高）；
+	//   3) 删除该消息的 empathies 行，避免残留悬挂数据。
 	var empCount int64
 	if err := tx.QueryRowContext(ctx,
 		`SELECT COUNT(*) FROM empathies WHERE message_id = $1`, messageID).Scan(&empCount); err != nil {
@@ -291,6 +294,16 @@ func (r *Repository) SoftDelete(ctx context.Context, messageID, userID int64) (i
 		if _, err := tx.ExecContext(ctx,
 			`UPDATE users SET empathy_received = GREATEST(empathy_received - $1, 0) WHERE id = $2`,
 			empCount, authorID); err != nil {
+			return 0, err
+		}
+		if _, err := tx.ExecContext(ctx,
+			`UPDATE users SET empathy_given = GREATEST(empathy_given - 1, 0)
+			 WHERE id IN (SELECT user_id FROM empathies WHERE message_id = $1)`,
+			messageID); err != nil {
+			return 0, err
+		}
+		if _, err := tx.ExecContext(ctx,
+			`DELETE FROM empathies WHERE message_id = $1`, messageID); err != nil {
 			return 0, err
 		}
 	}
