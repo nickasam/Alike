@@ -11,6 +11,7 @@
  */
 import type { Message } from '~/stores/message'
 import { useEmotions } from '~/composables/useEmotions'
+import { useAuthStore } from '~/stores/auth'
 
 const props = withDefaults(
   defineProps<{
@@ -28,6 +29,7 @@ const emit = defineEmits<{
 }>()
 
 const { find: findEmotion } = useEmotions()
+const auth = useAuthStore()
 
 const draft = ref('')
 const canSend = computed(() => draft.value.trim().length > 0 && !props.sending)
@@ -40,6 +42,11 @@ function avatarChar(m: Message): string {
 function displayName(m: Message): string {
   if (m.is_anonymous) return '匿名牛马'
   return m.author?.nickname ?? '牛马'
+}
+
+/** 是否本人（非匿名 + 作者为当前用户）发送，用于右侧对齐。匿名不判为本人。 */
+function isOwn(m: Message): boolean {
+  return !m.is_anonymous && !!auth.user && m.author?.id === auth.user.id
 }
 
 function formatTime(iso: string): string {
@@ -139,10 +146,12 @@ function submit() {
           还没有人回复，来说点什么陪陪 TA 吧。
         </p>
 
+        <!-- 回复项：本人回复头像置右、气泡右对齐 -->
         <article
           v-for="r in replies"
           :key="r.id"
           class="flex gap-3"
+          :class="isOwn(r) ? 'flex-row-reverse' : ''"
         >
           <div
             class="grid h-8 w-8 shrink-0 place-items-center rounded-md text-xs font-semibold text-white"
@@ -151,7 +160,7 @@ function submit() {
           >
             <template v-if="!r.is_deleted">{{ avatarChar(r) }}</template>
           </div>
-          <div class="min-w-0 flex-1">
+          <div class="min-w-0 flex-1" :class="isOwn(r) ? 'flex flex-col items-end' : ''">
             <p
               v-if="r.is_deleted"
               class="rounded-md border border-dashed border-border px-3 py-1.5 text-sm italic text-mute"
@@ -159,7 +168,10 @@ function submit() {
               该回复已被删除
             </p>
             <template v-else>
-              <div class="flex flex-wrap items-center gap-2">
+              <div
+                class="flex flex-wrap items-center gap-2"
+                :class="isOwn(r) ? 'flex-row-reverse' : ''"
+              >
                 <span class="text-sm font-semibold text-text">{{ displayName(r) }}</span>
                 <span
                   v-if="findEmotion(r.emotion)"
@@ -170,7 +182,10 @@ function submit() {
                 </span>
                 <span class="text-xs text-mute">{{ formatTime(r.created_at) }}</span>
               </div>
-              <p class="mt-0.5 whitespace-pre-wrap break-words text-sm leading-relaxed text-dim">
+              <p
+                class="mt-0.5 inline-block max-w-full whitespace-pre-wrap break-words rounded-lg px-3 py-1.5 text-sm leading-relaxed"
+                :class="isOwn(r) ? 'bg-grad-ai text-white' : 'bg-surface-hover text-dim'"
+              >
                 {{ r.content }}
               </p>
             </template>
