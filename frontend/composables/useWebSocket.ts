@@ -65,6 +65,9 @@ const joinedChannels = new Set<number>()
 const outboundQueue: string[] = []
 let reconnectAttempts = 0
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+// 等待 token 恢复的重试（auth 插件异步 init 时，connect 可能早于 token 就绪）。
+let tokenRetryAttempts = 0
+let tokenRetryTimer: ReturnType<typeof setTimeout> | null = null
 // 主动断开标记：为 true 时 onclose 不触发重连。
 let manualClose = false
 
@@ -125,11 +128,27 @@ function scheduleReconnect() {
   }, delay)
 }
 
+/** token 尚未就绪时的重试：每 300ms 一次，最多 ~20 次(6s)。
+ *  覆盖 auth 插件异步恢复登录态的窗口；超时仍无 token 视为未登录，停止。 */
+function scheduleTokenRetry() {
+  if (tokenRetryTimer || tokenRetryAttempts >= 20) return
+  tokenRetryAttempts += 1
+  tokenRetryTimer = setTimeout(() => {
+    tokenRetryTimer = null
+    open()
+  }, 300)
+}
+
 function open() {
   if (import.meta.server) return
   if (socket && socket.readyState !== WebSocket.CLOSED) return
   const token = currentToken()
-  if (!token) return // 未登录不建连
+  if (!token) {
+    // token 可能尚未从 localStorage 恢复（auth 插件异步 init）。
+    // 不要静默放弃——短延迟后重试，否则 WS 永不连接、收不到任何实时消息。
+    if (!manualClose) scheduleTokenRetry()
+    return
+  }
 
   manualClose = false
   const ws = new WebSocket(resolveUrl())
@@ -137,6 +156,7 @@ function open() {
 
   ws.onopen = () => {
     connected.value = true
+    tokenRetryAttempts = 0
     // 首帧鉴权：JWT 走消息体，不放 URL。
     sendRaw('auth', { token: currentToken() })
   }
@@ -182,6 +202,11 @@ function close() {
     clearTimeout(reconnectTimer)
     reconnectTimer = null
   }
+  if (tokenRetryTimer) {
+    clearTimeout(tokenRetryTimer)
+    tokenRetryTimer = null
+  }
+  tokenRetryAttempts = 0
   reconnectAttempts = 0
   joinedChannels.clear()
   outboundQueue.length = 0
@@ -194,6 +219,8 @@ function close() {
 export function useWebSocket() {
   /** 建立连接（幂等）。需在登录且 token 就绪后调用。 */
   function connect() {
+    manualClose = false
+    tokenRetryAttempts = 0
     open()
   }
 
