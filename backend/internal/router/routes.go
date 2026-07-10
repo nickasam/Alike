@@ -57,13 +57,16 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	channels := api.Group("/channels")
 
 	// 情绪看板 + 共情：注入 DB 依赖。
-	emotionHandler := emotion.NewHandler(emotion.NewRepository(deps.DB))
+	emotionRepo := emotion.NewRepository(deps.DB)
+	emotionHandler := emotion.NewHandler(emotionRepo)
 	empathyHandler := empathy.NewHandler(empathy.NewRepository(deps.DB))
 
 	// 消息 + WebSocket：Hub 依赖 message 服务，message handler 反向依赖 Hub 广播。
 	msgRepo := message.NewRepository(deps.DB)
 	pubsub := ws.NewPubSub(deps.Redis)
 	hub := ws.NewHub(message.NewService(msgRepo), pubsub)
+	// 注入情绪看板提供者，启用 emotion_update 实时推送。
+	hub.SetEmotionProvider(emotion.NewService(emotionRepo))
 	messageHandler := message.NewHandler(msgRepo, hub)
 	wsHandler := ws.NewHandler(hub, deps.JWT)
 

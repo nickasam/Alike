@@ -19,14 +19,16 @@ func NewHandler(repo *Repository) *Handler {
 	return &Handler{repo: repo}
 }
 
-// Board 处理 GET /api/channels/:id/emotion-board，返回频道实时情绪看板。
+// Board 处理 GET /api/channels/:id/emotion-board，返回频道情绪看板。
+// query scope=today|all，默认 today（"今日情绪看板"）。
 func (h *Handler) Board(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {
 		return
 	}
+	todayOnly := c.Query("scope") != "all" // 默认今日
 
-	board, err := h.repo.BoardByChannel(c.Request.Context(), id)
+	board, err := h.repo.BoardByChannel(c.Request.Context(), id, todayOnly)
 	if errors.Is(err, ErrChannelNotFound) {
 		response.Error(c, response.CodeNotFound, "频道不存在")
 		return

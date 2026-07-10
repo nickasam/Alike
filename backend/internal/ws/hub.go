@@ -17,14 +17,22 @@ type MsgService interface {
 	CreateMessage(ctx context.Context, channelID, userID int64, content, emotion string, anonymous bool) (any, error)
 }
 
+// EmotionProvider 抽象获取频道情绪看板的能力，用于实时 emotion_update 推送。
+// 由 emotion.Service 实现，接口解耦避免 ws 依赖 emotion 业务包。
+type EmotionProvider interface {
+	// EmotionBoard 返回频道当前（今日）情绪看板聚合。
+	EmotionBoard(ctx context.Context, channelID int64) (any, error)
+}
+
 // Hub 管理所有 WebSocket 连接，负责本地广播与 Redis Pub/Sub 跨实例广播。
 type Hub struct {
 	mu       sync.RWMutex
 	clients  map[*Client]struct{}
 	channels map[int64]map[*Client]struct{} // channelID -> 订阅该频道的客户端集合
 
-	svc    MsgService
-	pubsub *PubSub
+	svc     MsgService
+	emotion EmotionProvider
+	pubsub  *PubSub
 }
 
 // NewHub 创建 Hub。svc / pubsub 均可为 nil（对应能力降级）。
@@ -40,6 +48,12 @@ func NewHub(svc MsgService, pubsub *PubSub) *Hub {
 		pubsub.Start()
 	}
 	return h
+}
+
+// SetEmotionProvider 注入情绪看板提供者，启用 emotion_update 实时推送。
+// 为 nil 时静默跳过情绪推送（能力降级）。
+func (h *Hub) SetEmotionProvider(p EmotionProvider) {
+	h.emotion = p
 }
 
 // register 登记一个新客户端。
@@ -157,6 +171,20 @@ func (h *Hub) BroadcastThreadReply(channelID, parentID int64, payload any) {
 	h.publish(outbound(EventThreadReply, channelID, map[string]any{"parent_id": parentID, "reply": payload}))
 }
 
+// BroadcastEmotionUpdate 实现 message.Broadcaster：重新聚合频道情绪看板并广播。
+// 未注入 EmotionProvider 时静默跳过。聚合失败仅记日志，不影响主消息广播。
+func (h *Hub) BroadcastEmotionUpdate(channelID int64) {
+	if h.emotion == nil {
+		return
+	}
+	board, err := h.emotion.EmotionBoard(context.Background(), channelID)
+	if err != nil {
+		log.Printf("[WARN] ws: emotion board aggregate failed (channel=%d): %v", channelID, err)
+		return
+	}
+	h.publish(outbound(EventEmotionUpdate, channelID, board))
+}
+
 // handleClientEvent 解析并处理一条客户端入站帧。
 func (h *Hub) handleClientEvent(c *Client, raw []byte) {
 	var env Envelope
@@ -250,6 +278,10 @@ func (h *Hub) onSendMessage(c *Client, env Envelope) {
 	}
 	// 落库成功后广播（含回显给发送者）。
 	h.BroadcastNewMessage(d.ChannelID, payload)
+	// 带情绪的消息触发情绪看板实时更新。
+	if d.Emotion != "" {
+		h.BroadcastEmotionUpdate(d.ChannelID)
+	}
 }
 
 // decodeData 解析信封的 Data 到目标结构，空 Data 视为成功（保留零值）。

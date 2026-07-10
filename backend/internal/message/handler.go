@@ -21,6 +21,8 @@ const (
 type Broadcaster interface {
 	BroadcastNewMessage(channelID int64, payload any)
 	BroadcastThreadReply(channelID, parentID int64, payload any)
+	// BroadcastEmotionUpdate 触发频道情绪看板重聚合并广播（消息带情绪时调用）。
+	BroadcastEmotionUpdate(channelID int64)
 }
 
 // Handler 承载 message 模块的依赖。
@@ -80,6 +82,10 @@ func (h *Handler) Create(c *gin.Context) {
 	msg.mask()
 	if h.bc != nil {
 		h.bc.BroadcastNewMessage(channelID, msg)
+		// 带情绪的消息触发情绪看板重聚合与推送。
+		if req.Emotion != "" {
+			h.bc.BroadcastEmotionUpdate(channelID)
+		}
 	}
 	response.Success(c, msg)
 }
