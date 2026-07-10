@@ -74,6 +74,40 @@ func (h *Handler) Update(c *gin.Context) {
 	response.Success(c, u)
 }
 
+// Diaries 处理 GET /api/users/:id/diaries，返回该用户的公开日记（分页）。
+func (h *Handler) Diaries(c *gin.Context) {
+	id, ok := parseID(c)
+	if !ok {
+		return
+	}
+	page, pageSize := paginate(c)
+
+	list, total, err := h.repo.ListPublicDiaries(c.Request.Context(), id, page, pageSize)
+	if err != nil {
+		response.Fail(c, response.CodeInternalError)
+		return
+	}
+	response.Page(c, nonNilDiaries(list), total, page, pageSize)
+}
+
+// Stats 处理 GET /api/users/:id/stats，返回该用户的公开统计聚合。
+func (h *Handler) Stats(c *gin.Context) {
+	id, ok := parseID(c)
+	if !ok {
+		return
+	}
+	stats, err := h.repo.Stats(c.Request.Context(), id)
+	if errors.Is(err, ErrUserNotFound) {
+		response.Error(c, response.CodeNotFound, "用户不存在")
+		return
+	}
+	if err != nil {
+		response.Fail(c, response.CodeInternalError)
+		return
+	}
+	response.Success(c, stats)
+}
+
 // parseID 解析路径参数 :id，非法时写入 404 响应并返回 false。
 func parseID(c *gin.Context) (int64, bool) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -84,12 +118,32 @@ func parseID(c *gin.Context) (int64, bool) {
 	return id, true
 }
 
-func todo(c *gin.Context, name string) {
-	response.Success(c, gin.H{"todo": name})
+const (
+	defaultPage     = 1
+	defaultPageSize = 20
+	maxPageSize     = 50
+)
+
+// paginate 从 query 解析分页参数，应用默认值与上限。
+func paginate(c *gin.Context) (page, pageSize int) {
+	page, _ = strconv.Atoi(c.Query("page"))
+	if page < 1 {
+		page = defaultPage
+	}
+	pageSize, _ = strconv.Atoi(c.Query("page_size"))
+	if pageSize < 1 {
+		pageSize = defaultPageSize
+	}
+	if pageSize > maxPageSize {
+		pageSize = maxPageSize
+	}
+	return page, pageSize
 }
 
-// DiariesHandler 用户日记列表。TODO（后续阶段实现）。
-func DiariesHandler(c *gin.Context) { todo(c, "user.diaries") }
-
-// StatsHandler 用户统计。TODO（后续阶段实现）。
-func StatsHandler(c *gin.Context) { todo(c, "user.stats") }
+// nonNilDiaries 保证空列表序列化为 [] 而非 null。
+func nonNilDiaries(list []*PublicDiary) []*PublicDiary {
+	if list == nil {
+		return []*PublicDiary{}
+	}
+	return list
+}

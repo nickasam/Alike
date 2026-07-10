@@ -42,8 +42,8 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 	{
 		users.GET("/:id", userHandler.Get)
 		users.PUT("/:id", authMW, userHandler.Update)
-		users.GET("/:id/diaries", user.DiariesHandler)
-		users.GET("/:id/stats", user.StatsHandler)
+		users.GET("/:id/diaries", userHandler.Diaries)
+		users.GET("/:id/stats", userHandler.Stats)
 	}
 
 	// 频道：注入 DB 依赖。

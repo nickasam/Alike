@@ -104,3 +104,42 @@ func TestPublicOmitsEmail(t *testing.T) {
 		t.Errorf("public JSON leaked email: %s", raw)
 	}
 }
+
+// TestDiariesInvalidID 校验用户日记接口对非法 ID 返回 404。
+func TestDiariesInvalidID(t *testing.T) {
+	h := NewHandler(nil)
+	_, body := doReq(h.Diaries, http.MethodGet, "", nil, "abc")
+	if body.Code != response.CodeNotFound {
+		t.Fatalf("code=%d, want %d", body.Code, response.CodeNotFound)
+	}
+}
+
+// TestStatsInvalidID 校验用户统计接口对非法 ID 返回 404。
+func TestStatsInvalidID(t *testing.T) {
+	h := NewHandler(nil)
+	_, body := doReq(h.Stats, http.MethodGet, "", nil, "0")
+	if body.Code != response.CodeNotFound {
+		t.Fatalf("code=%d, want %d", body.Code, response.CodeNotFound)
+	}
+}
+
+// TestPaginateDefaultsAndClamps 校验分页参数归一化。
+func TestPaginateDefaultsAndClamps(t *testing.T) {
+	cases := []struct {
+		query            string
+		wantPage, wantPS int
+	}{
+		{"/u?", defaultPage, defaultPageSize},
+		{"/u?page=0&page_size=0", defaultPage, defaultPageSize},
+		{"/u?page=3&page_size=10", 3, 10},
+		{"/u?page_size=999", defaultPage, maxPageSize},
+	}
+	for _, tc := range cases {
+		c, _ := gin.CreateTestContext(httptest.NewRecorder())
+		c.Request = httptest.NewRequest(http.MethodGet, tc.query, nil)
+		page, ps := paginate(c)
+		if page != tc.wantPage || ps != tc.wantPS {
+			t.Errorf("paginate(%q)=(%d,%d), want (%d,%d)", tc.query, page, ps, tc.wantPage, tc.wantPS)
+		}
+	}
+}

@@ -112,3 +112,64 @@ func scanUser(s rowScanner) (*User, error) {
 	u.UpdatedAt = updated
 	return &u, nil
 }
+
+// ListPublicDiaries 返回某用户的公开日记（按 created_at DESC 分页）。
+// 用户不存在或无公开日记时返回空列表（total=0）。
+func (r *Repository) ListPublicDiaries(ctx context.Context, userID int64, page, pageSize int) ([]*PublicDiary, int64, error) {
+	var total int64
+	if err := r.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM diaries WHERE user_id = $1 AND is_public = TRUE`,
+		userID).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+	if total == 0 {
+		return nil, 0, nil
+	}
+
+	const q = `SELECT id, COALESCE(title, ''), content, COALESCE(mood, ''), created_at
+		FROM diaries
+		WHERE user_id = $1 AND is_public = TRUE
+		ORDER BY created_at DESC, id DESC
+		LIMIT $2 OFFSET $3`
+	rows, err := r.db.QueryContext(ctx, q, userID, pageSize, (page-1)*pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var list []*PublicDiary
+	for rows.Next() {
+		var d PublicDiary
+		if err := rows.Scan(&d.ID, &d.Title, &d.Content, &d.Mood, &d.CreatedAt); err != nil {
+			return nil, 0, err
+		}
+		list = append(list, &d)
+	}
+	return list, total, rows.Err()
+}
+
+// Stats 返回某用户的公开统计聚合。用户不存在返回 ErrUserNotFound。
+func (r *Repository) Stats(ctx context.Context, userID int64) (*UserStats, error) {
+	s := &UserStats{UserID: userID}
+	err := r.db.QueryRowContext(ctx,
+		`SELECT empathy_received, empathy_given, total_check_in_days FROM users WHERE id = $1`,
+		userID).Scan(&s.EmpathyReceived, &s.EmpathyGiven, &s.TotalCheckInDays)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrUserNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if err := r.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM messages WHERE user_id = $1 AND deleted_at IS NULL`,
+		userID).Scan(&s.MessageCount); err != nil {
+		return nil, err
+	}
+	if err := r.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM diaries WHERE user_id = $1 AND is_public = TRUE`,
+		userID).Scan(&s.PublicDiaryCount); err != nil {
+		return nil, err
+	}
+	return s, nil
+}
