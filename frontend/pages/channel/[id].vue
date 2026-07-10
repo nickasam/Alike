@@ -51,6 +51,17 @@ async function loadChannel() {
 let offMessage: (() => void) | null = null
 let offThreadReply: (() => void) | null = null
 let offEmpathy: (() => void) | null = null
+let offDeleted: (() => void) | null = null
+let offError: (() => void) | null = null
+
+/** 服务端 error 帧的短暂提示。 */
+const wsError = ref('')
+let wsErrorTimer: ReturnType<typeof setTimeout> | null = null
+function showWsError(msg: string) {
+  wsError.value = msg
+  if (wsErrorTimer) clearTimeout(wsErrorTimer)
+  wsErrorTimer = setTimeout(() => (wsError.value = ''), 4000)
+}
 
 function subscribeWs() {
   offMessage = ws.on<Message>('new_message', (msg) => messageStore.receiveMessage(msg))
@@ -58,13 +69,21 @@ function subscribeWs() {
     messageStore.receiveThreadReply(payload as any),
   )
   offEmpathy = ws.on('empathy', (payload) => messageStore.applyEmpathy(payload as any))
+  offDeleted = ws.on('message_deleted', (payload) =>
+    messageStore.markDeleted(payload as any),
+  )
+  offError = ws.on<{ message?: string }>('error', (payload) =>
+    showWsError(payload?.message || '操作失败，请重试'),
+  )
 }
 
 function unsubscribeWs() {
   offMessage?.()
   offThreadReply?.()
   offEmpathy?.()
-  offMessage = offThreadReply = offEmpathy = null
+  offDeleted?.()
+  offError?.()
+  offMessage = offThreadReply = offEmpathy = offDeleted = offError = null
 }
 
 /** 发送消息（经 WebSocket，new_message 回显入列）。 */
@@ -95,27 +114,50 @@ async function onReply(content: string) {
   }
 }
 
-/** 共情（REST 增删，empathy 广播更新计数）。 */
+/** 共情（REST 增删，立即用响应做乐观更新；empathy 广播负责跨端同步）。 */
 async function onEmpathy({ message, action }: { message: Message; action: 'add' | 'remove' }) {
   try {
-    if (action === 'add') {
-      await api.post(`/messages/${message.id}/empathy`)
-    } else {
-      await api.del(`/messages/${message.id}/empathy`)
-    }
+    const res =
+      action === 'add'
+        ? await api.post<{ empathy_count: number; empathized: boolean }>(
+            `/messages/${message.id}/empathy`,
+          )
+        : await api.del<{ empathy_count: number; empathized: boolean }>(
+            `/messages/${message.id}/empathy`,
+          )
+    messageStore.applyEmpathy({
+      message_id: message.id,
+      empathy_count: res.empathy_count,
+      empathized: res.empathized,
+    })
   } catch {
-    // 失败静默，计数以 WS empathy 广播为准
+    // 失败静默：计数保持不变，用户可重试
   }
 }
 
-onMounted(async () => {
+/** 进入/切换频道：加载频道信息与首屏消息，订阅并 join。 */
+async function enterChannel(id: number) {
+  await loadChannel()
+  if (!messageStore.channelState(id).initialized) {
+    await messageStore.loadInitial(id)
+  }
+  ws.joinChannel(id)
+}
+
+onMounted(() => {
   ws.connect()
   subscribeWs()
-  await loadChannel()
-  if (!messageStore.channelState(channelId.value).initialized) {
-    await messageStore.loadInitial(channelId.value)
+  enterChannel(channelId.value)
+})
+
+// 站内 /channel/1 → /channel/2 仅参数变化时组件实例被复用，onMounted 不重跑，
+// 需显式监听 channelId：离开旧频道、关闭线程，再进入新频道。
+watch(channelId, (next, prev) => {
+  if (prev) {
+    ws.leaveChannel(prev)
+    messageStore.closeThread()
   }
-  ws.joinChannel(channelId.value)
+  enterChannel(next)
 })
 
 onBeforeUnmount(() => {
@@ -144,6 +186,15 @@ onBeforeUnmount(() => {
           {{ channel?.member_count ?? 0 }} 位牛马
         </span>
       </header>
+
+      <!-- WS 错误提示（非成员发言、内容超限等） -->
+      <p
+        v-if="wsError"
+        class="glass-card border border-danger/40 bg-danger/10 px-4 py-2 text-sm text-danger"
+        role="alert"
+      >
+        {{ wsError }}
+      </p>
 
       <!-- 消息流 -->
       <div class="glass-card flex min-h-0 flex-1 flex-col p-3">

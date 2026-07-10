@@ -17,6 +17,7 @@ const (
 	EventAuthOK       = "auth_ok"       // 鉴权成功
 	EventNewMessage   = "new_message"   // 频道新消息
 	EventThreadReply  = "thread_reply"  // 线程新回复
+	EventMessageDeleted = "message_deleted" // 消息被软删除
 	EventEmpathy      = "empathy"       // 共情变更
 	EventUserJoined   = "user_joined"   // 有用户加入频道
 	EventEmotionUpdate = "emotion_update" // 情绪看板更新

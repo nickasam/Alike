@@ -25,6 +25,7 @@ export type WsServerEvent =
   | 'auth_ok'
   | 'new_message'
   | 'thread_reply'
+  | 'message_deleted'
   | 'empathy'
   | 'user_joined'
   | 'emotion_update'

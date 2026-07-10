@@ -203,3 +203,58 @@ func TestHubShutdownClosesClients(t *testing.T) {
 	// 再次 Shutdown 应幂等，不 panic。
 	h.Shutdown()
 }
+
+// TestBroadcastEmpathyDeliversToChannel 验证共情广播投递给订阅频道的客户端，
+// 且 payload 含 message_id 与 empathy_count（与前端 applyEmpathy 对齐）。
+func TestBroadcastEmpathyDeliversToChannel(t *testing.T) {
+	h := NewHub(nil, nil) // pubsub 为 nil → 走本地广播
+	c := newClient(h, nil, 1)
+	h.register(c)
+	h.joinChannel(c, 100)
+
+	h.BroadcastEmpathy(100, 7, 5)
+
+	select {
+	case raw := <-c.send:
+		var env Envelope
+		if err := json.Unmarshal(raw, &env); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
+		if env.Type != EventEmpathy || env.ChannelID != 100 {
+			t.Fatalf("type=%s channel=%d, want empathy/100", env.Type, env.ChannelID)
+		}
+		var d map[string]any
+		_ = json.Unmarshal(env.Data, &d)
+		if d["message_id"].(float64) != 7 || d["empathy_count"].(float64) != 5 {
+			t.Fatalf("payload=%v, want message_id=7 empathy_count=5", d)
+		}
+	default:
+		t.Fatal("订阅客户端未收到 empathy 广播")
+	}
+}
+
+// TestBroadcastMessageDeletedDelivers 验证删除广播投递且 payload 含 message_id。
+func TestBroadcastMessageDeletedDelivers(t *testing.T) {
+	h := NewHub(nil, nil)
+	c := newClient(h, nil, 1)
+	h.register(c)
+	h.joinChannel(c, 200)
+
+	h.BroadcastMessageDeleted(200, 42)
+
+	select {
+	case raw := <-c.send:
+		var env Envelope
+		_ = json.Unmarshal(raw, &env)
+		if env.Type != EventMessageDeleted {
+			t.Fatalf("type=%s, want message_deleted", env.Type)
+		}
+		var d map[string]any
+		_ = json.Unmarshal(env.Data, &d)
+		if d["message_id"].(float64) != 42 {
+			t.Fatalf("payload=%v, want message_id=42", d)
+		}
+	default:
+		t.Fatal("订阅客户端未收到 message_deleted 广播")
+	}
+}

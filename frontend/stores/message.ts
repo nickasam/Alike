@@ -190,6 +190,23 @@ export const useMessageStore = defineStore('message', {
       }
     },
 
+    /** WebSocket message_deleted：就地将消息置为已删除占位。 */
+    markDeleted(payload: { message_id: number; channel_id?: number }) {
+      if (!payload?.message_id) return
+      const apply = (m: Message) => {
+        m.is_deleted = true
+        m.content = '该消息已删除'
+        m.emotion = ''
+        m.author = null
+      }
+      for (const c of Object.values(this.byChannel)) {
+        const found = c.list.find((m) => m.id === payload.message_id)
+        if (found) apply(found)
+      }
+      const reply = this.threadReplies.find((m) => m.id === payload.message_id)
+      if (reply) apply(reply)
+    },
+
     /** 打开线程面板并加载回复。 */
     async openThread(parent: Message) {
       this.threadOpen = true

@@ -23,6 +23,8 @@ type Broadcaster interface {
 	BroadcastThreadReply(channelID, parentID int64, payload any)
 	// BroadcastEmotionUpdate 触发频道情绪看板重聚合并广播（消息带情绪时调用）。
 	BroadcastEmotionUpdate(channelID int64)
+	// BroadcastMessageDeleted 广播消息被软删除，供其他客户端就地置为已删除。
+	BroadcastMessageDeleted(channelID, messageID int64)
 }
 
 // Handler 承载 message 模块的依赖。
@@ -45,8 +47,9 @@ func (h *Handler) List(c *gin.Context) {
 	}
 	before := parseCursor(c, "before")
 	limit := parseLimit(c)
+	viewerID, _ := middleware.CurrentUserID(c) // 未登录为 0，empathized 恒 false
 
-	list, hasMore, err := h.repo.ListByChannel(c.Request.Context(), channelID, before, limit)
+	list, hasMore, err := h.repo.ListByChannel(c.Request.Context(), channelID, before, viewerID, limit)
 	if errors.Is(err, ErrChannelNotFound) {
 		response.Error(c, response.CodeNotFound, "频道不存在")
 		return
@@ -99,8 +102,9 @@ func (h *Handler) Threads(c *gin.Context) {
 	}
 	after := parseCursor(c, "after")
 	limit := parseLimit(c)
+	viewerID, _ := middleware.CurrentUserID(c)
 
-	list, hasMore, err := h.repo.ListThreads(c.Request.Context(), parentID, after, limit)
+	list, hasMore, err := h.repo.ListThreads(c.Request.Context(), parentID, after, viewerID, limit)
 	if errors.Is(err, ErrMessageNotFound) {
 		response.Error(c, response.CodeNotFound, "消息不存在")
 		return
@@ -152,7 +156,7 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 
-	err := h.repo.SoftDelete(c.Request.Context(), id, uid)
+	channelID, err := h.repo.SoftDelete(c.Request.Context(), id, uid)
 	switch {
 	case errors.Is(err, ErrMessageNotFound):
 		response.Error(c, response.CodeNotFound, "消息不存在")
@@ -163,6 +167,9 @@ func (h *Handler) Delete(c *gin.Context) {
 	case err != nil:
 		response.Fail(c, response.CodeInternalError)
 		return
+	}
+	if h.bc != nil {
+		h.bc.BroadcastMessageDeleted(channelID, id)
 	}
 	response.Success(c, gin.H{"message": "已删除"})
 }

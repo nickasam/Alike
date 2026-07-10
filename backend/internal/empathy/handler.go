@@ -19,14 +19,20 @@ const (
 	maxRankSize     = 100
 )
 
+// Broadcaster 抽象向频道广播共情变更的能力，由 ws.Hub 实现（依赖注入解耦）。
+type Broadcaster interface {
+	BroadcastEmpathy(channelID, messageID, count int64)
+}
+
 // Handler 承载 empathy 模块的依赖。
 type Handler struct {
 	repo *Repository
+	bc   Broadcaster
 }
 
-// NewHandler 创建 empathy handler。
-func NewHandler(repo *Repository) *Handler {
-	return &Handler{repo: repo}
+// NewHandler 创建 empathy handler。bc 可为 nil（WebSocket 不可用时仅走 HTTP 不广播）。
+func NewHandler(repo *Repository, bc Broadcaster) *Handler {
+	return &Handler{repo: repo, bc: bc}
 }
 
 // Create 处理 POST /api/messages/:id/empathy，抱团取暖（需登录）。
@@ -56,6 +62,7 @@ func (h *Handler) Create(c *gin.Context) {
 		response.Fail(c, response.CodeInternalError)
 		return
 	}
+	h.broadcast(c, id, count)
 	response.Success(c, gin.H{"empathy_count": count, "empathized": true})
 }
 
@@ -83,7 +90,20 @@ func (h *Handler) Delete(c *gin.Context) {
 		response.Fail(c, response.CodeInternalError)
 		return
 	}
+	h.broadcast(c, id, count)
 	response.Success(c, gin.H{"empathy_count": count, "empathized": false})
+}
+
+// broadcast 查出消息所属频道并广播 empathy 事件（bc 为 nil 或查询失败时静默跳过）。
+func (h *Handler) broadcast(c *gin.Context, messageID, count int64) {
+	if h.bc == nil {
+		return
+	}
+	channelID, err := h.repo.ChannelOf(c.Request.Context(), messageID)
+	if err != nil {
+		return
+	}
+	h.bc.BroadcastEmpathy(channelID, messageID, count)
 }
 
 // Users 处理 GET /api/messages/:id/empathy-users，返回共情用户列表（分页）。

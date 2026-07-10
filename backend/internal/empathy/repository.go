@@ -45,6 +45,19 @@ func authorOf(ctx context.Context, tx *sql.Tx, messageID int64) (int64, error) {
 	return authorID, err
 }
 
+// ChannelOf 返回消息所属频道 ID，供共情变更后向频道广播 empathy 事件。
+// 消息不存在（或已软删除）返回 ErrMessageNotFound。
+func (r *Repository) ChannelOf(ctx context.Context, messageID int64) (int64, error) {
+	var channelID int64
+	err := r.db.QueryRowContext(ctx,
+		`SELECT channel_id FROM messages WHERE id = $1 AND deleted_at IS NULL`,
+		messageID).Scan(&channelID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, ErrMessageNotFound
+	}
+	return channelID, err
+}
+
 // Create 事务化地为消息添加一次共情：
 // INSERT empathies + messages.empathy_count+1 + 作者 empathy_received+1 + 当前用户 empathy_given+1。
 // 消息不存在返回 ErrMessageNotFound；重复共情返回 ErrAlreadyEmpathized。

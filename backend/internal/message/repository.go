@@ -39,10 +39,13 @@ func NewRepository(db *sql.DB) *Repository {
 }
 
 // messageColumns 是查询消息时选取的列，顺序与 scanMessage 一致。
-// reply_count 通过子查询统计未删除的直接回复数量。
+// reply_count 通过子查询统计未删除的直接回复数量；
+// empathized 表示 $1（viewer）是否已对该消息共情（viewer<=0 时恒 false）。
+// 约定：使用 messageColumns 的查询必须以 $1 = viewerID 作为首个参数。
 const messageColumns = `m.id, m.channel_id, m.parent_id, m.content, COALESCE(m.emotion, ''),
 	m.is_anonymous, m.empathy_count,
 	(SELECT COUNT(*) FROM messages r WHERE r.parent_id = m.id AND r.deleted_at IS NULL) AS reply_count,
+	EXISTS(SELECT 1 FROM empathies e WHERE e.message_id = m.id AND e.user_id = $1) AS empathized,
 	m.user_id, u.nickname, COALESCE(u.avatar_url, ''), m.created_at, m.deleted_at`
 
 const messageFrom = ` FROM messages m JOIN users u ON u.id = m.user_id`
@@ -66,8 +69,9 @@ func (r *Repository) IsMember(ctx context.Context, channelID, userID int64) (boo
 
 // ListByChannel 返回频道主消息列表（parent_id IS NULL），按 created_at DESC 游标分页。
 // before>0 时仅返回早于该消息的记录（用其 created_at + id 作游标，避免 OFFSET 深翻）。
+// viewerID 用于判定每条消息当前用户是否已共情（<=0 表示未登录，恒 false）。
 // 返回列表与 hasMore 标记。
-func (r *Repository) ListByChannel(ctx context.Context, channelID, before int64, limit int) ([]*Message, bool, error) {
+func (r *Repository) ListByChannel(ctx context.Context, channelID, before, viewerID int64, limit int) ([]*Message, bool, error) {
 	exists, err := r.channelExists(ctx, channelID)
 	if err != nil {
 		return nil, false, err
@@ -76,11 +80,12 @@ func (r *Repository) ListByChannel(ctx context.Context, channelID, before int64,
 		return nil, false, ErrChannelNotFound
 	}
 
-	args := []any{channelID}
-	where := `WHERE m.channel_id = $1 AND m.parent_id IS NULL`
+	// $1 = viewerID（messageColumns 的 empathized 子查询依赖），$2 = channelID。
+	args := []any{viewerID, channelID}
+	where := `WHERE m.channel_id = $2 AND m.parent_id IS NULL`
 	if before > 0 {
 		// 游标：取 before 消息的 (created_at, id)，返回严格更早的记录。
-		where += ` AND (m.created_at, m.id) < (SELECT created_at, id FROM messages WHERE id = $2)`
+		where += ` AND (m.created_at, m.id) < (SELECT created_at, id FROM messages WHERE id = $3)`
 		args = append(args, before)
 	}
 	args = append(args, limit+1) // 多取 1 条判断是否还有更多
@@ -91,8 +96,8 @@ func (r *Repository) ListByChannel(ctx context.Context, channelID, before int64,
 }
 
 // ListThreads 返回某主消息下的线程回复列表（parent_id = 该消息），按 created_at ASC 游标分页。
-// after>0 时仅返回晚于该消息的记录。
-func (r *Repository) ListThreads(ctx context.Context, parentID, after int64, limit int) ([]*Message, bool, error) {
+// after>0 时仅返回晚于该消息的记录。viewerID 用于判定已共情态（<=0 恒 false）。
+func (r *Repository) ListThreads(ctx context.Context, parentID, after, viewerID int64, limit int) ([]*Message, bool, error) {
 	// 父消息必须存在且未删除。
 	var exists bool
 	if err := r.db.QueryRowContext(ctx,
@@ -104,10 +109,11 @@ func (r *Repository) ListThreads(ctx context.Context, parentID, after int64, lim
 		return nil, false, ErrMessageNotFound
 	}
 
-	args := []any{parentID}
-	where := `WHERE m.parent_id = $1`
+	// $1 = viewerID（empathized 子查询），$2 = parentID。
+	args := []any{viewerID, parentID}
+	where := `WHERE m.parent_id = $2`
 	if after > 0 {
-		where += ` AND (m.created_at, m.id) > (SELECT created_at, id FROM messages WHERE id = $2)`
+		where += ` AND (m.created_at, m.id) > (SELECT created_at, id FROM messages WHERE id = $3)`
 		args = append(args, after)
 	}
 	args = append(args, limit+1)
@@ -242,24 +248,25 @@ func (r *Repository) isChannelAdmin(ctx context.Context, channelID, userID int64
 // 消息不存在返回 ErrMessageNotFound；无权返回 ErrForbidden。
 // 事务内同时回收该消息的共情计数：按其 empathies 行数扣减作者的 empathy_received，
 // 否则被共情的消息删除后作者 empathy_received 会永久虚高、污染排行榜。
-func (r *Repository) SoftDelete(ctx context.Context, messageID, userID int64) error {
+// 成功返回该消息所属频道 ID，供上层广播 message_deleted 事件。
+func (r *Repository) SoftDelete(ctx context.Context, messageID, userID int64) (int64, error) {
 	authorID, channelID, err := r.AuthorAndChannel(ctx, messageID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if authorID != userID {
 		admin, err := r.isChannelAdmin(ctx, channelID, userID)
 		if err != nil {
-			return err
+			return 0, err
 		}
 		if !admin {
-			return ErrForbidden
+			return 0, ErrForbidden
 		}
 	}
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer tx.Rollback() //nolint:errcheck // 提交成功后回滚为 no-op
 
@@ -267,28 +274,31 @@ func (r *Repository) SoftDelete(ctx context.Context, messageID, userID int64) er
 		`UPDATE messages SET deleted_at = NOW(), updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL`,
 		messageID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	// 已被并发删除则无需重复回收计数。
 	if n, _ := res.RowsAffected(); n == 0 {
-		return tx.Commit()
+		return channelID, tx.Commit()
 	}
 
 	// 统计该消息收到的共情数，回收作者 empathy_received（不降到 0 以下）。
 	var empCount int64
 	if err := tx.QueryRowContext(ctx,
 		`SELECT COUNT(*) FROM empathies WHERE message_id = $1`, messageID).Scan(&empCount); err != nil {
-		return err
+		return 0, err
 	}
 	if empCount > 0 {
 		if _, err := tx.ExecContext(ctx,
 			`UPDATE users SET empathy_received = GREATEST(empathy_received - $1, 0) WHERE id = $2`,
 			empCount, authorID); err != nil {
-			return err
+			return 0, err
 		}
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return channelID, nil
 }
 
 // rowScanner 抽象 *sql.Row / *sql.Rows 的 Scan 能力。
@@ -306,7 +316,7 @@ func scanMessage(s rowScanner) (*Message, error) {
 	)
 	if err := s.Scan(
 		&m.ID, &m.ChannelID, &parentID, &m.Content, &m.Emotion,
-		&m.IsAnonymous, &m.EmpathyCount, &m.ReplyCount,
+		&m.IsAnonymous, &m.EmpathyCount, &m.ReplyCount, &m.Empathized,
 		&m.authorID, &nickname, &avatarURL, &m.CreatedAt, &deletedAt,
 	); err != nil {
 		return nil, err
