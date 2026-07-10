@@ -66,7 +66,7 @@ func (h *Hub) unregister(c *Client) {
 		}
 	}
 	h.mu.Unlock()
-	close(c.send)
+	c.closeSend()
 }
 
 // joinChannel 将客户端加入频道的本地订阅集合。

@@ -2,8 +2,44 @@ package ws
 
 import (
 	"encoding/json"
+	"sync"
 	"testing"
 )
+
+// TestClientEnqueueAfterCloseNoPanic 回归测试：unregister 关闭 send channel 后，
+// 并发的广播 enqueue 不得 panic（曾因 close 与 send 竞态导致 send on closed channel）。
+func TestClientEnqueueAfterCloseNoPanic(t *testing.T) {
+	c := newClient(nil, nil, 1)
+	c.closeSend()
+	if c.enqueue([]byte("x")) {
+		t.Fatal("enqueue after closeSend should return false, not send on closed channel")
+	}
+	// 二次关闭需幂等，不 panic。
+	c.closeSend()
+}
+
+// TestClientConcurrentEnqueueAndClose 在 -race 下验证并发 enqueue/closeSend 无数据竞争与 panic。
+func TestClientConcurrentEnqueueAndClose(t *testing.T) {
+	for i := 0; i < 50; i++ {
+		c := newClient(nil, nil, 1)
+		// 排空 send 的 goroutine，避免缓冲满掩盖竞态。
+		done := make(chan struct{})
+		go func() {
+			for range c.send {
+			}
+			close(done)
+		}()
+
+		var wg sync.WaitGroup
+		wg.Add(11)
+		for j := 0; j < 10; j++ {
+			go func() { defer wg.Done(); c.enqueue([]byte("frame")) }()
+		}
+		go func() { defer wg.Done(); c.closeSend() }()
+		wg.Wait()
+		<-done
+	}
+}
 
 func TestClientMarkSeenDedup(t *testing.T) {
 	c := newClient(nil, nil, 1)
