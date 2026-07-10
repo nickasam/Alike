@@ -73,9 +73,11 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	hub := ws.NewHub(message.NewService(msgRepo), pubsub)
 	// 注入情绪看板提供者，启用 emotion_update 实时推送。
 	hub.SetEmotionProvider(emotion.NewService(emotionRepo))
-	messageHandler := message.NewHandler(msgRepo, hub, notificationRepo)
+	// 通知服务：写库 + 经 Hub 向目标用户实时推送（NotifyUser）。
+	notifier := notification.NewService(notificationRepo, hub)
+	messageHandler := message.NewHandler(msgRepo, hub, notifier)
 	// 共情变更经 Hub 广播 empathy 事件，实现跨端实时同步。
-	empathyHandler := empathy.NewHandler(empathyRepo, hub, notificationRepo)
+	empathyHandler := empathy.NewHandler(empathyRepo, hub, notifier)
 	wsHandler := ws.NewHandler(hub, deps.JWT, corsOrigins(deps.Cfg)...)
 
 	{

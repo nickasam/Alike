@@ -32,6 +32,7 @@ type Hub struct {
 	mu       sync.RWMutex
 	clients  map[*Client]struct{}
 	channels map[int64]map[*Client]struct{} // channelID -> 订阅该频道的客户端集合
+	users    map[int64]map[*Client]struct{} // userID -> 该用户的连接集合（用于通知定向推送）
 
 	svc     MsgService
 	emotion EmotionProvider
@@ -43,6 +44,7 @@ func NewHub(svc MsgService, pubsub *PubSub) *Hub {
 	h := &Hub{
 		clients:  make(map[*Client]struct{}),
 		channels: make(map[int64]map[*Client]struct{}),
+		users:    make(map[int64]map[*Client]struct{}),
 		svc:      svc,
 		pubsub:   pubsub,
 	}
@@ -59,10 +61,18 @@ func (h *Hub) SetEmotionProvider(p EmotionProvider) {
 	h.emotion = p
 }
 
-// register 登记一个新客户端。
+// register 登记一个新客户端，并按 userID 建立索引供通知定向推送。
 func (h *Hub) register(c *Client) {
 	h.mu.Lock()
 	h.clients[c] = struct{}{}
+	if c.userID > 0 {
+		set := h.users[c.userID]
+		if set == nil {
+			set = make(map[*Client]struct{})
+			h.users[c.userID] = set
+		}
+		set[c] = struct{}{}
+	}
 	h.mu.Unlock()
 }
 
@@ -100,6 +110,14 @@ func (h *Hub) unregister(c *Client) {
 			}
 		}
 	}
+	if c.userID > 0 {
+		if set := h.users[c.userID]; set != nil {
+			delete(set, c)
+			if len(set) == 0 {
+				delete(h.users, c.userID)
+			}
+		}
+	}
 	h.mu.Unlock()
 	c.closeSend()
 }
@@ -130,14 +148,20 @@ func (h *Hub) leaveChannel(c *Client, channelID int64) {
 	c.unsubscribe(channelID)
 }
 
-// deliverLocal 将一个信封投递给本实例中订阅了该频道的所有客户端。
+// deliverLocal 将一个信封投递给本实例的目标客户端：
+// UserID > 0 时按用户定向推送（通知），否则按 ChannelID 广播给频道订阅者。
 func (h *Hub) deliverLocal(evt Envelope) {
 	b, err := json.Marshal(evt)
 	if err != nil {
 		return
 	}
 	h.mu.RLock()
-	set := h.channels[evt.ChannelID]
+	var set map[*Client]struct{}
+	if evt.UserID > 0 {
+		set = h.users[evt.UserID]
+	} else {
+		set = h.channels[evt.ChannelID]
+	}
 	targets := make([]*Client, 0, len(set))
 	for c := range set {
 		targets = append(targets, c)
@@ -204,6 +228,12 @@ func (h *Hub) BroadcastEmpathy(channelID, messageID, count int64) {
 // 前端据此就地将该消息置为已删除占位。
 func (h *Hub) BroadcastMessageDeleted(channelID, messageID int64) {
 	h.publish(outbound(EventMessageDeleted, channelID, map[string]any{"message_id": messageID}))
+}
+
+// NotifyUser 向指定用户的所有在线连接推送一条 notification 事件（跨实例经 Redis）。
+// 用于共情/回复/@提及等通知的实时下发；用户离线时无接收者，静默丢弃。
+func (h *Hub) NotifyUser(userID int64, payload any) {
+	h.publish(outboundUser(EventNotification, userID, payload))
 }
 
 // handleClientEvent 解析并处理一条客户端入站帧。

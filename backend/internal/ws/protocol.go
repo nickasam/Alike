@@ -29,16 +29,24 @@ const (
 // Envelope 是所有 WebSocket 帧的统一信封。
 // 入站帧的业务字段放在 Data（原始 JSON）中按类型解析；
 // 出站帧直接填充 Data 为可序列化对象。
+// ChannelID 用于按频道路由；UserID 用于按用户定向路由（如通知），二者互斥使用。
 type Envelope struct {
-	Type    string          `json:"type"`
-	Data    json.RawMessage `json:"data,omitempty"`
-	ChannelID int64         `json:"channel_id,omitempty"`
+	Type      string          `json:"type"`
+	Data      json.RawMessage `json:"data,omitempty"`
+	ChannelID int64           `json:"channel_id,omitempty"`
+	UserID    int64           `json:"user_id,omitempty"`
 }
 
 // outbound 构造一个带对象 Data 的出站信封（Data 会被序列化）。
 func outbound(eventType string, channelID int64, data any) Envelope {
 	raw, _ := json.Marshal(data)
 	return Envelope{Type: eventType, ChannelID: channelID, Data: raw}
+}
+
+// outboundUser 构造一个按用户定向的出站信封（用于通知等点对点推送）。
+func outboundUser(eventType string, userID int64, data any) Envelope {
+	raw, _ := json.Marshal(data)
+	return Envelope{Type: eventType, UserID: userID, Data: raw}
 }
 
 // authData 是首帧鉴权帧的业务体。

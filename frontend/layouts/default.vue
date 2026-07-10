@@ -11,6 +11,25 @@ const drawerOpen = ref(false)
 // 频道页用频道级实时看板；其它页面（首页等）用全站今日聚合。
 const route = useRoute()
 const globalBoard = computed(() => !route.path.startsWith('/channel/'))
+
+// 全局 WebSocket：登录后建立连接并消费 notification 事件，实时更新铃铛未读数。
+// 频道页也复用这条单例连接（useWebSocket 为模块级单例）。
+const auth = useAuth()
+const ws = useWebSocket()
+const { unread, refreshUnread } = useNotifications()
+let offNotif: (() => void) | null = null
+
+onMounted(() => {
+  if (!auth.isAuthenticated.value) return
+  ws.connect()
+  refreshUnread()
+  // 收到实时通知即未读数 +1（页面已在通知中心时由该页自行刷新）。
+  offNotif = ws.on('notification', () => {
+    if (route.path !== '/notifications') unread.value += 1
+  })
+})
+
+onBeforeUnmount(() => offNotif?.())
 </script>
 
 <template>
