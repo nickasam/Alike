@@ -21,9 +21,9 @@ const drawerOpen = ref(false)
     />
 
     <div class="mx-auto flex max-w-app gap-5 px-4 py-5">
-      <!-- 左侧频道栏：桌面/平板常驻，移动端抽屉 -->
+      <!-- 左侧频道栏：桌面/平板常驻(粘顶，不随主内容高度变化而跳动)，移动端抽屉 -->
       <aside
-        class="glass-card fixed inset-y-0 left-0 z-50 w-sidebar -translate-x-full transition-transform duration-std ease-out md:static md:z-auto md:block md:w-sidebar md:translate-x-0"
+        class="glass-card fixed inset-y-0 left-0 z-50 w-sidebar -translate-x-full transition-transform duration-std ease-out md:static md:z-auto md:block md:w-sidebar md:translate-x-0 md:self-start md:sticky md:top-5 md:max-h-[calc(100vh-2.5rem)] md:overflow-y-auto"
         :class="{ 'translate-x-0': drawerOpen }"
       >
         <ChannelSidebar />
