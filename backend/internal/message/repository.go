@@ -240,6 +240,8 @@ func (r *Repository) isChannelAdmin(ctx context.Context, channelID, userID int64
 
 // SoftDelete 软删除消息（置 deleted_at）。仅作者或频道管理员可删。
 // 消息不存在返回 ErrMessageNotFound；无权返回 ErrForbidden。
+// 事务内同时回收该消息的共情计数：按其 empathies 行数扣减作者的 empathy_received，
+// 否则被共情的消息删除后作者 empathy_received 会永久虚高、污染排行榜。
 func (r *Repository) SoftDelete(ctx context.Context, messageID, userID int64) error {
 	authorID, channelID, err := r.AuthorAndChannel(ctx, messageID)
 	if err != nil {
@@ -255,10 +257,38 @@ func (r *Repository) SoftDelete(ctx context.Context, messageID, userID int64) er
 		}
 	}
 
-	_, err = r.db.ExecContext(ctx,
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() //nolint:errcheck // 提交成功后回滚为 no-op
+
+	res, err := tx.ExecContext(ctx,
 		`UPDATE messages SET deleted_at = NOW(), updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL`,
 		messageID)
-	return err
+	if err != nil {
+		return err
+	}
+	// 已被并发删除则无需重复回收计数。
+	if n, _ := res.RowsAffected(); n == 0 {
+		return tx.Commit()
+	}
+
+	// 统计该消息收到的共情数，回收作者 empathy_received（不降到 0 以下）。
+	var empCount int64
+	if err := tx.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM empathies WHERE message_id = $1`, messageID).Scan(&empCount); err != nil {
+		return err
+	}
+	if empCount > 0 {
+		if _, err := tx.ExecContext(ctx,
+			`UPDATE users SET empathy_received = GREATEST(empathy_received - $1, 0) WHERE id = $2`,
+			empCount, authorID); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
 
 // rowScanner 抽象 *sql.Row / *sql.Rows 的 Scan 能力。
