@@ -14,7 +14,8 @@ type MsgService interface {
 	// IsMember 报告用户是否为频道成员。
 	IsMember(ctx context.Context, channelID, userID int64) (bool, error)
 	// CreateMessage 落库一条主消息，返回可序列化的消息对象（已脱敏）。
-	CreateMessage(ctx context.Context, channelID, userID int64, content, emotion string, anonymous bool) (any, error)
+	// clientMsgID 为发送者客户端幂等标识，回显于广播供发送端去重（可为空）。
+	CreateMessage(ctx context.Context, channelID, userID int64, content, emotion string, anonymous bool, clientMsgID string) (any, error)
 }
 
 // EmotionProvider 抽象获取频道情绪看板的能力，用于实时 emotion_update 推送。
@@ -289,7 +290,7 @@ func (h *Hub) onSendMessage(c *Client, env Envelope) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	payload, err := h.svc.CreateMessage(ctx, d.ChannelID, c.userID, d.Content, d.Emotion, d.IsAnonymous)
+	payload, err := h.svc.CreateMessage(ctx, d.ChannelID, c.userID, d.Content, d.Emotion, d.IsAnonymous, d.ClientMsgID)
 	if err != nil {
 		c.sendEvent(errorEvent("发送失败：" + err.Error()))
 		return

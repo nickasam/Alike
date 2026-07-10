@@ -37,6 +37,10 @@ export interface Message {
   deleted_at?: string | null
   /** 前端本地态：当前用户是否已共情 */
   empathized?: boolean
+  /** 发送者客户端幂等标识，用于乐观回显与广播去重合并 */
+  client_msg_id?: string
+  /** 前端本地态：乐观插入、尚未收到服务端回环确认 */
+  pending?: boolean
 }
 
 /** 游标分页响应体（对齐后端 listData）。 */
@@ -145,10 +149,26 @@ export const useMessageStore = defineStore('message', {
       }
     },
 
-    /** WebSocket new_message：追加到对应频道。 */
+    /** 乐观插入：发送即上屏（临时负数 id + pending），WS 回环到达后被替换。 */
+    addOptimistic(channelId: number, msg: Message) {
+      const ch = this.ensureChannel(channelId)
+      ch.list.push(msg)
+    },
+
+    /** WebSocket new_message：追加到对应频道。
+     *  若命中本地乐观条目（同 client_msg_id 且 pending），则替换之，避免重复。 */
     receiveMessage(msg: Message) {
       if (!msg || !msg.channel_id) return
       const ch = this.ensureChannel(msg.channel_id)
+      if (msg.client_msg_id) {
+        const idx = ch.list.findIndex(
+          (m) => m.pending && m.client_msg_id === msg.client_msg_id,
+        )
+        if (idx !== -1) {
+          ch.list[idx] = msg // 用服务端真实消息替换乐观占位
+          return
+        }
+      }
       upsertAscending(ch.list, msg)
     },
 

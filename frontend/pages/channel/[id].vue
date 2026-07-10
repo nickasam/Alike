@@ -86,10 +86,30 @@ function unsubscribeWs() {
   offMessage = offThreadReply = offEmpathy = offDeleted = offError = null
 }
 
-/** 发送消息（经 WebSocket，new_message 回显入列）。 */
+/** 发送消息（乐观回显 + 经 WebSocket send_message，回环 new_message 按 client_msg_id 合并去重）。 */
 function onSend(payload: { content: string; emotion: string | null; isAnonymous: boolean }) {
   const clientMsgId =
-    import.meta.client && 'randomUUID' in crypto ? crypto.randomUUID() : ''
+    import.meta.client && 'randomUUID' in crypto ? crypto.randomUUID() : `c${Date.now()}`
+  // 乐观插入：立即上屏，不依赖 WS 回环时机；回环到达后用真实消息替换。
+  messageStore.addOptimistic(channelId.value, {
+    id: -Date.now(), // 临时负数 id，避免与真实 id 冲突
+    channel_id: channelId.value,
+    parent_id: null,
+    content: payload.content,
+    emotion: payload.emotion ?? undefined,
+    is_anonymous: payload.isAnonymous,
+    empathy_count: 0,
+    reply_count: 0,
+    is_deleted: false,
+    author: payload.isAnonymous
+      ? null
+      : auth.user
+        ? { id: auth.user.id, nickname: auth.user.nickname, avatar_url: auth.user.avatar_url ?? '' }
+        : null,
+    created_at: new Date().toISOString(),
+    client_msg_id: clientMsgId,
+    pending: true,
+  })
   ws.sendMessage(channelId.value, payload.content, payload.emotion, clientMsgId, payload.isAnonymous)
 }
 

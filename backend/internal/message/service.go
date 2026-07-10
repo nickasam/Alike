@@ -19,7 +19,8 @@ func (s *Service) IsMember(ctx context.Context, channelID, userID int64) (bool, 
 }
 
 // CreateMessage 落库一条主消息并返回脱敏后的消息对象（供 WebSocket 广播）。
-func (s *Service) CreateMessage(ctx context.Context, channelID, userID int64, content, emotion string, anonymous bool) (any, error) {
+// clientMsgID 回显于返回对象，供发送端将回环消息与本地乐观条目合并去重。
+func (s *Service) CreateMessage(ctx context.Context, channelID, userID int64, content, emotion string, anonymous bool, clientMsgID string) (any, error) {
 	msg, err := s.repo.Create(ctx, channelID, nil, userID, CreateRequest{
 		Content:     content,
 		Emotion:     emotion,
@@ -29,5 +30,6 @@ func (s *Service) CreateMessage(ctx context.Context, channelID, userID int64, co
 		return nil, err
 	}
 	msg.mask()
+	msg.ClientMsgID = clientMsgID
 	return msg, nil
 }
