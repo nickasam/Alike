@@ -29,6 +29,10 @@ type Message struct {
 	CreatedAt    time.Time  `json:"created_at"`
 	DeletedAt    *time.Time `json:"deleted_at,omitempty"`
 
+	// ClientMsgID 是发送者的客户端幂等标识，仅经 WebSocket 发送时回显，
+	// 供发送端将服务端回环消息与本地乐观条目精确合并去重。不入库、不 scan。
+	ClientMsgID string `json:"client_msg_id,omitempty"`
+
 	// authorID 供仓储内部做归属判断，不序列化对外。
 	authorID int64
 }

@@ -130,6 +130,7 @@ function onEmpathy(m: Message, payload: { action: 'add' | 'remove' }) {
       v-for="m in messages"
       :key="m.id"
       class="msg group flex gap-3"
+      :class="{ 'opacity-60': m.pending }"
     >
       <!-- 头像：软删除/匿名不展示真实头像 -->
       <div
