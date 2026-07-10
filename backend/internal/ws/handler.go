@@ -12,30 +12,46 @@ import (
 	"github.com/Alike/backend/pkg/jwt"
 )
 
-// upgrader 将 HTTP 连接升级为 WebSocket。
-// 生产环境应在 CheckOrigin 中校验来源；此处交由上层 CORS / Nginx 控制。
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin:     func(r *http.Request) bool { return true },
-}
-
 // Handler 承载 WebSocket 端点的依赖。
 type Handler struct {
-	hub *Hub
-	jwt *jwt.Manager
+	hub      *Hub
+	jwt      *jwt.Manager
+	upgrader websocket.Upgrader
 }
 
 // NewHandler 创建 WebSocket handler。
-func NewHandler(hub *Hub, jwtMgr *jwt.Manager) *Handler {
-	return &Handler{hub: hub, jwt: jwtMgr}
+// allowedOrigins 为空时放行所有来源（开发/同源部署）；非空时仅放行白名单 Origin，
+// 与 REST CORS 白名单保持一致，避免跨站 WebSocket 劫持（CSWSH）。
+// 无 Origin 头的非浏览器客户端一律放行（其安全性由首帧 JWT 鉴权保证）。
+func NewHandler(hub *Hub, jwtMgr *jwt.Manager, allowedOrigins ...string) *Handler {
+	allow := make(map[string]struct{}, len(allowedOrigins))
+	for _, o := range allowedOrigins {
+		allow[o] = struct{}{}
+	}
+	checkOrigin := func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		if origin == "" || len(allow) == 0 {
+			return true
+		}
+		_, ok := allow[origin]
+		return ok
+	}
+	return &Handler{
+		hub: hub,
+		jwt: jwtMgr,
+		upgrader: websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin:     checkOrigin,
+		},
+	}
 }
 
 // Handle 处理 GET /api/ws：升级连接并执行首帧鉴权。
 // 鉴权约定：升级后客户端须在 5s 内发送 { "type": "auth", "data": { "token": "<JWT>" } }。
 // JWT 不放 URL query，避免泄露到 Nginx 访问日志。
 func (h *Handler) Handle(c *gin.Context) {
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	conn, err := h.upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		return // Upgrade 失败时已写入响应
 	}
