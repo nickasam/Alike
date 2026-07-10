@@ -61,21 +61,21 @@ func (r *Repository) ChannelOf(ctx context.Context, messageID int64) (int64, err
 // Create 事务化地为消息添加一次共情：
 // INSERT empathies + messages.empathy_count+1 + 作者 empathy_received+1 + 当前用户 empathy_given+1。
 // 消息不存在返回 ErrMessageNotFound；重复共情返回 ErrAlreadyEmpathized。
-// 返回消息的最新共情计数。
-func (r *Repository) Create(ctx context.Context, messageID, userID int64) (int64, error) {
+// 返回消息的最新共情计数与被共情消息的作者 ID（供通知使用）。
+func (r *Repository) Create(ctx context.Context, messageID, userID int64) (count, authorID int64, err error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	defer tx.Rollback() //nolint:errcheck // 提交成功后回滚为 no-op
 
-	authorID, err := authorOf(ctx, tx, messageID)
+	authorID, err = authorOf(ctx, tx, messageID)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	// 禁止对自己的消息共情，否则可自刷「最受共情/最暖牛马」榜单。
 	if authorID == userID {
-		return 0, ErrSelfEmpathy
+		return 0, 0, ErrSelfEmpathy
 	}
 
 	if _, err := tx.ExecContext(ctx,
@@ -83,30 +83,29 @@ func (r *Repository) Create(ctx context.Context, messageID, userID int64) (int64
 		messageID, userID); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation {
-			return 0, ErrAlreadyEmpathized
+			return 0, 0, ErrAlreadyEmpathized
 		}
-		return 0, err
+		return 0, 0, err
 	}
 
-	var count int64
 	if err := tx.QueryRowContext(ctx,
 		`UPDATE messages SET empathy_count = empathy_count + 1 WHERE id = $1 RETURNING empathy_count`,
 		messageID).Scan(&count); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	if _, err := tx.ExecContext(ctx,
 		`UPDATE users SET empathy_received = empathy_received + 1 WHERE id = $1`, authorID); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	if _, err := tx.ExecContext(ctx,
 		`UPDATE users SET empathy_given = empathy_given + 1 WHERE id = $1`, userID); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	if err := tx.Commit(); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
-	return count, nil
+	return count, authorID, nil
 }
 
 // Delete 事务化地取消一次共情，做 Create 的反向操作。计数不会降到 0 以下。

@@ -9,6 +9,7 @@ defineEmits<{ (e: 'toggle-drawer'): void }>()
 const { theme, toggle: toggleTheme, init: initTheme } = useTheme()
 const auth = useAuth()
 const router = useRouter()
+const { unread, refreshUnread } = useNotifications()
 
 /** 头像首字：用户昵称首字，回退为“牛”。 */
 const avatarChar = computed(() => auth.user.value?.nickname?.[0] ?? '牛')
@@ -20,7 +21,10 @@ async function onLogout() {
   await router.push('/')
 }
 
-onMounted(() => initTheme())
+onMounted(() => {
+  initTheme()
+  if (auth.isAuthenticated.value) refreshUnread()
+})
 </script>
 
 <template>
@@ -78,17 +82,19 @@ onMounted(() => initTheme())
       </button>
 
       <!-- 通知 -->
-      <button
+      <NuxtLink
         v-if="auth.isAuthenticated.value"
+        to="/notifications"
         class="relative hidden h-10 w-10 place-items-center rounded-md border border-border bg-surface text-dim transition hover:text-ai-1 sm:grid"
         aria-label="通知"
       >
         <AppIcon name="bell" />
         <span
+          v-if="unread > 0"
           class="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-[5px] text-xs font-bold text-white"
-          >3</span
+          >{{ unread > 99 ? '99+' : unread }}</span
         >
-      </button>
+      </NuxtLink>
 
       <!-- 已登录：头像 + 下拉菜单 -->
       <div v-if="auth.isAuthenticated.value" class="relative">

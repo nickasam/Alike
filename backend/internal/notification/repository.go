@@ -15,6 +15,15 @@ func NewRepository(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
 
+// Create 写入一条通知给 userID。refID 可为 nil（无关联对象时）。
+// 供共情/回复/@提及等事件触发（fire-and-forget，调用方容错）。
+func (r *Repository) Create(ctx context.Context, userID int64, typ, content string, refID *int64) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO notifications (user_id, type, content, ref_id) VALUES ($1, $2, $3, $4)`,
+		userID, typ, content, refID)
+	return err
+}
+
 // List 返回某用户的通知列表，按 created_at DESC 分页，并附带未读总数。
 func (r *Repository) List(ctx context.Context, userID int64, page, pageSize int) ([]*Notification, int64, int64, error) {
 	var total int64

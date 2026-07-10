@@ -64,15 +64,18 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	emotionHandler := emotion.NewHandler(emotionRepo)
 	empathyRepo := empathy.NewRepository(deps.DB)
 
+	// 通知仓储：供共情/回复等事件写入通知（fire-and-forget）。
+	notificationRepo := notification.NewRepository(deps.DB)
+
 	// 消息 + WebSocket：Hub 依赖 message 服务，message handler 反向依赖 Hub 广播。
 	msgRepo := message.NewRepository(deps.DB)
 	pubsub := ws.NewPubSub(deps.Redis)
 	hub := ws.NewHub(message.NewService(msgRepo), pubsub)
 	// 注入情绪看板提供者，启用 emotion_update 实时推送。
 	hub.SetEmotionProvider(emotion.NewService(emotionRepo))
-	messageHandler := message.NewHandler(msgRepo, hub)
+	messageHandler := message.NewHandler(msgRepo, hub, notificationRepo)
 	// 共情变更经 Hub 广播 empathy 事件，实现跨端实时同步。
-	empathyHandler := empathy.NewHandler(empathyRepo, hub)
+	empathyHandler := empathy.NewHandler(empathyRepo, hub, notificationRepo)
 	wsHandler := ws.NewHandler(hub, deps.JWT, corsOrigins(deps.Cfg)...)
 
 	{
@@ -120,8 +123,8 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 		ranking.GET("/active", empathyHandler.RankingActive)
 	}
 
-	// 通知：注入 DB 依赖。
-	notificationHandler := notification.NewHandler(notification.NewRepository(deps.DB))
+	// 通知：复用上文构造的 notificationRepo。
+	notificationHandler := notification.NewHandler(notificationRepo)
 	notifications := api.Group("/notifications", authMW)
 	{
 		notifications.GET("", notificationHandler.List)

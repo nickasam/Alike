@@ -2,12 +2,14 @@
 package empathy
 
 import (
+	"context"
 	"errors"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/Alike/backend/internal/middleware"
+	"github.com/Alike/backend/internal/notification"
 	"github.com/Alike/backend/pkg/httputil"
 	"github.com/Alike/backend/pkg/response"
 )
@@ -22,15 +24,23 @@ type Broadcaster interface {
 	BroadcastEmpathy(channelID, messageID, count int64)
 }
 
+// Notifier 抽象写入通知的能力，由 notification.Repository 实现。
+// 通知为 fire-and-forget：失败不影响共情主流程。
+type Notifier interface {
+	Create(ctx context.Context, userID int64, typ, content string, refID *int64) error
+}
+
 // Handler 承载 empathy 模块的依赖。
 type Handler struct {
 	repo *Repository
 	bc   Broadcaster
+	notif Notifier
 }
 
-// NewHandler 创建 empathy handler。bc 可为 nil（WebSocket 不可用时仅走 HTTP 不广播）。
-func NewHandler(repo *Repository, bc Broadcaster) *Handler {
-	return &Handler{repo: repo, bc: bc}
+// NewHandler 创建 empathy handler。bc 可为 nil（WebSocket 不可用时仅走 HTTP 不广播）；
+// notif 可为 nil（不写通知）。
+func NewHandler(repo *Repository, bc Broadcaster, notif Notifier) *Handler {
+	return &Handler{repo: repo, bc: bc, notif: notif}
 }
 
 // Create 处理 POST /api/messages/:id/empathy，抱团取暖（需登录）。
@@ -45,7 +55,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	count, err := h.repo.Create(c.Request.Context(), id, uid)
+	count, authorID, err := h.repo.Create(c.Request.Context(), id, uid)
 	switch {
 	case errors.Is(err, ErrMessageNotFound):
 		response.Error(c, response.CodeNotFound, "消息不存在")
@@ -61,7 +71,18 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 	h.broadcast(c, id, count)
+	h.notifyEmpathy(c, authorID, id)
 	response.Success(c, gin.H{"empathy_count": count, "empathized": true})
+}
+
+// notifyEmpathy 给被共情消息的作者写一条通知（fire-and-forget，失败静默）。
+func (h *Handler) notifyEmpathy(c *gin.Context, authorID, messageID int64) {
+	if h.notif == nil {
+		return
+	}
+	refID := messageID
+	_ = h.notif.Create(c.Request.Context(), authorID, notification.TypeEmpathy,
+		"有人给你的心声抱了抱", &refID)
 }
 
 // Delete 处理 DELETE /api/messages/:id/empathy，取消共情（需登录）。

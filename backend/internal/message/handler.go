@@ -2,12 +2,14 @@
 package message
 
 import (
+	"context"
 	"errors"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/Alike/backend/internal/middleware"
+	"github.com/Alike/backend/internal/notification"
 	"github.com/Alike/backend/pkg/httputil"
 	"github.com/Alike/backend/pkg/response"
 )
@@ -28,15 +30,22 @@ type Broadcaster interface {
 	BroadcastMessageDeleted(channelID, messageID int64)
 }
 
+// Notifier 抽象写入通知的能力，由 notification.Repository 实现（fire-and-forget）。
+type Notifier interface {
+	Create(ctx context.Context, userID int64, typ, content string, refID *int64) error
+}
+
 // Handler 承载 message 模块的依赖。
 type Handler struct {
 	repo *Repository
 	bc   Broadcaster
+	notif Notifier
 }
 
-// NewHandler 创建 message handler。bc 可为 nil（WebSocket 不可用时仅落库不广播）。
-func NewHandler(repo *Repository, bc Broadcaster) *Handler {
-	return &Handler{repo: repo, bc: bc}
+// NewHandler 创建 message handler。bc 可为 nil（WebSocket 不可用时仅落库不广播）；
+// notif 可为 nil（不写通知）。
+func NewHandler(repo *Repository, bc Broadcaster, notif Notifier) *Handler {
+	return &Handler{repo: repo, bc: bc, notif: notif}
 }
 
 // List 处理 GET /api/channels/:id/messages，游标分页返回主消息。
@@ -142,7 +151,22 @@ func (h *Handler) Reply(c *gin.Context) {
 	if h.bc != nil {
 		h.bc.BroadcastThreadReply(msg.ChannelID, parentID, msg)
 	}
+	h.notifyReply(c, parentID, uid)
 	response.Success(c, msg)
+}
+
+// notifyReply 给父消息作者写一条回复通知（不通知自己回复自己；fire-and-forget）。
+func (h *Handler) notifyReply(c *gin.Context, parentID, replierID int64) {
+	if h.notif == nil {
+		return
+	}
+	authorID, _, err := h.repo.AuthorAndChannel(c.Request.Context(), parentID)
+	if err != nil || authorID == replierID {
+		return
+	}
+	refID := parentID
+	_ = h.notif.Create(c.Request.Context(), authorID, notification.TypeReply,
+		"有人回复了你的心声", &refID)
 }
 
 // Delete 处理 DELETE /api/messages/:id，软删除（需登录 + 作者或频道管理员）。
