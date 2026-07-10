@@ -1,13 +1,13 @@
 <script setup lang="ts">
 /**
  * ChannelSidebar — 频道侧边栏。
- * 按分类（行业/岗位/主题/自建）分组展示从后端拉取的真实频道，
- * 保证侧边栏点击的 id 与后端频道一致（避免文字与实际频道对不上）。
+ * 只展示「主题频道」（category=topic，如吐槽大会/打工日记/薪资揭秘…约 6 个），
+ * 保持列表精简；其余分类（行业/岗位/自建）不在侧边栏铺开。
  *
  * 数据来源：始终拉取全量频道写入 channelStore.channels（与首页热门 hotChannels 互不覆盖），
- * 保证无论从首页还是直连频道页进入，侧边栏都显示完整频道列表。
+ * 保证无论从首页还是直连频道页进入，侧边栏都显示完整主题频道列表。
  */
-import { useChannelStore, type Channel, type ChannelCategory } from '~/stores/channel'
+import { useChannelStore, type Channel } from '~/stores/channel'
 
 interface NavLink {
   to: string
@@ -27,49 +27,23 @@ const channelStore = useChannelStore()
 /** 前端过滤关键词（纯本地 filter，不调后端）。 */
 const filter = ref('')
 
-/** 分类展示顺序与标题。 */
-const categoryOrder: { key: ChannelCategory; title: string }[] = [
-  { key: 'industry', title: '行业' },
-  { key: 'job', title: '岗位' },
-  { key: 'topic', title: '主题' },
-  { key: 'custom', title: '自建' },
-]
-
-/** 折叠状态：默认全部展开。 */
-const collapsed = reactive<Record<ChannelCategory, boolean>>({
-  industry: false,
-  job: false,
-  topic: false,
-  custom: false,
-})
-
-function toggle(key: ChannelCategory) {
-  collapsed[key] = !collapsed[key]
-}
-
 /** 频道名可能已含 # 前缀，去掉后模板统一处理。 */
 function displayName(name: string): string {
   return name.replace(/^#/, '')
 }
 
-const groups = computed(() => {
+/** 只取主题频道，并按关键词本地过滤。 */
+const topicChannels = computed(() => {
   const kw = filter.value.trim().toLowerCase()
-  const match = (c: Channel) => {
+  return channelStore.byCategory('topic').filter((c: Channel) => {
     if (!kw) return true
     const hay = `${displayName(c.name)} ${c.slug ?? ''} ${c.description ?? ''}`.toLowerCase()
     return hay.includes(kw)
-  }
-  return categoryOrder
-    .map(({ key, title }) => ({
-      key,
-      title,
-      channels: channelStore.byCategory(key).filter(match),
-    }))
-    .filter((g) => g.channels.length > 0)
+  })
 })
 
 onMounted(async () => {
-  // 始终拉取全量，保证侧边栏拥有完整频道列表（不受首页热门 6 条影响）。
+  // 始终拉取全量，保证侧边栏拥有完整主题频道列表（不受首页热门 6 条影响）。
   try {
     const res = await api.get<{ list: Channel[] }>('/channels?page=1&page_size=50')
     channelStore.setChannels(res?.list ?? [])
@@ -109,44 +83,26 @@ onMounted(async () => {
       />
     </div>
 
-    <!-- 频道分组（可折叠 + 溢出滚动） -->
-    <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
-      <div
-        v-for="group in groups"
-        :key="group.key"
-        class="flex flex-col gap-1"
-      >
-        <button
-          type="button"
-          class="flex items-center justify-between rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide text-mute transition hover:text-text"
-          :aria-expanded="!collapsed[group.key]"
-          @click="toggle(group.key)"
-        >
-          <span>{{ group.title }}</span>
-          <AppIcon
-            name="chevron-down"
-            :size="14"
-            :class="['transition-transform', collapsed[group.key] ? '-rotate-90' : '']"
-          />
-        </button>
-        <template v-if="!collapsed[group.key]">
-          <NuxtLink
-            v-for="ch in group.channels"
-            :key="ch.id"
-            :to="`/channel/${ch.id}`"
-            class="flex items-center gap-3 rounded-md px-3 py-2 text-dim transition hover:bg-surface-hover hover:text-text"
-            active-class="bg-surface-hover text-text"
-          >
-            <AppIcon name="hash" :size="16" />
-            <span class="truncate text-base">{{ displayName(ch.name) }}</span>
-          </NuxtLink>
-        </template>
+    <!-- 主题频道（溢出滚动） -->
+    <div class="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
+      <div class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-mute">
+        主题频道
       </div>
+      <NuxtLink
+        v-for="ch in topicChannels"
+        :key="ch.id"
+        :to="`/channel/${ch.id}`"
+        class="flex items-center gap-3 rounded-md px-3 py-2 text-dim transition hover:bg-surface-hover hover:text-text"
+        active-class="bg-surface-hover text-text"
+      >
+        <AppIcon name="hash" :size="16" />
+        <span class="truncate text-base">{{ displayName(ch.name) }}</span>
+      </NuxtLink>
       <p
-        v-if="groups.length === 0 && filter.trim()"
+        v-if="topicChannels.length === 0"
         class="px-3 py-1 text-xs text-mute"
       >
-        没有匹配的频道
+        {{ filter.trim() ? '没有匹配的频道' : '暂无主题频道' }}
       </p>
     </div>
 
