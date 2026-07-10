@@ -22,6 +22,8 @@ import (
 func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 	// 需鉴权的中间件
 	authMW := middleware.Auth(deps.JWT)
+	// 尽力而为鉴权：登录则识别本人，未登录仍放行（用于日记详情等半公开读接口）
+	optionalAuthMW := middleware.OptionalAuth(deps.JWT)
 
 	// 认证：注入 DB / JWT 依赖。
 	authHandler := auth.NewHandler(auth.NewRepository(deps.DB), deps.JWT)
@@ -89,8 +91,8 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 	{
 		diaries.GET("", diaryHandler.List)
 		diaries.POST("", authMW, diaryHandler.Create)
-		diaries.GET("/:id", diaryHandler.Get)
-		diaries.GET("/:id/comments", diaryHandler.Comments)
+		diaries.GET("/:id", optionalAuthMW, diaryHandler.Get)
+		diaries.GET("/:id/comments", optionalAuthMW, diaryHandler.Comments)
 		diaries.POST("/:id/comments", authMW, diaryHandler.CreateComment)
 		diaries.GET("/streak/:user_id", diaryHandler.Streak)
 	}

@@ -50,3 +50,25 @@ func CurrentUserID(c *gin.Context) (int64, bool) {
 	id, ok := v.(int64)
 	return id, ok
 }
+
+// OptionalAuth 返回一个“尽力而为”的鉴权中间件：
+// 请求携带有效 access token 时把 user_id 写入上下文，否则放行且不写入。
+// 用于既对匿名开放、又需在登录时识别本人的读接口（如日记详情校验归属）。
+func OptionalAuth(mgr *jwt.Manager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		header := c.GetHeader("Authorization")
+		if header == "" {
+			c.Next()
+			return
+		}
+		parts := strings.SplitN(header, " ", 2)
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+			c.Next()
+			return
+		}
+		if claims, err := mgr.Parse(parts[1]); err == nil && claims.Type == jwt.AccessToken {
+			c.Set(ContextUserID, claims.UserID)
+		}
+		c.Next()
+	}
+}
