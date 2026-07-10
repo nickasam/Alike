@@ -34,16 +34,16 @@ const replySending = ref(false)
 
 useHead(() => ({ title: channel.value ? `#${channel.value.name} · Alike` : '频道 · Alike' }))
 
-/** 拉取频道详情并写入 store（供 current getter 使用）。 */
+/** 设为当前频道；仅当该频道尚不在已加载列表中时才拉取详情补入
+ *  （侧边栏已拉全量，正常情况无需再请求，也不会打乱既有顺序）。 */
 async function loadChannel() {
+  channelStore.setCurrent(channelId.value)
+  if (channelStore.current) return // 列表里已有，直接用
   try {
     const data = await api.get<Channel>(`/channels/${channelId.value}`)
-    const rest = channelStore.channels.filter((c) => c.id !== data.id)
-    channelStore.setChannels([...rest, data])
+    channelStore.upsertChannel(data) // 缺失才补入，保持顺序
   } catch {
     // 频道信息拉取失败不阻塞消息流
-  } finally {
-    channelStore.setCurrent(channelId.value)
   }
 }
 

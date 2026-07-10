@@ -45,6 +45,16 @@ export const useChannelStore = defineStore('channel', {
     setHotChannels(list: Channel[]) {
       this.hotChannels = list
     },
+    /** 更新/插入单个频道，保持既有顺序（已存在则原地替换，否则追加）。
+     *  用于进入频道拉取详情时刷新数据，避免把该频道移动到列表末尾。 */
+    upsertChannel(channel: Channel) {
+      const idx = this.channels.findIndex((c) => c.id === channel.id)
+      if (idx !== -1) {
+        this.channels[idx] = channel
+      } else {
+        this.channels.push(channel)
+      }
+    },
     setCurrent(id: number | null) {
       this.currentId = id
     },
