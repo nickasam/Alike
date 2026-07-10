@@ -40,6 +40,18 @@ func (h *Handler) Board(c *gin.Context) {
 	response.Success(c, board)
 }
 
+// GlobalBoard 处理 GET /api/emotion/board，返回全站情绪看板（供首页今日情绪看板）。
+// query scope=today|all，默认 today。
+func (h *Handler) GlobalBoard(c *gin.Context) {
+	todayOnly := c.Query("scope") != "all"
+	board, err := h.repo.BoardGlobal(c.Request.Context(), todayOnly)
+	if err != nil {
+		response.Fail(c, response.CodeInternalError)
+		return
+	}
+	response.Success(c, board)
+}
+
 // parseID 解析路径参数 :id，非法时写入 404 响应并返回 false。
 func parseID(c *gin.Context) (int64, bool) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)

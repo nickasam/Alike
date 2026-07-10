@@ -130,6 +130,9 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	searchHandler := search.NewHandler(search.NewRepository(deps.DB))
 	api.GET("/search", searchHandler.Search)
 
+	// 全站今日情绪看板（首页用，公开读）。
+	api.GET("/emotion/board", emotionHandler.GlobalBoard)
+
 	// 文件上传：MinIO 不可用时跳过路由注册。
 	if store, err := storage.New(deps.Cfg); err == nil {
 		storageHandler := storage.NewHandler(store)

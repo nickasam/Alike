@@ -112,6 +112,36 @@ func (r *Repository) BoardByChannel(ctx context.Context, channelID int64, todayO
 	}
 	q += ` GROUP BY emotion`
 
+	counts, err := r.scanCounts(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	return buildBoard(scope, counts), nil
+}
+
+// BoardGlobal 聚合【全站】所有频道未删除消息的情绪计数（供首页今日情绪看板）。
+// todayOnly 为 true 时仅统计 boardLocation 时区当天的消息。
+func (r *Repository) BoardGlobal(ctx context.Context, todayOnly bool) (*Board, error) {
+	q := `SELECT emotion, COUNT(*) FROM messages
+		WHERE emotion IS NOT NULL AND emotion <> '' AND deleted_at IS NULL`
+	var args []any
+	scope := "all"
+	if todayOnly {
+		q += ` AND created_at >= $1`
+		args = append(args, todayStart())
+		scope = "today"
+	}
+	q += ` GROUP BY emotion`
+
+	counts, err := r.scanCounts(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	return buildBoard(scope, counts), nil
+}
+
+// scanCounts 执行情绪聚合查询，返回 emotion→count 映射。
+func (r *Repository) scanCounts(ctx context.Context, q string, args ...any) (map[string]int64, error) {
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
@@ -127,10 +157,12 @@ func (r *Repository) BoardByChannel(ctx context.Context, channelID int64, todayO
 		}
 		counts[emotion] = n
 	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
+	return counts, rows.Err()
+}
 
+// buildBoard 将 emotion→count 映射归总为 Board：按 AllTags 顺序覆盖全部 8 种情绪
+// （缺省 0），计算 total 与占比最高的 dominant。
+func buildBoard(scope string, counts map[string]int64) *Board {
 	board := &Board{Scope: scope, Emotions: make([]Count, 0, len(AllTags()))}
 	var maxCount int64
 	for _, tag := range AllTags() {
@@ -142,5 +174,5 @@ func (r *Repository) BoardByChannel(ctx context.Context, channelID int64, todayO
 			board.Dominant = string(tag)
 		}
 	}
-	return board, nil
+	return board
 }
