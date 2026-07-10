@@ -22,6 +22,8 @@ type Message struct {
 	IsAnonymous  bool       `json:"is_anonymous"`
 	EmpathyCount int        `json:"empathy_count"`
 	ReplyCount   int        `json:"reply_count"`
+	// Empathized 表示请求方（当前登录用户）是否已对本消息共情。
+	Empathized bool       `json:"empathized"`
 	IsDeleted    bool       `json:"is_deleted"`
 	Author       *Author    `json:"author,omitempty"`
 	CreatedAt    time.Time  `json:"created_at"`
