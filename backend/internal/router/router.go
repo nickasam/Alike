@@ -34,6 +34,15 @@ func New(deps *Deps) (*gin.Engine, *ws.Hub) {
 	}
 
 	r := gin.New()
+	// 仅信任私有网段代理（nginx 在 Docker 私有网络内）。
+	// Gin 默认信任所有代理头，会采信客户端伪造的 X-Forwarded-For，
+	// 使按 IP 限流可被逐请求换 XFF 绕过。声明可信代理后，ClientIP 只取
+	// nginx 追加（$proxy_add_x_forwarded_for，真实 peer 置于最右）的可信来源。
+	if err := r.SetTrustedProxies([]string{
+		"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1/32",
+	}); err != nil {
+		panic("router: set trusted proxies: " + err.Error())
+	}
 	r.Use(middleware.Recovery())
 	r.Use(middleware.Logger())
 	r.Use(middleware.CORS(middleware.CORSOptions{
