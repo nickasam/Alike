@@ -4,11 +4,15 @@ package router
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/Alike/backend/internal/middleware"
+	"github.com/Alike/backend/internal/storage"
 	"github.com/Alike/backend/internal/ws"
 	"github.com/Alike/backend/pkg/config"
 	"github.com/Alike/backend/pkg/jwt"
@@ -32,7 +36,11 @@ func New(deps *Deps) (*gin.Engine, *ws.Hub) {
 	r := gin.New()
 	r.Use(middleware.Recovery())
 	r.Use(middleware.Logger())
-	r.Use(middleware.CORS())
+	r.Use(middleware.CORS(middleware.CORSOptions{
+		AllowedOrigins: corsOrigins(deps.Cfg),
+		// 非生产环境且未配置白名单时放开跨域，便于本地开发。
+		AllowAllInDev: deps.Cfg == nil || !deps.Cfg.IsProduction(),
+	}))
 
 	// 健康检查（统一响应格式），探测 DB / Redis 连通性。
 	r.GET("/api/health", healthHandler(deps))
@@ -43,16 +51,61 @@ func New(deps *Deps) (*gin.Engine, *ws.Hub) {
 	return r, hub
 }
 
-// healthHandler 返回服务及依赖的健康状态。
-func healthHandler(deps *Deps) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		status := gin.H{
-			"status":   "ok",
-			"database": pingDB(deps.DB),
-			"redis":    pingRedis(deps.Redis),
-		}
-		response.Success(c, status)
+// corsOrigins 从配置读取 CORS 白名单（nil 安全）。
+func corsOrigins(cfg *config.Config) []string {
+	if cfg == nil {
+		return nil
 	}
+	return cfg.CORSAllowedOrigins
+}
+
+// healthHandler 返回服务及依赖的健康状态。
+// 任一依赖 down 时整体 status=down 并返回 503，供编排/探针识别。
+func healthHandler(deps *Deps) gin.HandlerFunc {
+	// 复用一个 storage.Store 探测 MinIO（客户端惰性连接，构造无副作用）。
+	var store *storage.Store
+	if deps.Cfg != nil {
+		store, _ = storage.New(deps.Cfg)
+	}
+	return func(c *gin.Context) {
+		db := pingDB(deps.DB)
+		rdb := pingRedis(deps.Redis)
+		minioStatus := pingMinIO(c.Request.Context(), store)
+
+		overall := "ok"
+		httpCode := http.StatusOK
+		// "unavailable"（未配置）不视为故障；仅 "down" 判定整体不健康。
+		if db == "down" || rdb == "down" || minioStatus == "down" {
+			overall = "down"
+			httpCode = http.StatusServiceUnavailable
+		}
+		c.JSON(httpCode, response.Body{
+			Code:    response.CodeSuccess,
+			Message: "success",
+			Data: gin.H{
+				"status":   overall,
+				"database": db,
+				"redis":    rdb,
+				"minio":    minioStatus,
+			},
+		})
+	}
+}
+
+func pingMinIO(ctx context.Context, store *storage.Store) string {
+	if store == nil {
+		return "unavailable"
+	}
+	// 限时探测，避免 MinIO 不可达时健康检查长时间阻塞。
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	if err := store.Ping(ctx); err != nil {
+		if errors.Is(err, storage.ErrStorageDisabled) {
+			return "unavailable"
+		}
+		return "down"
+	}
+	return "ok"
 }
 
 func pingDB(db *sql.DB) string {
