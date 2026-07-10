@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Alike/backend/internal/middleware"
+	"github.com/Alike/backend/pkg/httputil"
 	"github.com/Alike/backend/pkg/response"
 )
 
@@ -80,14 +81,14 @@ func (h *Handler) Diaries(c *gin.Context) {
 	if !ok {
 		return
 	}
-	page, pageSize := paginate(c)
+	page, pageSize := httputil.Paginate(c)
 
 	list, total, err := h.repo.ListPublicDiaries(c.Request.Context(), id, page, pageSize)
 	if err != nil {
 		response.Fail(c, response.CodeInternalError)
 		return
 	}
-	response.Page(c, nonNilDiaries(list), total, page, pageSize)
+	response.Page(c, httputil.NonNil(list), total, page, pageSize)
 }
 
 // Stats 处理 GET /api/users/:id/stats，返回该用户的公开统计聚合。
@@ -116,34 +117,4 @@ func parseID(c *gin.Context) (int64, bool) {
 		return 0, false
 	}
 	return id, true
-}
-
-const (
-	defaultPage     = 1
-	defaultPageSize = 20
-	maxPageSize     = 50
-)
-
-// paginate 从 query 解析分页参数，应用默认值与上限。
-func paginate(c *gin.Context) (page, pageSize int) {
-	page, _ = strconv.Atoi(c.Query("page"))
-	if page < 1 {
-		page = defaultPage
-	}
-	pageSize, _ = strconv.Atoi(c.Query("page_size"))
-	if pageSize < 1 {
-		pageSize = defaultPageSize
-	}
-	if pageSize > maxPageSize {
-		pageSize = maxPageSize
-	}
-	return page, pageSize
-}
-
-// nonNilDiaries 保证空列表序列化为 [] 而非 null。
-func nonNilDiaries(list []*PublicDiary) []*PublicDiary {
-	if list == nil {
-		return []*PublicDiary{}
-	}
-	return list
 }

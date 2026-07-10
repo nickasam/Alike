@@ -8,15 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Alike/backend/internal/middleware"
+	"github.com/Alike/backend/pkg/httputil"
 	"github.com/Alike/backend/pkg/response"
 )
 
 const (
 	defaultLimit    = 20
 	maxLimit        = 50
-	defaultPage     = 1
-	defaultPageSize = 20
-	maxPageSize     = 50
 	defaultRankSize = 20
 	maxRankSize     = 100
 )
@@ -97,7 +95,7 @@ func (h *Handler) Comments(c *gin.Context) {
 		return
 	}
 	viewerID, _ := middleware.CurrentUserID(c)
-	page, pageSize := paginate(c)
+	page, pageSize := httputil.Paginate(c)
 
 	list, total, err := h.repo.ListComments(c.Request.Context(), id, viewerID, page, pageSize)
 	if errors.Is(err, ErrDiaryNotFound) {
@@ -108,7 +106,7 @@ func (h *Handler) Comments(c *gin.Context) {
 		response.Fail(c, response.CodeInternalError)
 		return
 	}
-	response.Page(c, nonNil(list), total, page, pageSize)
+	response.Page(c, httputil.NonNil(list), total, page, pageSize)
 }
 
 // CreateComment 处理 POST /api/diaries/:id/comments，发表评论（需登录，支持匿名）。
@@ -165,12 +163,12 @@ func (h *Handler) RankingStreak(c *gin.Context) {
 		response.Fail(c, response.CodeInternalError)
 		return
 	}
-	response.Success(c, gin.H{"list": nonNil(list)})
+	response.Success(c, gin.H{"list": httputil.NonNil(list)})
 }
 
 // listData 组装游标分页的响应结构。next_cursor 指向本页最后一条日记 ID。
 func listData(list []*Diary, hasMore bool) gin.H {
-	items := nonNil(list)
+	items := httputil.NonNil(list)
 	var next int64
 	if hasMore && len(items) > 0 {
 		next = items[len(items)-1].ID
@@ -209,22 +207,6 @@ func parseLimit(c *gin.Context) int {
 	return limit
 }
 
-// paginate 从 query 解析分页参数，应用默认值与上限。
-func paginate(c *gin.Context) (page, pageSize int) {
-	page, _ = strconv.Atoi(c.Query("page"))
-	if page < 1 {
-		page = defaultPage
-	}
-	pageSize, _ = strconv.Atoi(c.Query("page_size"))
-	if pageSize < 1 {
-		pageSize = defaultPageSize
-	}
-	if pageSize > maxPageSize {
-		pageSize = maxPageSize
-	}
-	return page, pageSize
-}
-
 // rankLimit 解析榜单 limit query，应用默认值与上限。
 func rankLimit(c *gin.Context) int {
 	limit, _ := strconv.Atoi(c.Query("limit"))
@@ -235,12 +217,4 @@ func rankLimit(c *gin.Context) int {
 		return maxRankSize
 	}
 	return limit
-}
-
-// nonNil 保证空列表序列化为 [] 而非 null。
-func nonNil[T any](list []T) []T {
-	if list == nil {
-		return []T{}
-	}
-	return list
 }

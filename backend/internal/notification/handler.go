@@ -7,13 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Alike/backend/internal/middleware"
+	"github.com/Alike/backend/pkg/httputil"
 	"github.com/Alike/backend/pkg/response"
-)
-
-const (
-	defaultPage     = 1
-	defaultPageSize = 20
-	maxPageSize     = 50
 )
 
 // Handler 承载 notification 模块的依赖。
@@ -33,7 +28,7 @@ func (h *Handler) List(c *gin.Context) {
 		response.Fail(c, response.CodeUnauthorized)
 		return
 	}
-	page, pageSize := paginate(c)
+	page, pageSize := httputil.Paginate(c)
 
 	list, total, unread, err := h.repo.List(c.Request.Context(), uid, page, pageSize)
 	if err != nil {
@@ -41,7 +36,7 @@ func (h *Handler) List(c *gin.Context) {
 		return
 	}
 	response.Success(c, gin.H{
-		"list":      nonNil(list),
+		"list":      httputil.NonNil(list),
 		"total":     total,
 		"unread":    unread,
 		"page":      page,
@@ -96,28 +91,4 @@ func parseID(c *gin.Context) (int64, bool) {
 		return 0, false
 	}
 	return id, true
-}
-
-// paginate 从 query 解析分页参数，应用默认值与上限。
-func paginate(c *gin.Context) (page, pageSize int) {
-	page, _ = strconv.Atoi(c.Query("page"))
-	if page < 1 {
-		page = defaultPage
-	}
-	pageSize, _ = strconv.Atoi(c.Query("page_size"))
-	if pageSize < 1 {
-		pageSize = defaultPageSize
-	}
-	if pageSize > maxPageSize {
-		pageSize = maxPageSize
-	}
-	return page, pageSize
-}
-
-// nonNil 保证空列表序列化为 [] 而非 null。
-func nonNil[T any](list []T) []T {
-	if list == nil {
-		return []T{}
-	}
-	return list
 }

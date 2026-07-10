@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Alike/backend/internal/middleware"
+	"github.com/Alike/backend/pkg/httputil"
 	"github.com/Alike/backend/pkg/response"
 )
 
@@ -195,7 +196,7 @@ func (h *Handler) writeCreateError(c *gin.Context, err error) bool {
 
 // listData 组装游标分页的响应结构。next_cursor 指向本页最后一条消息 ID。
 func listData(list []*Message, hasMore bool) gin.H {
-	items := nonNil(list)
+	items := httputil.NonNil(list)
 	var next int64
 	if hasMore && len(items) > 0 {
 		next = items[len(items)-1].ID
@@ -232,12 +233,4 @@ func parseLimit(c *gin.Context) int {
 		return maxLimit
 	}
 	return limit
-}
-
-// nonNil 保证空列表序列化为 [] 而非 null。
-func nonNil[T any](list []T) []T {
-	if list == nil {
-		return []T{}
-	}
-	return list
 }
