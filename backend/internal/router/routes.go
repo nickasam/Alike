@@ -59,7 +59,7 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	// 情绪看板 + 共情：注入 DB 依赖。
 	emotionRepo := emotion.NewRepository(deps.DB)
 	emotionHandler := emotion.NewHandler(emotionRepo)
-	empathyHandler := empathy.NewHandler(empathy.NewRepository(deps.DB))
+	empathyRepo := empathy.NewRepository(deps.DB)
 
 	// 消息 + WebSocket：Hub 依赖 message 服务，message handler 反向依赖 Hub 广播。
 	msgRepo := message.NewRepository(deps.DB)
@@ -68,6 +68,8 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	// 注入情绪看板提供者，启用 emotion_update 实时推送。
 	hub.SetEmotionProvider(emotion.NewService(emotionRepo))
 	messageHandler := message.NewHandler(msgRepo, hub)
+	// 共情变更经 Hub 广播 empathy 事件，实现跨端实时同步。
+	empathyHandler := empathy.NewHandler(empathyRepo, hub)
 	wsHandler := ws.NewHandler(hub, deps.JWT)
 
 	{
@@ -78,15 +80,15 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 		channels.POST("/:id/leave", authMW, channelHandler.Leave)
 		channels.GET("/:id/members", channelHandler.Members)
 		channels.GET("/:id/emotion-board", emotionHandler.Board)
-		// 频道内消息
-		channels.GET("/:id/messages", messageHandler.List)
+		// 频道内消息（OptionalAuth：登录时返回每条消息的 empathized 态）
+		channels.GET("/:id/messages", optionalAuthMW, messageHandler.List)
 		channels.POST("/:id/messages", authMW, writeRL, messageHandler.Create)
 	}
 
 	// 消息 / 线程 / 共情
 	messages := api.Group("/messages")
 	{
-		messages.GET("/:id/threads", messageHandler.Threads)
+		messages.GET("/:id/threads", optionalAuthMW, messageHandler.Threads)
 		messages.POST("/:id/replies", authMW, writeRL, messageHandler.Reply)
 		messages.DELETE("/:id", authMW, messageHandler.Delete)
 		messages.POST("/:id/empathy", authMW, writeRL, empathyHandler.Create)

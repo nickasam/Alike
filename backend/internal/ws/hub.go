@@ -185,6 +185,21 @@ func (h *Hub) BroadcastEmotionUpdate(channelID int64) {
 	h.publish(outbound(EventEmotionUpdate, channelID, board))
 }
 
+// BroadcastEmpathy 实现 empathy.Broadcaster：广播某消息共情计数变更。
+// payload 字段与前端 message store applyEmpathy 对齐（message_id + empathy_count）。
+func (h *Hub) BroadcastEmpathy(channelID, messageID, count int64) {
+	h.publish(outbound(EventEmpathy, channelID, map[string]any{
+		"message_id":    messageID,
+		"empathy_count": count,
+	}))
+}
+
+// BroadcastMessageDeleted 实现 message.Broadcaster：广播消息被软删除，
+// 前端据此就地将该消息置为已删除占位。
+func (h *Hub) BroadcastMessageDeleted(channelID, messageID int64) {
+	h.publish(outbound(EventMessageDeleted, channelID, map[string]any{"message_id": messageID}))
+}
+
 // handleClientEvent 解析并处理一条客户端入站帧。
 func (h *Hub) handleClientEvent(c *Client, raw []byte) {
 	var env Envelope

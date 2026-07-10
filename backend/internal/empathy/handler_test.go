@@ -40,7 +40,7 @@ func withParamID(id string) func(*gin.Context) {
 }
 
 func TestCreateRequiresAuth(t *testing.T) {
-	h := NewHandler(nil)
+	h := NewHandler(nil, nil)
 	code, body := invoke(h.Create, http.MethodPost, "/api/messages/1/empathy", withParamID("1"))
 	if code != http.StatusUnauthorized || body.Code != response.CodeUnauthorized {
 		t.Fatalf("status=%d code=%d, want 401/%d", code, body.Code, response.CodeUnauthorized)
@@ -48,7 +48,7 @@ func TestCreateRequiresAuth(t *testing.T) {
 }
 
 func TestDeleteRequiresAuth(t *testing.T) {
-	h := NewHandler(nil)
+	h := NewHandler(nil, nil)
 	code, body := invoke(h.Delete, http.MethodDelete, "/api/messages/1/empathy", withParamID("1"))
 	if code != http.StatusUnauthorized || body.Code != response.CodeUnauthorized {
 		t.Fatalf("status=%d code=%d, want 401/%d", code, body.Code, response.CodeUnauthorized)
@@ -56,7 +56,7 @@ func TestDeleteRequiresAuth(t *testing.T) {
 }
 
 func TestCreateInvalidMessageID(t *testing.T) {
-	h := NewHandler(nil)
+	h := NewHandler(nil, nil)
 	code, body := invoke(h.Create, http.MethodPost, "/api/messages/x/empathy",
 		func(c *gin.Context) { withUser(1)(c); withParamID("x")(c) })
 	if code != http.StatusNotFound || body.Code != response.CodeNotFound {
@@ -65,7 +65,7 @@ func TestCreateInvalidMessageID(t *testing.T) {
 }
 
 func TestUsersInvalidMessageID(t *testing.T) {
-	h := NewHandler(nil)
+	h := NewHandler(nil, nil)
 	code, body := invoke(h.Users, http.MethodGet, "/api/messages/0/empathy-users", withParamID("0"))
 	if code != http.StatusNotFound || body.Code != response.CodeNotFound {
 		t.Fatalf("status=%d code=%d, want 404/%d", code, body.Code, response.CodeNotFound)
