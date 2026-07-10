@@ -364,6 +364,11 @@ CREATE INDEX idx_diaries_public_created ON diaries(created_at DESC) WHERE is_pub
 CREATE INDEX idx_diary_comments_diary ON diary_comments(diary_id, created_at) WHERE deleted_at IS NULL;
 ```
 
+> 以上为初始迁移 `001_init.sql` 的基础索引。另有性能迁移 `003_perf_indexes.sql` 补充：
+> `pg_trgm` GIN 索引（messages/diaries/channels/users 的搜索列，加速 ILIKE 前后通配搜索）、
+> 榜单覆盖索引（`messages(empathy_count DESC) WHERE 未删且>0`、`users(empathy_given/received DESC) WHERE >0`、
+> `messages(user_id, created_at) WHERE 未删` 支撑活跃度榜）。
+
 ---
 
 ## 五、API 接口设计
