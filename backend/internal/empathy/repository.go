@@ -20,6 +20,9 @@ var ErrAlreadyEmpathized = errors.New("already empathized")
 // ErrNotEmpathized 表示当前用户尚未对该消息共情，无法取消。
 var ErrNotEmpathized = errors.New("not empathized")
 
+// ErrSelfEmpathy 表示用户试图对自己的消息共情（不允许，避免自刷排行榜）。
+var ErrSelfEmpathy = errors.New("cannot empathize own message")
+
 // Repository 封装 empathies 表及关联计数的数据库访问。
 type Repository struct {
 	db *sql.DB
@@ -56,6 +59,10 @@ func (r *Repository) Create(ctx context.Context, messageID, userID int64) (int64
 	authorID, err := authorOf(ctx, tx, messageID)
 	if err != nil {
 		return 0, err
+	}
+	// 禁止对自己的消息共情，否则可自刷「最受共情/最暖牛马」榜单。
+	if authorID == userID {
+		return 0, ErrSelfEmpathy
 	}
 
 	if _, err := tx.ExecContext(ctx,

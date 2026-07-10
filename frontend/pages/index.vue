@@ -1,16 +1,36 @@
 <script setup lang="ts">
 /**
- * 首页 — 热门频道 + 今日牛马榜（阶段一骨架）。
- * 体现 Aurora 暗色主题、渐变标题、玻璃卡片、响应式布局。
+ * 首页 — 热门频道 + 今日牛马榜。
+ * 热门频道从后端 /api/channels 拉取真实数据（按成员数排序），
+ * 保证卡片文字与点击后跳转的频道一致。
  */
+import { useChannelStore, type Channel } from '~/stores/channel'
+
 useHead({ title: 'Alike · 汇聚天下牛马' })
 
-const hotChannels = [
-  { id: 1, name: '互联网大厂', desc: '996 的兄弟姐妹们，进来抱团', members: 1284 },
-  { id: 3, name: '程序员', desc: 'bug 与 KPI 齐飞，头发共显示器一色', members: 986 },
-  { id: 5, name: '摸鱼交流', desc: '带薪如厕经验分享大会', members: 2571 },
-  { id: 6, name: '离职天堂', desc: '裸辞体验官招募中', members: 743 },
-]
+const api = useApi()
+const channelStore = useChannelStore()
+
+const hotChannels = ref<Channel[]>([])
+const loading = ref(true)
+
+onMounted(async () => {
+  try {
+    const res = await api.get<{ list: Channel[] }>('/channels?page=1&page_size=6')
+    const list = res?.list ?? []
+    hotChannels.value = list
+    channelStore.setChannels(list)
+  } catch {
+    hotChannels.value = []
+  } finally {
+    loading.value = false
+  }
+})
+
+/** 频道名可能已含 # 前缀，去掉后由模板统一加 #，避免 ## 重复。 */
+function displayName(name: string): string {
+  return name.replace(/^#/, '')
+}
 </script>
 
 <template>
@@ -41,7 +61,11 @@ const hotChannels = [
         <AppIcon name="hash" :size="20" />
         热门频道
       </h2>
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <p v-if="loading" class="glass-card p-5 text-sm text-mute">加载中…</p>
+      <p v-else-if="hotChannels.length === 0" class="glass-card p-5 text-sm text-mute">
+        暂无频道
+      </p>
+      <div v-else class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <NuxtLink
           v-for="ch in hotChannels"
           :key="ch.id"
@@ -49,10 +73,10 @@ const hotChannels = [
           class="glass-card block p-5"
         >
           <div class="flex items-center justify-between">
-            <h3 class="text-md font-semibold">#{{ ch.name }}</h3>
-            <span class="text-xs text-mute">{{ ch.members }} 位牛马</span>
+            <h3 class="text-md font-semibold">#{{ displayName(ch.name) }}</h3>
+            <span class="text-xs text-mute">{{ ch.member_count }} 位牛马</span>
           </div>
-          <p class="mt-1 text-sm text-dim">{{ ch.desc }}</p>
+          <p v-if="ch.description" class="mt-1 text-sm text-dim">{{ ch.description }}</p>
         </NuxtLink>
       </div>
     </section>

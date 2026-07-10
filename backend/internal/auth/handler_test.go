@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/Alike/backend/internal/middleware"
 	"github.com/Alike/backend/pkg/jwt"
@@ -173,5 +174,21 @@ func TestMeReadsContextUserID(t *testing.T) {
 	c.Set(middleware.ContextUserID, int64(99))
 	if id, ok := middleware.CurrentUserID(c); !ok || id != 99 {
 		t.Fatalf("CurrentUserID = %d, %v; want 99, true", id, ok)
+	}
+}
+
+// TestDummyBcryptHashValidAtDefaultCost 保证防枚举用的固定 hash 在 DefaultCost 下可解析，
+// 否则 CompareHashAndPassword 会因 hash 无效而提前返回，无法拉平时序。
+func TestDummyBcryptHashValidAtDefaultCost(t *testing.T) {
+	cost, err := bcrypt.Cost([]byte(dummyBcryptHash))
+	if err != nil {
+		t.Fatalf("dummy hash unparsable: %v", err)
+	}
+	if cost != bcrypt.DefaultCost {
+		t.Fatalf("dummy hash cost=%d, want DefaultCost=%d", cost, bcrypt.DefaultCost)
+	}
+	// 比较任意密码应返回不匹配（而非 hash 解析错误）。
+	if err := bcrypt.CompareHashAndPassword([]byte(dummyBcryptHash), []byte("anything")); err == nil {
+		t.Fatal("dummy hash should never match a real password")
 	}
 }

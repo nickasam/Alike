@@ -12,6 +12,11 @@ import (
 	"github.com/Alike/backend/pkg/response"
 )
 
+// dummyBcryptHash 是一个 DefaultCost 的固定 bcrypt hash，用于在邮箱不存在时
+// 仍执行一次等价耗时的比较，消除登录时序侧信道（防邮箱枚举）。
+// 由 bcrypt.GenerateFromPassword 预生成，不对应任何真实密码。
+const dummyBcryptHash = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+
 // Handler 承载 auth 模块的依赖，替代阶段一的无状态包级函数。
 type Handler struct {
 	repo *Repository
@@ -66,6 +71,9 @@ func (h *Handler) Login(c *gin.Context) {
 	u, err := h.repo.GetByEmail(c.Request.Context(), req.Email)
 	if errors.Is(err, ErrUserNotFound) {
 		// 不区分"用户不存在"与"密码错误"，避免邮箱枚举。
+		// 对不存在的邮箱也执行一次等价的 bcrypt 比较，消除时序侧信道
+		// （否则不存在的邮箱因跳过 bcrypt 而响应明显更快，可被枚举）。
+		bcrypt.CompareHashAndPassword([]byte(dummyBcryptHash), []byte(req.Password)) //nolint:errcheck // 仅为拉平耗时
 		response.Error(c, response.CodeUnauthorized, "邮箱或密码错误")
 		return
 	}

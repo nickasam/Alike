@@ -67,3 +67,22 @@ type UpdateRequest struct {
 	WorkYears   *int    `json:"work_years" binding:"omitempty,min=0"`
 	IsAnonymous *bool   `json:"is_anonymous"`
 }
+
+// PublicDiary 是用户主页展示的公开日记摘要（不含评论明细）。
+type PublicDiary struct {
+	ID        int64     `json:"id"`
+	Title     string    `json:"title,omitempty"`
+	Content   string    `json:"content"`
+	Mood      string    `json:"mood,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// UserStats 是用户主页的公开统计聚合。
+type UserStats struct {
+	UserID           int64 `json:"user_id"`
+	EmpathyReceived  int   `json:"empathy_received"`
+	EmpathyGiven     int   `json:"empathy_given"`
+	TotalCheckInDays int   `json:"total_check_in_days"`
+	MessageCount     int   `json:"message_count"`   // 未删除消息数
+	PublicDiaryCount int   `json:"public_diary_count"` // 公开日记数
+}

@@ -69,10 +69,12 @@ func (r *Repository) ListPublic(ctx context.Context, before int64, limit int) ([
 	return list, hasMore, nil
 }
 
-// Get 返回单篇日记详情。日记不存在返回 ErrDiaryNotFound。
-func (r *Repository) Get(ctx context.Context, diaryID int64) (*Diary, error) {
-	q := `SELECT ` + diaryColumns + diaryFrom + ` WHERE d.id = $1`
-	d, err := scanDiary(r.db.QueryRowContext(ctx, q, diaryID))
+// Get 返回单篇日记详情。私密日记仅作者本人（viewerID==作者）可见，
+// 其他访问者（含未登录，viewerID<=0）对私密日记视为不存在，避免泄露。
+// 日记不存在或无权查看返回 ErrDiaryNotFound。
+func (r *Repository) Get(ctx context.Context, diaryID, viewerID int64) (*Diary, error) {
+	q := `SELECT ` + diaryColumns + diaryFrom + ` WHERE d.id = $1 AND (d.is_public = TRUE OR d.user_id = $2)`
+	d, err := scanDiary(r.db.QueryRowContext(ctx, q, diaryID, viewerID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrDiaryNotFound
 	}
@@ -146,14 +148,16 @@ func (r *Repository) Create(ctx context.Context, userID int64, req CreateRequest
 }
 
 // ListComments 返回某日记下的评论（含软删除占位），按 created_at ASC 分页。
-// 日记不存在返回 ErrDiaryNotFound。
-func (r *Repository) ListComments(ctx context.Context, diaryID int64, page, pageSize int) ([]*Comment, int64, error) {
-	var exists bool
+// 私密日记仅作者本人（viewerID==作者）可查看评论；其他访问者视为不存在。
+// 日记不存在或无权查看返回 ErrDiaryNotFound。
+func (r *Repository) ListComments(ctx context.Context, diaryID, viewerID int64, page, pageSize int) ([]*Comment, int64, error) {
+	var visible bool
 	if err := r.db.QueryRowContext(ctx,
-		`SELECT EXISTS(SELECT 1 FROM diaries WHERE id = $1)`, diaryID).Scan(&exists); err != nil {
+		`SELECT EXISTS(SELECT 1 FROM diaries WHERE id = $1 AND (is_public = TRUE OR user_id = $2))`,
+		diaryID, viewerID).Scan(&visible); err != nil {
 		return nil, 0, err
 	}
-	if !exists {
+	if !visible {
 		return nil, 0, ErrDiaryNotFound
 	}
 
@@ -187,15 +191,16 @@ func (r *Repository) ListComments(ctx context.Context, diaryID int64, page, page
 	return list, total, rows.Err()
 }
 
-// CreateComment 校验日记存在后插入一条评论，返回完整记录（脱敏后）。
-// 日记不存在返回 ErrDiaryNotFound。
+// CreateComment 校验日记对该用户可见后插入一条评论，返回完整记录（脱敏后）。
+// 私密日记仅作者本人可评论；不可见或不存在返回 ErrDiaryNotFound。
 func (r *Repository) CreateComment(ctx context.Context, diaryID, userID int64, req CommentRequest) (*Comment, error) {
-	var exists bool
+	var visible bool
 	if err := r.db.QueryRowContext(ctx,
-		`SELECT EXISTS(SELECT 1 FROM diaries WHERE id = $1)`, diaryID).Scan(&exists); err != nil {
+		`SELECT EXISTS(SELECT 1 FROM diaries WHERE id = $1 AND (is_public = TRUE OR user_id = $2))`,
+		diaryID, userID).Scan(&visible); err != nil {
 		return nil, err
 	}
-	if !exists {
+	if !visible {
 		return nil, ErrDiaryNotFound
 	}
 

@@ -70,12 +70,14 @@ func (h *Handler) Create(c *gin.Context) {
 }
 
 // Get 处理 GET /api/diaries/:id，日记详情。
+// 需挂 OptionalAuth：私密日记仅作者本人可见，其余访问者返回 404。
 func (h *Handler) Get(c *gin.Context) {
 	id, ok := parseID(c, "id")
 	if !ok {
 		return
 	}
-	d, err := h.repo.Get(c.Request.Context(), id)
+	viewerID, _ := middleware.CurrentUserID(c)
+	d, err := h.repo.Get(c.Request.Context(), id, viewerID)
 	if errors.Is(err, ErrDiaryNotFound) {
 		response.Error(c, response.CodeNotFound, "日记不存在")
 		return
@@ -88,14 +90,16 @@ func (h *Handler) Get(c *gin.Context) {
 }
 
 // Comments 处理 GET /api/diaries/:id/comments，评论列表（分页）。
+// 需挂 OptionalAuth：私密日记仅作者本人可查看其评论。
 func (h *Handler) Comments(c *gin.Context) {
 	id, ok := parseID(c, "id")
 	if !ok {
 		return
 	}
+	viewerID, _ := middleware.CurrentUserID(c)
 	page, pageSize := paginate(c)
 
-	list, total, err := h.repo.ListComments(c.Request.Context(), id, page, pageSize)
+	list, total, err := h.repo.ListComments(c.Request.Context(), id, viewerID, page, pageSize)
 	if errors.Is(err, ErrDiaryNotFound) {
 		response.Error(c, response.CodeNotFound, "日记不存在")
 		return

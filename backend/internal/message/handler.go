@@ -170,6 +170,8 @@ func (h *Handler) writeCreateError(c *gin.Context, err error) bool {
 		response.Error(c, response.CodeNotFound, "消息不存在")
 	case errors.Is(err, ErrNotMember):
 		response.Error(c, response.CodeForbidden, "请先加入频道再发言")
+	case errors.Is(err, ErrInvalidEmotion):
+		response.Error(c, response.CodeValidationError, "情绪标签无效")
 	case err != nil:
 		response.Fail(c, response.CodeInternalError)
 	default:

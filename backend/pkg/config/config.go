@@ -3,11 +3,15 @@ package config
 
 import (
 	"bufio"
+	"errors"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 )
+
+// defaultJWTSecret 是开发环境的占位密钥；生产环境必须显式覆盖，否则 Validate 报错。
+const defaultJWTSecret = "alike-dev-secret-change-me"
 
 // Config 聚合应用运行所需的全部配置。
 type Config struct {
@@ -61,7 +65,7 @@ func Load() *Config {
 		RedisPassword: getEnv("REDIS_PASSWORD", ""),
 		RedisDB:       getEnvInt("REDIS_DB", 0),
 
-		JWTSecret:        getEnv("JWT_SECRET", "alike-dev-secret-change-me"),
+		JWTSecret:        getEnv("JWT_SECRET", defaultJWTSecret),
 		JWTAccessExpire:  getEnvDuration("JWT_ACCESS_TTL", 120*time.Minute),
 		JWTRefreshExpire: getEnvDuration("JWT_REFRESH_TTL", 168*time.Hour),
 
@@ -75,6 +79,20 @@ func Load() *Config {
 		UploadMaxImageBytes: int64(getEnvInt("UPLOAD_MAX_IMAGE_MB", 5)) << 20,
 		UploadMaxDocBytes:   int64(getEnvInt("UPLOAD_MAX_DOC_MB", 10)) << 20,
 	}
+}
+
+// IsProduction 报告是否运行于生产环境（APP_ENV=production）。
+func (c *Config) IsProduction() bool {
+	return strings.EqualFold(c.Env, "production")
+}
+
+// Validate 校验生产环境下的关键安全配置。
+// 生产环境若仍使用默认 JWT 密钥则返回错误——否则攻击者可用公开于源码的密钥伪造任意用户令牌。
+func (c *Config) Validate() error {
+	if c.IsProduction() && c.JWTSecret == defaultJWTSecret {
+		return errors.New("生产环境必须通过 JWT_SECRET 设置非默认密钥")
+	}
+	return nil
 }
 
 // redisAddr 优先用 REDIS_ADDR；否则由 REDIS_HOST + REDIS_PORT 组装。

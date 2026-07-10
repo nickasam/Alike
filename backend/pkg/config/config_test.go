@@ -75,3 +75,27 @@ func TestLoadDefaults(t *testing.T) {
 		t.Errorf("JWTAccessExpire = %v, want 120m", c.JWTAccessExpire)
 	}
 }
+
+// TestValidateRejectsDefaultSecretInProduction 验证生产环境使用默认 JWT 密钥时校验失败。
+func TestValidateRejectsDefaultSecretInProduction(t *testing.T) {
+	c := &Config{Env: "production", JWTSecret: defaultJWTSecret}
+	if err := c.Validate(); err == nil {
+		t.Fatal("production + default secret must fail validation")
+	}
+}
+
+// TestValidateAllowsCustomSecretInProduction 验证生产环境显式设置密钥时通过。
+func TestValidateAllowsCustomSecretInProduction(t *testing.T) {
+	c := &Config{Env: "production", JWTSecret: "a-strong-unique-secret"}
+	if err := c.Validate(); err != nil {
+		t.Fatalf("production + custom secret should pass, got %v", err)
+	}
+}
+
+// TestValidateAllowsDefaultSecretInDevelopment 验证开发环境保留默认密钥的便利性。
+func TestValidateAllowsDefaultSecretInDevelopment(t *testing.T) {
+	c := &Config{Env: "development", JWTSecret: defaultJWTSecret}
+	if err := c.Validate(); err != nil {
+		t.Fatalf("development + default secret should pass, got %v", err)
+	}
+}

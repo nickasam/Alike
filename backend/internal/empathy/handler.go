@@ -46,6 +46,9 @@ func (h *Handler) Create(c *gin.Context) {
 	case errors.Is(err, ErrMessageNotFound):
 		response.Error(c, response.CodeNotFound, "消息不存在")
 		return
+	case errors.Is(err, ErrSelfEmpathy):
+		response.Error(c, response.CodeForbidden, "不能给自己抱抱哦")
+		return
 	case errors.Is(err, ErrAlreadyEmpathized):
 		response.Error(c, response.CodeConflict, "你已经抱过啦")
 		return

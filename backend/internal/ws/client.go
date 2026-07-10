@@ -35,6 +35,7 @@ type Client struct {
 	mu       sync.Mutex
 	channels map[int64]struct{} // 已加入（订阅）的频道
 	seen     map[string]struct{} // 已处理的 client_msg_id，用于幂等去重
+	closed   bool                // send 是否已关闭，防止向已关闭 channel 发送导致 panic
 }
 
 // newClient 创建一个绑定 Hub 的客户端。
@@ -49,14 +50,32 @@ func newClient(hub *Hub, conn *websocket.Conn, userID int64) *Client {
 	}
 }
 
-// enqueue 将已编码的帧放入出站队列；队列满则返回 false（调用方应关闭连接）。
+// enqueue 将已编码的帧放入出站队列；队列满或连接已关闭则返回 false
+// （调用方应关闭连接）。持有 mu 期间发送，与 closeSend 的 close 互斥，
+// 避免向已关闭 channel 发送引发 panic。
 func (c *Client) enqueue(payload []byte) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.closed {
+		return false
+	}
 	select {
 	case c.send <- payload:
 		return true
 	default:
 		return false
 	}
+}
+
+// closeSend 幂等地关闭出站队列，之后的 enqueue 均返回 false。
+func (c *Client) closeSend() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.closed {
+		return
+	}
+	c.closed = true
+	close(c.send)
 }
 
 // sendEvent 编码并投递一个服务端事件，失败静默丢弃（连接即将关闭）。

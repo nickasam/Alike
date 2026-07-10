@@ -78,19 +78,37 @@ func (r *Repository) List(ctx context.Context, category string, page, pageSize i
 	return list, total, rows.Err()
 }
 
-// Create 插入新频道并返回完整记录。slug 唯一冲突时返回 ErrSlugConflict。
+// Create 插入新频道并将创建者登记为 admin 成员（member_count=1），返回完整记录。
+// slug 唯一冲突时返回 ErrSlugConflict。整个过程在事务中完成，保证频道与成员一致。
 func (r *Repository) Create(ctx context.Context, req CreateRequest, createdBy int64) (*Channel, error) {
-	const q = `INSERT INTO channels (name, slug, description, category, icon, status, created_by)
-		VALUES ($1, $2, $3, $4, $5, 'active', $6)
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback() //nolint:errcheck // 提交成功后回滚为 no-op
+
+	const q = `INSERT INTO channels (name, slug, description, category, icon, status, created_by, member_count)
+		VALUES ($1, $2, $3, $4, $5, 'active', $6, 1)
 		RETURNING ` + channelColumns
 
-	row := r.db.QueryRowContext(ctx, q, req.Name, req.Slug, req.Description, req.Category, req.Icon, createdBy)
+	row := tx.QueryRowContext(ctx, q, req.Name, req.Slug, req.Description, req.Category, req.Icon, createdBy)
 	ch, err := scanChannel(row)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation {
 			return nil, ErrSlugConflict
 		}
+		return nil, err
+	}
+
+	// 创建者自动加入并成为管理员，否则无法在自己的频道发言/管理。
+	if _, err := tx.ExecContext(ctx,
+		`INSERT INTO channel_members (channel_id, user_id, role) VALUES ($1, $2, 'admin')`,
+		ch.ID, createdBy); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return ch, nil

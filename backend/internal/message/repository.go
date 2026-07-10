@@ -6,6 +6,8 @@ import (
 	"errors"
 	"strconv"
 	"time"
+
+	emotionpkg "github.com/Alike/backend/internal/emotion"
 )
 
 // itoa 是 strconv.Itoa 的别名，用于拼接 SQL 占位符序号。
@@ -22,6 +24,9 @@ var ErrNotMember = errors.New("not a channel member")
 
 // ErrForbidden 表示当前用户无权操作该资源（如删除他人消息）。
 var ErrForbidden = errors.New("forbidden")
+
+// ErrInvalidEmotion 表示提供的情绪标签不在受支持集合内。
+var ErrInvalidEmotion = errors.New("invalid emotion tag")
 
 // Repository 封装 messages 表的数据库访问。
 type Repository struct {
@@ -163,17 +168,23 @@ func (r *Repository) Create(ctx context.Context, channelID int64, parentID *int6
 
 	var emotion any
 	if req.Emotion != "" {
+		if !emotionpkg.IsValid(req.Emotion) {
+			return nil, ErrInvalidEmotion
+		}
 		emotion = req.Emotion
 	}
 
 	const q = `INSERT INTO messages (channel_id, user_id, parent_id, content, emotion, is_anonymous)
 		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id, created_at`
+		RETURNING id, created_at,
+			(SELECT nickname FROM users WHERE id = $2),
+			(SELECT COALESCE(avatar_url, '') FROM users WHERE id = $2)`
 	var id int64
 	var created time.Time
+	var nickname, avatarURL string
 	if err := r.db.QueryRowContext(ctx, q,
 		channelID, userID, parentID, req.Content, emotion, req.IsAnonymous,
-	).Scan(&id, &created); err != nil {
+	).Scan(&id, &created, &nickname, &avatarURL); err != nil {
 		return nil, err
 	}
 
@@ -184,6 +195,7 @@ func (r *Repository) Create(ctx context.Context, channelID int64, parentID *int6
 		Content:     req.Content,
 		Emotion:     req.Emotion,
 		IsAnonymous: req.IsAnonymous,
+		Author:      &Author{ID: userID, Nickname: nickname, AvatarURL: avatarURL},
 		CreatedAt:   created,
 		authorID:    userID,
 	}
