@@ -7,6 +7,10 @@
  *   手机 <768        单列：侧边栏转抽屉，主内容全宽
  */
 const drawerOpen = ref(false)
+
+// 频道页用频道级实时看板；其它页面（首页等）用全站今日聚合。
+const route = useRoute()
+const globalBoard = computed(() => !route.path.startsWith('/channel/'))
 </script>
 
 <template>
@@ -34,16 +38,10 @@ const drawerOpen = ref(false)
         <slot />
       </main>
 
-      <!-- 右侧栏：仅桌面(≥1280)显示 -->
+      <!-- 右侧栏：仅桌面(≥1280)显示。首页等非频道页展示全站今日聚合。 -->
       <aside class="hidden w-aside flex-shrink-0 flex-col gap-5 xl:flex">
-        <EmotionBoard />
-        <div class="glass-card p-4">
-          <h3 class="mb-2 flex items-center gap-2 text-md font-semibold">
-            <AppIcon name="trophy" :size="18" />
-            今日牛马榜
-          </h3>
-          <p class="text-sm text-mute">榜单占位（阶段八实现）</p>
-        </div>
+        <EmotionBoard :global="globalBoard" />
+        <WarmestBoard />
       </aside>
     </div>
   </div>

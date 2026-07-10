@@ -5,11 +5,12 @@
  * - 拉取 GET /api/channels/:id/emotion-board（默认今日范围），渲染 8 种情绪分布；
  * - 订阅 WebSocket emotion_update 事件，发带情绪消息后局部实时刷新（无需重进频道）；
  * - 高亮占比最高（dominant）情绪，并给出一句话氛围概括；
- * - channelId 未提供时从路由 /channel/:id 推断；非频道页展示空态。
+ * - global 模式拉全站今日聚合 GET /api/emotion/board（首页右侧栏用）；
+ *   否则 channelId 未提供时从路由 /channel/:id 推断，非频道页展示空态。
  */
 import { useEmotions, type EmotionMeta } from '~/composables/useEmotions'
 
-const props = defineProps<{ channelId?: number; compact?: boolean }>()
+const props = defineProps<{ channelId?: number; compact?: boolean; global?: boolean }>()
 
 const api = useApi()
 const route = useRoute()
@@ -44,14 +45,16 @@ const justUpdated = ref(false)
 
 async function load() {
   const id = channelId.value
-  if (!id) {
+  if (!props.global && !id) {
     board.value = null
     return
   }
   loading.value = true
   error.value = ''
   try {
-    board.value = await api.get<Board>(`/channels/${id}/emotion-board`)
+    board.value = props.global
+      ? await api.get<Board>('/emotion/board')
+      : await api.get<Board>(`/channels/${id}/emotion-board`)
   } catch {
     error.value = '情绪看板加载失败'
     board.value = null
@@ -64,6 +67,8 @@ async function load() {
 let offEmotion: (() => void) | null = null
 function subscribe() {
   offEmotion?.()
+  // 全站模式不订阅频道级 emotion_update（会用单频道数据覆盖全站聚合）。
+  if (props.global) return
   offEmotion = ws.on<Board>('emotion_update', (data, evtChannelId) => {
     if (evtChannelId && channelId.value && evtChannelId !== channelId.value) return
     if (!data || !Array.isArray(data.emotions)) return
@@ -172,7 +177,7 @@ onBeforeUnmount(() => {
       {{ moodSummary }}
     </p>
 
-    <p v-if="!channelId" class="text-sm text-mute">进入频道查看今日情绪分布。</p>
+    <p v-if="!global && !channelId" class="text-sm text-mute">进入频道查看今日情绪分布。</p>
     <p v-else-if="loading && !board" class="text-sm text-mute">加载中…</p>
     <p v-else-if="error" class="text-sm text-danger">{{ error }}</p>
     <p v-else-if="total === 0" class="text-sm text-mute">今天还没有情绪记录，来发第一条吧。</p>
