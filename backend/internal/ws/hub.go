@@ -49,6 +49,24 @@ func (h *Hub) register(c *Client) {
 	h.mu.Unlock()
 }
 
+// Shutdown 优雅关闭 Hub：停止 Redis 订阅循环，并关闭所有在线客户端的出站队列，
+// 使各连接的 writePump 收到关闭信号后退出。幂等、并发安全。
+func (h *Hub) Shutdown() {
+	if h.pubsub != nil {
+		h.pubsub.Close()
+	}
+	h.mu.Lock()
+	clients := make([]*Client, 0, len(h.clients))
+	for c := range h.clients {
+		clients = append(clients, c)
+	}
+	h.mu.Unlock()
+
+	for _, c := range clients {
+		c.closeSend()
+	}
+}
+
 // unregister 注销客户端并清理其所有频道订阅与出站队列。
 func (h *Hub) unregister(c *Client) {
 	h.mu.Lock()

@@ -51,7 +51,7 @@ func (h *Handler) Handle(c *gin.Context) {
 	h.hub.register(client)
 	client.sendEvent(outbound(EventAuthOK, 0, map[string]any{"user_id": userID}))
 
-	go client.writePump()
+	safeGo("writePump", client.writePump)
 	client.readPump()
 }
 

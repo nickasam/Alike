@@ -43,7 +43,7 @@ func main() {
 
 	jwtMgr := jwt.NewManager(cfg.JWTSecret, cfg.JWTAccessExpire, cfg.JWTRefreshExpire)
 
-	engine := router.New(&router.Deps{
+	engine, hub := router.New(&router.Deps{
 		Cfg:   cfg,
 		DB:    db,
 		Redis: rdb,
@@ -72,6 +72,13 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+	// 先关闭 WebSocket Hub（停止 Redis 订阅循环 + 关闭所有连接出站队列），
+	// 再优雅关闭 HTTP 服务；两者都完成后 main 返回，defer 才关闭 rdb/db，
+	// 避免订阅 goroutine 在 Redis 关闭后仍读取已关闭连接。
+	if hub != nil {
+		hub.Shutdown()
+	}
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Printf("[WARN] 优雅关闭超时: %v", err)
 	}

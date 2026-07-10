@@ -37,7 +37,7 @@ func (p *PubSub) OnMessage(fn func(Envelope)) {
 func (p *PubSub) Start() {
 	sub := p.rdb.Subscribe(p.ctx, pubSubChannel)
 	ch := sub.Channel()
-	go func() {
+	safeGo("pubsub-subscribe", func() {
 		defer sub.Close()
 		for {
 			select {
@@ -53,11 +53,12 @@ func (p *PubSub) Start() {
 					continue
 				}
 				if p.handler != nil {
-					p.handler(env)
+					// 单条事件的 handler（→ deliverLocal）panic 不应终止整个订阅循环。
+					safeInvoke("pubsub-deliver", func() { p.handler(env) })
 				}
 			}
 		}
-	}()
+	})
 }
 
 // Publish 将事件发布到 Redis 频道，供所有实例（含本实例）消费。
