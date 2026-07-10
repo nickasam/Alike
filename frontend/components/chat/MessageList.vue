@@ -11,6 +11,7 @@
  */
 import { useMessageStore, type Message } from '~/stores/message'
 import { useEmotions } from '~/composables/useEmotions'
+import { useAuthStore } from '~/stores/auth'
 
 const props = defineProps<{ channelId: number }>()
 
@@ -20,6 +21,7 @@ const emit = defineEmits<{
 }>()
 
 const store = useMessageStore()
+const auth = useAuthStore()
 const { find: findEmotion } = useEmotions()
 
 const messages = computed(() => store.listOf(props.channelId))
@@ -93,6 +95,12 @@ function displayName(m: Message): string {
 function onEmpathy(m: Message, payload: { action: 'add' | 'remove' }) {
   emit('empathy', { message: m, action: payload.action })
 }
+
+/** 是否为当前用户本人发送的消息（用于右侧对齐）。
+ *  匿名消息不判为"本人"，避免在 UI 上暴露匿名身份。 */
+function isOwn(m: Message): boolean {
+  return !m.is_anonymous && !!auth.user && m.author?.id === auth.user.id
+}
 </script>
 
 <template>
@@ -125,12 +133,12 @@ function onEmpathy(m: Message, payload: { action: 'add' | 'remove' }) {
       <p class="text-sm">还没有人说话，来发第一条吧，总有人懂你的辛苦。</p>
     </div>
 
-    <!-- 消息项 -->
+    <!-- 消息项：本人消息头像置右、内容右对齐（对齐主流聊天软件） -->
     <article
       v-for="m in messages"
       :key="m.id"
       class="msg group flex gap-3"
-      :class="{ 'opacity-60': m.pending }"
+      :class="[{ 'opacity-60': m.pending }, isOwn(m) ? 'flex-row-reverse' : '']"
     >
       <!-- 头像：软删除/匿名不展示真实头像 -->
       <div
@@ -141,7 +149,7 @@ function onEmpathy(m: Message, payload: { action: 'add' | 'remove' }) {
         <template v-if="!m.is_deleted">{{ avatarChar(m) }}</template>
       </div>
 
-      <div class="min-w-0 flex-1">
+      <div class="min-w-0 flex-1" :class="isOwn(m) ? 'flex flex-col items-end' : ''">
         <!-- 软删除占位 -->
         <p
           v-if="m.is_deleted"
@@ -151,7 +159,10 @@ function onEmpathy(m: Message, payload: { action: 'add' | 'remove' }) {
         </p>
 
         <template v-else>
-          <div class="flex flex-wrap items-center gap-2">
+          <div
+            class="flex flex-wrap items-center gap-2"
+            :class="isOwn(m) ? 'flex-row-reverse' : ''"
+          >
             <span class="text-base font-semibold text-text">{{ displayName(m) }}</span>
             <span
               v-if="m.is_anonymous"
@@ -173,11 +184,17 @@ function onEmpathy(m: Message, payload: { action: 'add' | 'remove' }) {
             <span class="text-xs text-mute">{{ formatTime(m.created_at) }}</span>
           </div>
 
-          <p class="mt-1 whitespace-pre-wrap break-words text-base leading-relaxed text-dim">
+          <p
+            class="mt-1 inline-block max-w-full whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-base leading-relaxed"
+            :class="isOwn(m) ? 'bg-grad-ai text-white' : 'bg-surface-hover text-dim'"
+          >
             {{ m.content }}
           </p>
 
-          <div class="mt-2 flex flex-wrap items-center gap-3">
+          <div
+            class="mt-2 flex flex-wrap items-center gap-3"
+            :class="isOwn(m) ? 'flex-row-reverse' : ''"
+          >
             <EmpathyButton
               :count="m.empathy_count"
               :empathized="m.empathized"
