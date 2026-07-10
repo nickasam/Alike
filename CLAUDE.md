@@ -218,14 +218,17 @@ Alike/
 ### WebSocket 端点
 
 ```
-WS /ws?token=<JWT>
+WS /api/ws
 ```
 
+**鉴权：** 连接升级后，客户端须在 5s 内发送首帧 `{ "type": "auth", "data": { "token": "<JWT>" } }`。
+JWT 走消息体而非 URL query，避免泄漏到 Nginx 访问日志。鉴权成功后服务端回 `auth_ok`。
+
 **客户端 → 服务端事件：**
-- `join_channel` / `leave_channel` / `typing` / `send_message`
+- `auth` / `join_channel` / `leave_channel` / `typing` / `send_message` / `pong`
 
 **服务端 → 客户端事件：**
-- `new_message` / `thread_reply` / `empathy` / `user_joined` / `emotion_update` / `notification`
+- `auth_ok` / `new_message` / `thread_reply` / `message_deleted` / `empathy` / `user_joined` / `emotion_update` / `notification` / `error` / `ping`
 
 > 完整 API 列表见 `docs/plans/architecture-design.md` 第五章。
 
