@@ -70,7 +70,7 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	messageHandler := message.NewHandler(msgRepo, hub)
 	// 共情变更经 Hub 广播 empathy 事件，实现跨端实时同步。
 	empathyHandler := empathy.NewHandler(empathyRepo, hub)
-	wsHandler := ws.NewHandler(hub, deps.JWT)
+	wsHandler := ws.NewHandler(hub, deps.JWT, corsOrigins(deps.Cfg)...)
 
 	{
 		channels.GET("", channelHandler.List)

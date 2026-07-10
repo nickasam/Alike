@@ -2,6 +2,8 @@ package ws
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"sync"
 	"testing"
 	"time"
@@ -256,5 +258,35 @@ func TestBroadcastMessageDeletedDelivers(t *testing.T) {
 		}
 	default:
 		t.Fatal("订阅客户端未收到 message_deleted 广播")
+	}
+}
+
+// TestCheckOriginWhitelist 验证 WS 升级的来源校验：空白名单放行所有，
+// 非空白名单仅放行命中项，无 Origin 头（非浏览器客户端）一律放行。
+func TestCheckOriginWhitelist(t *testing.T) {
+	mkReq := func(origin string) *http.Request {
+		r := httptest.NewRequest(http.MethodGet, "/api/ws", nil)
+		if origin != "" {
+			r.Header.Set("Origin", origin)
+		}
+		return r
+	}
+
+	// 空白名单：全部放行。
+	hOpen := NewHandler(nil, nil)
+	if !hOpen.upgrader.CheckOrigin(mkReq("https://evil.example")) {
+		t.Fatal("空白名单应放行任意 Origin")
+	}
+
+	// 白名单模式。
+	h := NewHandler(nil, nil, "https://alike.example")
+	if !h.upgrader.CheckOrigin(mkReq("https://alike.example")) {
+		t.Fatal("白名单 Origin 应放行")
+	}
+	if h.upgrader.CheckOrigin(mkReq("https://evil.example")) {
+		t.Fatal("非白名单 Origin 应拒绝")
+	}
+	if !h.upgrader.CheckOrigin(mkReq("")) {
+		t.Fatal("无 Origin 头（非浏览器客户端）应放行")
 	}
 }

@@ -144,7 +144,7 @@ func (h *Hub) deliverLocal(evt Envelope) {
 	for _, c := range targets {
 		if !c.enqueue(b) {
 			// 出站缓冲已满：视为慢客户端，断开以释放资源。
-			go h.unregister(c)
+			safeGo("unregister-slow", func() { h.unregister(c) })
 		}
 	}
 }
@@ -173,11 +173,14 @@ func (h *Hub) BroadcastThreadReply(channelID, parentID int64, payload any) {
 
 // BroadcastEmotionUpdate 实现 message.Broadcaster：重新聚合频道情绪看板并广播。
 // 未注入 EmotionProvider 时静默跳过。聚合失败仅记日志，不影响主消息广播。
+// 聚合限时 2s，避免慢查询阻塞发送链路（HTTP 请求响应 / readPump）。
 func (h *Hub) BroadcastEmotionUpdate(channelID int64) {
 	if h.emotion == nil {
 		return
 	}
-	board, err := h.emotion.EmotionBoard(context.Background(), channelID)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	board, err := h.emotion.EmotionBoard(ctx, channelID)
 	if err != nil {
 		log.Printf("[WARN] ws: emotion board aggregate failed (channel=%d): %v", channelID, err)
 		return
