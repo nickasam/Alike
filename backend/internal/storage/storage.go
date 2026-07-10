@@ -74,8 +74,11 @@ type Store struct {
 }
 
 // New 依据配置构造 Store。返回的 Store 可能因缺少依赖而为占位（client 为 nil），
-// 调用 Upload 时会返回 ErrStorageDisabled。
+// 调用 Upload 时会返回 ErrStorageDisabled。cfg 为 nil 时返回占位 Store（禁用）。
 func New(cfg *config.Config) (*Store, error) {
+	if cfg == nil {
+		return &Store{}, nil
+	}
 	client, err := minio.New(cfg.MinIOEndpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.MinIOAccessKey, cfg.MinIOSecretKey, ""),
 		Secure: cfg.MinIOUseSSL,
@@ -117,6 +120,15 @@ func (s *Store) EnsureBucket(ctx context.Context) error {
 		return s.client.MakeBucket(ctx, s.bucket, minio.MakeBucketOptions{})
 	}
 	return nil
+}
+
+// Ping 探测 MinIO 连通性（健康检查用）。未配置或不可达返回错误。
+func (s *Store) Ping(ctx context.Context) error {
+	if s == nil || s.client == nil {
+		return ErrStorageDisabled
+	}
+	_, err := s.client.BucketExists(ctx, s.bucket)
+	return err
 }
 
 // classify 依据 MIME 返回文件大类、目标扩展名与大小上限。不支持则返回 ErrUnsupportedType。

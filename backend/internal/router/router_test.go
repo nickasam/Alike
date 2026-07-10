@@ -8,7 +8,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Alike/backend/pkg/config"
 	"github.com/Alike/backend/pkg/jwt"
 	"github.com/Alike/backend/pkg/response"
 )
@@ -17,10 +16,11 @@ func init() {
 	gin.SetMode(gin.TestMode)
 }
 
-// TestHealthEndpoint 在 DB/Redis 为 nil（不可用）时也应返回统一格式的 200。
+// TestHealthEndpoint 在依赖全部为 nil/未配置时，应返回统一格式的 200、
+// 各依赖标记 unavailable、整体 status=ok（unavailable 不判定为故障）。
 func TestHealthEndpoint(t *testing.T) {
 	engine, _ := New(&Deps{
-		Cfg: &config.Config{Env: "test"},
+		Cfg: nil, // 无配置 → MinIO store 为 nil → unavailable
 		JWT: jwt.NewManager("s", 0, 0),
 	})
 
@@ -52,5 +52,8 @@ func TestHealthEndpoint(t *testing.T) {
 	}
 	if data["redis"] != "unavailable" {
 		t.Errorf("redis = %v, want unavailable (nil redis)", data["redis"])
+	}
+	if data["minio"] != "unavailable" {
+		t.Errorf("minio = %v, want unavailable (no cfg)", data["minio"])
 	}
 }
