@@ -45,6 +45,7 @@ const paths: Record<string, string[]> = {
   moon: ['M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z'],
   menu: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
   plus: ['M12 5v14', 'M5 12h14'],
+  'chevron-down': ['M6 9l6 6 6-6'],
   'log-out': [
     'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4',
     'M16 17l5-5-5-5',

@@ -19,7 +19,8 @@ onMounted(async () => {
     const res = await api.get<{ list: Channel[] }>('/channels?page=1&page_size=6')
     const list = res?.list ?? []
     hotChannels.value = list
-    channelStore.setChannels(list)
+    // 写入独立的热门状态，避免与侧边栏全量频道互相覆盖。
+    channelStore.setHotChannels(list)
   } catch {
     hotChannels.value = []
   } finally {
@@ -30,6 +31,20 @@ onMounted(async () => {
 /** 频道名可能已含 # 前缀，去掉后由模板统一加 #，避免 ## 重复。 */
 function displayName(name: string): string {
   return name.replace(/^#/, '')
+}
+
+/** 「进入频道吐槽」目标：优先热门首个频道，其次侧边栏全量首个频道。 */
+const firstChannelId = computed<number | null>(
+  () => hotChannels.value[0]?.id ?? channelStore.channels[0]?.id ?? null,
+)
+
+/** 进入频道：有频道则跳转，否则滚动到下方热门频道区兜底。 */
+function enterChannel() {
+  if (firstChannelId.value != null) {
+    navigateTo(`/channel/${firstChannelId.value}`)
+  } else if (import.meta.client) {
+    document.getElementById('hot-channels')?.scrollIntoView({ behavior: 'smooth' })
+  }
 }
 </script>
 
@@ -44,19 +59,23 @@ function displayName(name: string): string {
         总有人懂你的辛苦，你不是一个人在扛。
       </p>
       <div class="mt-5 flex flex-wrap gap-3">
-        <button class="btn-primary px-5 py-2 text-base font-semibold">
+        <button
+          class="btn-primary px-5 py-2 text-base font-semibold"
+          @click="enterChannel"
+        >
           进入频道吐槽
         </button>
-        <button
+        <NuxtLink
+          to="/ranking"
           class="rounded-md border border-border-strong px-5 py-2 text-base text-dim transition hover:text-text"
         >
           今日牛马榜
-        </button>
+        </NuxtLink>
       </div>
     </section>
 
     <!-- 热门频道 -->
-    <section>
+    <section id="hot-channels">
       <h2 class="mb-3 flex items-center gap-2 text-lg font-semibold">
         <AppIcon name="hash" :size="20" />
         热门频道

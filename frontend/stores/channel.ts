@@ -21,14 +21,19 @@ export interface Channel {
 
 export const useChannelStore = defineStore('channel', {
   state: () => ({
+    /** 侧边栏全量频道列表 */
     channels: [] as Channel[],
+    /** 首页热门频道（独立状态，不与侧边栏全量互相覆盖） */
+    hotChannels: [] as Channel[],
     currentId: null as number | null,
     loading: false,
   }),
 
   getters: {
     current: (state) =>
-      state.channels.find((c) => c.id === state.currentId) ?? null,
+      state.channels.find((c) => c.id === state.currentId) ??
+      state.hotChannels.find((c) => c.id === state.currentId) ??
+      null,
     byCategory: (state) => (cat: ChannelCategory) =>
       state.channels.filter((c) => c.category === cat),
   },
@@ -36,6 +41,9 @@ export const useChannelStore = defineStore('channel', {
   actions: {
     setChannels(list: Channel[]) {
       this.channels = list
+    },
+    setHotChannels(list: Channel[]) {
+      this.hotChannels = list
     },
     setCurrent(id: number | null) {
       this.currentId = id
