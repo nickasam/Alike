@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"sync"
 	"testing"
+	"time"
 )
 
 // TestClientEnqueueAfterCloseNoPanic 回归测试：unregister 关闭 send channel 后，
@@ -161,4 +162,44 @@ func itoaTest(n int) string {
 		n /= 10
 	}
 	return string(buf[i:])
+}
+
+// TestSafeGoRecoversPanic 验证 safeGo 内 panic 被兜底，不会传播导致进程崩溃。
+func TestSafeGoRecoversPanic(t *testing.T) {
+	done := make(chan struct{})
+	safeGo("test-panic", func() {
+		defer close(done)
+		panic("boom")
+	})
+	select {
+	case <-done:
+		// 未 panic 到测试进程即通过（recover 生效）。
+	case <-time.After(2 * time.Second):
+		t.Fatal("safeGo goroutine 未完成")
+	}
+}
+
+// TestSafeInvokeRecoversPanic 验证 safeInvoke 同步兜底 panic。
+func TestSafeInvokeRecoversPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("safeInvoke 未兜底 panic: %v", r)
+		}
+	}()
+	safeInvoke("test", func() { panic("boom") })
+}
+
+// TestHubShutdownClosesClients 验证 Shutdown 关闭所有在线客户端出站队列（幂等）。
+func TestHubShutdownClosesClients(t *testing.T) {
+	h := NewHub(nil, nil)
+	c := newClient(h, nil, 1)
+	h.register(c)
+
+	h.Shutdown()
+	// 关闭后 enqueue 应返回 false（send 已关闭）。
+	if c.enqueue([]byte("x")) {
+		t.Fatal("Shutdown 后 enqueue 应失败")
+	}
+	// 再次 Shutdown 应幂等，不 panic。
+	h.Shutdown()
 }

@@ -17,21 +17,27 @@ import (
 	"github.com/Alike/backend/internal/ws"
 )
 
-// registerRoutes 注册各业务模块的路由分组骨架。
-// 阶段一仅搭建分组与占位 handler，具体业务在后续阶段填充。
-func registerRoutes(api *gin.RouterGroup, deps *Deps) {
+// registerRoutes 注册各业务模块的路由分组，返回 WebSocket Hub 供优雅关闭。
+func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	// 需鉴权的中间件
 	authMW := middleware.Auth(deps.JWT)
 	// 尽力而为鉴权：登录则识别本人，未登录仍放行（用于日记详情等半公开读接口）
 	optionalAuthMW := middleware.OptionalAuth(deps.JWT)
 
+	// 限流器：认证接口按 IP 严格限流（防暴力破解/注册刷号），
+	// 写接口按用户限流（防刷消息/共情）。单实例内存令牌桶。
+	authLimiter := middleware.NewLimiter(1, 10)  // 认证：~1 req/s，突发 10
+	writeLimiter := middleware.NewLimiter(5, 20) // 写操作：~5 req/s，突发 20
+	authRL := middleware.RateLimitByIP(authLimiter)
+	writeRL := middleware.RateLimitByUser(writeLimiter)
+
 	// 认证：注入 DB / JWT 依赖。
 	authHandler := auth.NewHandler(auth.NewRepository(deps.DB), deps.JWT)
 	authGroup := api.Group("/auth")
 	{
-		authGroup.POST("/register", authHandler.Register)
-		authGroup.POST("/login", authHandler.Login)
-		authGroup.POST("/refresh", authHandler.Refresh)
+		authGroup.POST("/register", authRL, authHandler.Register)
+		authGroup.POST("/login", authRL, authHandler.Login)
+		authGroup.POST("/refresh", authRL, authHandler.Refresh)
 		authGroup.POST("/logout", authHandler.Logout)
 		authGroup.GET("/me", authMW, authHandler.Me)
 	}
@@ -51,19 +57,22 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 	channels := api.Group("/channels")
 
 	// 情绪看板 + 共情：注入 DB 依赖。
-	emotionHandler := emotion.NewHandler(emotion.NewRepository(deps.DB))
+	emotionRepo := emotion.NewRepository(deps.DB)
+	emotionHandler := emotion.NewHandler(emotionRepo)
 	empathyHandler := empathy.NewHandler(empathy.NewRepository(deps.DB))
 
 	// 消息 + WebSocket：Hub 依赖 message 服务，message handler 反向依赖 Hub 广播。
 	msgRepo := message.NewRepository(deps.DB)
 	pubsub := ws.NewPubSub(deps.Redis)
 	hub := ws.NewHub(message.NewService(msgRepo), pubsub)
+	// 注入情绪看板提供者，启用 emotion_update 实时推送。
+	hub.SetEmotionProvider(emotion.NewService(emotionRepo))
 	messageHandler := message.NewHandler(msgRepo, hub)
 	wsHandler := ws.NewHandler(hub, deps.JWT)
 
 	{
 		channels.GET("", channelHandler.List)
-		channels.POST("", authMW, channelHandler.Create)
+		channels.POST("", authMW, writeRL, channelHandler.Create)
 		channels.GET("/:id", channelHandler.Get)
 		channels.POST("/:id/join", authMW, channelHandler.Join)
 		channels.POST("/:id/leave", authMW, channelHandler.Leave)
@@ -71,16 +80,16 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 		channels.GET("/:id/emotion-board", emotionHandler.Board)
 		// 频道内消息
 		channels.GET("/:id/messages", messageHandler.List)
-		channels.POST("/:id/messages", authMW, messageHandler.Create)
+		channels.POST("/:id/messages", authMW, writeRL, messageHandler.Create)
 	}
 
 	// 消息 / 线程 / 共情
 	messages := api.Group("/messages")
 	{
 		messages.GET("/:id/threads", messageHandler.Threads)
-		messages.POST("/:id/replies", authMW, messageHandler.Reply)
+		messages.POST("/:id/replies", authMW, writeRL, messageHandler.Reply)
 		messages.DELETE("/:id", authMW, messageHandler.Delete)
-		messages.POST("/:id/empathy", authMW, empathyHandler.Create)
+		messages.POST("/:id/empathy", authMW, writeRL, empathyHandler.Create)
 		messages.DELETE("/:id/empathy", authMW, empathyHandler.Delete)
 		messages.GET("/:id/empathy-users", empathyHandler.Users)
 	}
@@ -90,10 +99,10 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 	diaries := api.Group("/diaries")
 	{
 		diaries.GET("", diaryHandler.List)
-		diaries.POST("", authMW, diaryHandler.Create)
+		diaries.POST("", authMW, writeRL, diaryHandler.Create)
 		diaries.GET("/:id", optionalAuthMW, diaryHandler.Get)
 		diaries.GET("/:id/comments", optionalAuthMW, diaryHandler.Comments)
-		diaries.POST("/:id/comments", authMW, diaryHandler.CreateComment)
+		diaries.POST("/:id/comments", authMW, writeRL, diaryHandler.CreateComment)
 		diaries.GET("/streak/:user_id", diaryHandler.Streak)
 	}
 
@@ -122,9 +131,11 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) {
 	// 文件上传：MinIO 不可用时跳过路由注册。
 	if store, err := storage.New(deps.Cfg); err == nil {
 		storageHandler := storage.NewHandler(store)
-		api.POST("/upload", authMW, storageHandler.Upload)
+		api.POST("/upload", authMW, writeRL, storageHandler.Upload)
 	}
 
 	// WebSocket 端点
 	api.GET("/ws", wsHandler.Handle)
+
+	return hub
 }

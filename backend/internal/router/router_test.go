@@ -19,7 +19,7 @@ func init() {
 
 // TestHealthEndpoint 在 DB/Redis 为 nil（不可用）时也应返回统一格式的 200。
 func TestHealthEndpoint(t *testing.T) {
-	engine := New(&Deps{
+	engine, _ := New(&Deps{
 		Cfg: &config.Config{Env: "test"},
 		JWT: jwt.NewManager("s", 0, 0),
 	})

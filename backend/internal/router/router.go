@@ -9,6 +9,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/Alike/backend/internal/middleware"
+	"github.com/Alike/backend/internal/ws"
 	"github.com/Alike/backend/pkg/config"
 	"github.com/Alike/backend/pkg/jwt"
 	"github.com/Alike/backend/pkg/response"
@@ -22,8 +23,8 @@ type Deps struct {
 	JWT   *jwt.Manager
 }
 
-// New 构建并返回配置好的 Gin 引擎。
-func New(deps *Deps) *gin.Engine {
+// New 构建并返回配置好的 Gin 引擎，以及 WebSocket Hub（供优雅关闭使用；无 DB 时可能为 nil）。
+func New(deps *Deps) (*gin.Engine, *ws.Hub) {
 	if deps.Cfg != nil && deps.Cfg.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -37,9 +38,9 @@ func New(deps *Deps) *gin.Engine {
 	r.GET("/api/health", healthHandler(deps))
 
 	api := r.Group("/api")
-	registerRoutes(api, deps)
+	hub := registerRoutes(api, deps)
 
-	return r
+	return r, hub
 }
 
 // healthHandler 返回服务及依赖的健康状态。
