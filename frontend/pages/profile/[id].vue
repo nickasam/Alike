@@ -107,8 +107,14 @@ watch(userId, () => {
       <!-- 资料卡 -->
       <section class="glass-card animate-rise-in p-6">
         <div class="flex items-start gap-4">
-          <div class="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-grad-ai text-2xl font-bold text-white">
-            {{ user.nickname.charAt(0) }}
+          <div class="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-grad-ai text-2xl font-bold text-white">
+            <img
+              v-if="user.avatar_url"
+              :src="user.avatar_url"
+              :alt="user.nickname"
+              class="h-full w-full object-cover"
+            />
+            <template v-else>{{ user.nickname.charAt(0) }}</template>
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
