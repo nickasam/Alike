@@ -275,6 +275,42 @@ func (r *Repository) GetStreak(ctx context.Context, userID int64) (*Streak, erro
 	return &Streak{UserID: userID, CurrentDays: current, TotalDays: total}, nil
 }
 
+// MyStreakRank 返回某用户在连续打卡榜中的精确名次与当前连续天数。
+// 名次算法与 RankingStreak 一致（仅统计 last_day >= 昨天 的存活连续段）；
+// 若该用户当前无存活连续段（未上榜）返回 rank=0。
+func (r *Repository) MyStreakRank(ctx context.Context, userID int64) (rank, days int, err error) {
+	const q = `
+		WITH days AS (
+			SELECT user_id, DATE(created_at) AS d FROM diaries GROUP BY user_id, DATE(created_at)
+		),
+		islands AS (
+			SELECT user_id, d,
+				d - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY d))::int AS grp
+			FROM days
+		),
+		streaks AS (
+			SELECT user_id, COUNT(*) AS len, MAX(d) AS last_day
+			FROM islands GROUP BY user_id, grp
+		),
+		current AS (
+			SELECT user_id, len FROM streaks WHERE last_day >= CURRENT_DATE - 1
+		),
+		me AS (
+			SELECT len FROM current WHERE user_id = $1 ORDER BY len DESC LIMIT 1
+		)
+		SELECT
+			COALESCE((SELECT len FROM me), 0) AS my_len,
+			CASE WHEN (SELECT len FROM me) IS NULL THEN 0
+			ELSE (SELECT COUNT(*) FROM current c
+			      WHERE c.len > (SELECT len FROM me)
+			         OR (c.len = (SELECT len FROM me) AND c.user_id < $1)) + 1
+			END AS my_rank`
+	if err = r.db.QueryRowContext(ctx, q, userID).Scan(&days, &rank); err != nil {
+		return 0, 0, err
+	}
+	return rank, days, nil
+}
+
 // RankingStreak 返回连续打卡牛马榜（当前连续天数 DESC）。
 func (r *Repository) RankingStreak(ctx context.Context, limit int) ([]*RankStreak, error) {
 	const q = `

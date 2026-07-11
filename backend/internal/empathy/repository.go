@@ -235,6 +235,27 @@ func (r *Repository) RankingWarmest(ctx context.Context, limit int) ([]*RankUser
 	return r.rankUsers(ctx, q, limit)
 }
 
+// MyWarmestRank 返回某用户在最暖牛马榜（empathy_given DESC, id ASC）中的精确名次与指标。
+// 名次 = 排在其前面的用户数 + 1；若该用户 empathy_given=0（未上榜）返回 rank=0。
+func (r *Repository) MyWarmestRank(ctx context.Context, userID int64) (rank, metric int, err error) {
+	const q = `
+		SELECT
+			COALESCE(u.empathy_given, 0),
+			(SELECT COUNT(*) FROM users o
+			 WHERE o.empathy_given > 0
+			   AND (o.empathy_given > u.empathy_given
+			        OR (o.empathy_given = u.empathy_given AND o.id < u.id))) + 1
+		FROM users u WHERE u.id = $1`
+	var m, r0 int
+	if err = r.db.QueryRowContext(ctx, q, userID).Scan(&m, &r0); err != nil {
+		return 0, 0, err
+	}
+	if m <= 0 {
+		return 0, m, nil // 未上榜（给出共情数为 0）
+	}
+	return r0, m, nil
+}
+
 // RankingActive 返回本周（近 7 天）最活跃牛马榜（按未删除消息数 DESC）。
 func (r *Repository) RankingActive(ctx context.Context, limit int) ([]*RankUser, error) {
 	const q = `SELECT u.id, u.nickname, COALESCE(u.avatar_url, ''), u.level, COUNT(m.id) AS msg_count

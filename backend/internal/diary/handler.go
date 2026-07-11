@@ -166,6 +166,21 @@ func (h *Handler) RankingStreak(c *gin.Context) {
 	response.Success(c, gin.H{"list": httputil.NonNil(list)})
 }
 
+// MyStreakRank 处理 GET /api/ranking/streak/me，返回当前登录用户在连续打卡榜中的精确名次。
+func (h *Handler) MyStreakRank(c *gin.Context) {
+	uid, ok := middleware.CurrentUserID(c)
+	if !ok {
+		response.Fail(c, response.CodeUnauthorized)
+		return
+	}
+	rank, days, err := h.repo.MyStreakRank(c.Request.Context(), uid)
+	if err != nil {
+		response.Fail(c, response.CodeInternalError)
+		return
+	}
+	response.Success(c, gin.H{"rank": rank, "metric": days})
+}
+
 // listData 组装游标分页的响应结构。next_cursor 指向本页最后一条日记 ID。
 func listData(list []*Diary, hasMore bool) gin.H {
 	items := httputil.NonNil(list)

@@ -122,7 +122,9 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	{
 		ranking.GET("/empathy", empathyHandler.RankingEmpathy)
 		ranking.GET("/warmest", empathyHandler.RankingWarmest)
+		ranking.GET("/warmest/me", authMW, empathyHandler.MyWarmestRank)
 		ranking.GET("/streak", diaryHandler.RankingStreak)
+		ranking.GET("/streak/me", authMW, diaryHandler.MyStreakRank)
 		ranking.GET("/active", empathyHandler.RankingActive)
 	}
 

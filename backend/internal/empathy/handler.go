@@ -165,6 +165,21 @@ func (h *Handler) RankingWarmest(c *gin.Context) {
 	response.Success(c, gin.H{"list": httputil.NonNil(list)})
 }
 
+// MyWarmestRank 处理 GET /api/ranking/warmest/me，返回当前登录用户在最暖牛马榜中的精确名次。
+func (h *Handler) MyWarmestRank(c *gin.Context) {
+	uid, ok := middleware.CurrentUserID(c)
+	if !ok {
+		response.Fail(c, response.CodeUnauthorized)
+		return
+	}
+	rank, metric, err := h.repo.MyWarmestRank(c.Request.Context(), uid)
+	if err != nil {
+		response.Fail(c, response.CodeInternalError)
+		return
+	}
+	response.Success(c, gin.H{"rank": rank, "metric": metric})
+}
+
 // RankingActive 处理 GET /api/ranking/active，本周最活跃牛马榜。
 func (h *Handler) RankingActive(c *gin.Context) {
 	list, err := h.repo.RankingActive(c.Request.Context(), rankLimit(c))

@@ -80,7 +80,7 @@ async function load(key: TabKey) {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get<{ list: unknown[] }>(tab.path, { limit: 50 })
+    const res = await api.get<{ list: unknown[] }>(tab.path, { limit: 20 })
     cache[key] = (res.list ?? []) as never
   } catch {
     error.value = '榜单加载失败，稍后再试'
@@ -92,6 +92,7 @@ async function load(key: TabKey) {
 function switchTab(key: TabKey) {
   active.value = key
   load(key)
+  if (key === 'warmest' || key === 'streak') loadMyRank(key)
 }
 
 /** 头像首字（昵称首字符），匿名固定「匿」。 */
@@ -166,23 +167,37 @@ const podium = computed(() => rows.value.slice(0, 3))
 /** 第 4-10 名（完整榜单）。 */
 const restRows = computed(() => rows.value.slice(3, 10))
 
-/** 我的排名：仅用户榜、已登录时，在已加载列表中查找当前用户。
- *  找到返回 { rank, row }；已登录但未上榜返回 { rank: 0 }；否则 null（帖子榜/未登录）。 */
-const myRank = computed<{ rank: number; row?: RankRow } | null>(() => {
-  if (active.value === 'empathy' || !auth.user) return null
-  const uid = auth.user.id
-  const idx = rows.value.findIndex((r) => r.userId === uid)
-  if (idx === -1) return { rank: 0 }
-  return { rank: idx + 1, row: rows.value[idx] }
+/** 我的排名：仅用户榜、已登录时，向后端拉取精确名次（不受前 50 名限制）。
+ *  rank>0 上榜；rank=0 未上榜（指标为 0）。帖子榜/未登录为 null。 */
+interface MyRankResp { rank: number; metric: number }
+const myRankData = reactive<{ warmest: MyRankResp | null; streak: MyRankResp | null }>({
+  warmest: null,
+  streak: null,
 })
 
-/** 领奖台名次样式（金/银/铜）。 */
+async function loadMyRank(key: 'warmest' | 'streak') {
+  if (!auth.user || myRankData[key]) return
+  try {
+    myRankData[key] = await api.get<MyRankResp>(`/ranking/${key}/me`)
+  } catch {
+    // 拉取失败静默：不显示我的排名卡片
+  }
+}
+
+const myRank = computed<{ rank: number; metric: number } | null>(() => {
+  if (active.value === 'empathy' || !auth.user) return null
+  return myRankData[active.value]
+})
+
+/** 领奖台名次样式（金/银/铜）。数组顺序对应 podium 的 [冠,亚,季]。 */
 const podiumStyle = [
-  { order: 'order-2 md:scale-105', ring: 'border-gold/40', medal: 'bg-grad-warm text-[#3d2c00]', val: 'text-gold' }, // rank1
-  { order: 'order-1', ring: 'border-border-strong', medal: 'bg-surface-hover text-text', val: 'text-text' }, // rank2
-  { order: 'order-3', ring: 'border-warm/35', medal: 'bg-warm/20 text-warm', val: 'text-warm' }, // rank3
+  // 冠军：金 order-2 居中拔高
+  { order: 'order-2 md:scale-105', medal: 'text-[#3d2c00]', medalBg: 'linear-gradient(135deg,#fcd34d,#f59e0b)', val: 'text-gold' },
+  // 亚军：银 order-1 居左
+  { order: 'order-1', medal: 'text-[#2a2f3a]', medalBg: 'linear-gradient(135deg,#e2e8f0,#94a3b8)', val: 'text-[#cbd5e1]' },
+  // 季军：铜 order-3 居右
+  { order: 'order-3', medal: 'text-[#3a2410]', medalBg: 'linear-gradient(135deg,#f0a875,#c2703c)', val: 'text-[#e0955f]' },
 ]
-/** podium 数组按 [冠,亚,季]，渲染时映射到样式索引 [1,2,3] 名。 */
 function podStyleOf(i: number) {
   return podiumStyle[i] ?? podiumStyle[2]
 }
@@ -252,6 +267,7 @@ onMounted(() => load('empathy'))
             <span
               class="absolute -bottom-1.5 -right-1.5 grid h-7 w-7 place-items-center rounded-full text-xs font-extrabold ring-2 ring-surface-solid"
               :class="podStyleOf(i).medal"
+              :style="{ background: podStyleOf(i).medalBg }"
             >{{ i + 1 }}</span>
           </div>
           <p class="mt-3 truncate text-sm font-extrabold text-text">{{ r.name }}</p>
@@ -327,11 +343,11 @@ onMounted(() => load('empathy'))
             <span class="rounded-full bg-grad-ai px-2 py-0.5 text-xs font-extrabold text-white">就是你</span>
           </div>
           <p class="mt-0.5 text-xs text-mute">
-            {{ myRank.rank > 0 ? '继续加油，稳住名次！' : `还没进前 ${rows.length} 名，多互动就能上榜啦` }}
+            {{ myRank.rank > 0 ? '继续加油，稳住名次！' : '还没上榜，多互动就能冲榜啦' }}
           </p>
         </div>
-        <span v-if="myRank.row" class="flex shrink-0 flex-col items-end">
-          <span class="text-lg font-extrabold" :class="active === 'streak' ? 'text-warm' : 'text-empathy'">{{ myRank.row.metric }}</span>
+        <span v-if="myRank.rank > 0" class="flex shrink-0 flex-col items-end">
+          <span class="text-lg font-extrabold" :class="active === 'streak' ? 'text-warm' : 'text-empathy'">{{ myRank.metric }}</span>
           <span class="text-xs text-mute">{{ activeUnit }}</span>
         </span>
       </div>
