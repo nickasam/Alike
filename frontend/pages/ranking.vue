@@ -177,8 +177,14 @@ onMounted(() => load('empathy'))
               class="grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold"
               :class="rankClass(i)"
             >{{ i + 1 }}</span>
-            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-grad-ai text-sm font-semibold text-white">
-              {{ avatarChar(u.nickname) }}
+            <div class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-md bg-grad-ai text-sm font-semibold text-white">
+              <img
+                v-if="u.avatar_url"
+                :src="u.avatar_url"
+                :alt="u.nickname"
+                class="h-full w-full object-cover"
+              />
+              <template v-else>{{ avatarChar(u.nickname) }}</template>
             </div>
             <div class="min-w-0 flex-1">
               <p class="truncate text-sm font-semibold text-text">{{ u.nickname }}</p>
@@ -200,8 +206,14 @@ onMounted(() => load('empathy'))
               class="grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold"
               :class="rankClass(i)"
             >{{ i + 1 }}</span>
-            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-grad-ai text-sm font-semibold text-white">
-              {{ avatarChar(u.nickname) }}
+            <div class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-md bg-grad-ai text-sm font-semibold text-white">
+              <img
+                v-if="u.avatar_url"
+                :src="u.avatar_url"
+                :alt="u.nickname"
+                class="h-full w-full object-cover"
+              />
+              <template v-else>{{ avatarChar(u.nickname) }}</template>
             </div>
             <div class="min-w-0 flex-1">
               <p class="truncate text-sm font-semibold text-text">{{ u.nickname }}</p>
