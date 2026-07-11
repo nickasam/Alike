@@ -20,7 +20,7 @@ func init() {
 // newHandler 构造 repo 为 nil 的 handler，仅用于在触达数据库前
 // 就返回的用例（鉴权、参数校验、路径参数解析）。
 func newHandler() *Handler {
-	return NewHandler(nil, nil, nil)
+	return NewHandler(nil, nil, nil, nil)
 }
 
 func invoke(h gin.HandlerFunc, method, target, body string, prep func(*gin.Context)) (int, response.Body) {

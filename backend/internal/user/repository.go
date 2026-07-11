@@ -42,6 +42,30 @@ func (r *Repository) GetByID(ctx context.Context, id int64) (*User, error) {
 	return u, nil
 }
 
+// IDsByNicknames 返回昵称精确匹配 names 中任一项的用户 ID（去重）。
+// 用于 @提及解析：昵称非唯一，同名多人会各自返回一次。names 为空时返回空切片。
+func (r *Repository) IDsByNicknames(ctx context.Context, names []string) ([]int64, error) {
+	if len(names) == 0 {
+		return nil, nil
+	}
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT id FROM users WHERE nickname = ANY($1)`, names)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
 // Update 按请求中提供的字段更新用户资料并返回更新后的记录。
 // 未提供的字段保持不变；总是刷新 updated_at。不存在返回 ErrUserNotFound。
 func (r *Repository) Update(ctx context.Context, id int64, req UpdateRequest) (*User, error) {

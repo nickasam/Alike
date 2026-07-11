@@ -46,7 +46,8 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	}
 
 	// 用户：注入 DB 依赖。
-	userHandler := user.NewHandler(user.NewRepository(deps.DB))
+	userRepo := user.NewRepository(deps.DB)
+	userHandler := user.NewHandler(userRepo)
 	users := api.Group("/users")
 	{
 		users.GET("/:id", userHandler.Get)
@@ -75,7 +76,7 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	hub.SetEmotionProvider(emotion.NewService(emotionRepo))
 	// 通知服务：写库 + 经 Hub 向目标用户实时推送（NotifyUser）。
 	notifier := notification.NewService(notificationRepo, hub)
-	messageHandler := message.NewHandler(msgRepo, hub, notifier)
+	messageHandler := message.NewHandler(msgRepo, hub, notifier, userRepo)
 	// 共情变更经 Hub 广播 empathy 事件，实现跨端实时同步。
 	empathyHandler := empathy.NewHandler(empathyRepo, hub, notifier)
 	wsHandler := ws.NewHandler(hub, deps.JWT, corsOrigins(deps.Cfg)...)

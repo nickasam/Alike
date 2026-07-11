@@ -4,6 +4,7 @@ package message
 import (
 	"context"
 	"errors"
+	"regexp"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -35,17 +36,23 @@ type Notifier interface {
 	Create(ctx context.Context, userID int64, typ, content string, refID *int64) error
 }
 
+// MentionResolver 将 @昵称 列表解析为用户 ID，由 user.Repository 实现（可为 nil）。
+type MentionResolver interface {
+	IDsByNicknames(ctx context.Context, names []string) ([]int64, error)
+}
+
 // Handler 承载 message 模块的依赖。
 type Handler struct {
-	repo *Repository
-	bc   Broadcaster
-	notif Notifier
+	repo    *Repository
+	bc      Broadcaster
+	notif   Notifier
+	mention MentionResolver
 }
 
 // NewHandler 创建 message handler。bc 可为 nil（WebSocket 不可用时仅落库不广播）；
-// notif 可为 nil（不写通知）。
-func NewHandler(repo *Repository, bc Broadcaster, notif Notifier) *Handler {
-	return &Handler{repo: repo, bc: bc, notif: notif}
+// notif / mention 可为 nil（不写通知 / 不解析 @提及）。
+func NewHandler(repo *Repository, bc Broadcaster, notif Notifier, mention MentionResolver) *Handler {
+	return &Handler{repo: repo, bc: bc, notif: notif, mention: mention}
 }
 
 // List 处理 GET /api/channels/:id/messages，游标分页返回主消息。
@@ -100,6 +107,7 @@ func (h *Handler) Create(c *gin.Context) {
 			h.bc.BroadcastEmotionUpdate(channelID)
 		}
 	}
+	h.notifyMentions(c, req.Content, uid, msg.ID)
 	response.Success(c, msg)
 }
 
@@ -152,6 +160,7 @@ func (h *Handler) Reply(c *gin.Context) {
 		h.bc.BroadcastThreadReply(msg.ChannelID, parentID, msg)
 	}
 	h.notifyReply(c, parentID, uid)
+	h.notifyMentions(c, req.Content, uid, msg.ID)
 	response.Success(c, msg)
 }
 
@@ -167,6 +176,44 @@ func (h *Handler) notifyReply(c *gin.Context, parentID, replierID int64) {
 	refID := parentID
 	_ = h.notif.Create(c.Request.Context(), authorID, notification.TypeReply,
 		"有人回复了你的心声", &refID)
+}
+
+// mentionRe 提取 @昵称：@ 后到空白/@ 之前的连续非空白字符（含中英文），
+// 需以空白或串首为界，避免匹配邮箱等中间的 @。
+var mentionRe = regexp.MustCompile(`(?:^|\s)@([^\s@]{1,100})`)
+
+// notifyMentions 解析内容中的 @昵称，给精确匹配到的用户发提及通知
+// （不通知自己；同名多人各发一条；fire-and-forget）。
+func (h *Handler) notifyMentions(c *gin.Context, content string, senderID, msgID int64) {
+	if h.notif == nil || h.mention == nil {
+		return
+	}
+	matches := mentionRe.FindAllStringSubmatch(content, -1)
+	if len(matches) == 0 {
+		return
+	}
+	seen := make(map[string]struct{})
+	names := make([]string, 0, len(matches))
+	for _, m := range matches {
+		name := m[1]
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		seen[name] = struct{}{}
+		names = append(names, name)
+	}
+	ids, err := h.mention.IDsByNicknames(c.Request.Context(), names)
+	if err != nil {
+		return
+	}
+	refID := msgID
+	for _, id := range ids {
+		if id == senderID {
+			continue // 不通知 @自己
+		}
+		_ = h.notif.Create(c.Request.Context(), id, notification.TypeMention,
+			"有人在心声里 @了你", &refID)
+	}
 }
 
 // Delete 处理 DELETE /api/messages/:id，软删除（需登录 + 作者或频道管理员）。
