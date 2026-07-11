@@ -192,7 +192,9 @@ export const useMessageStore = defineStore('message', {
       this.addThreadReply(payload.parent_id, payload.reply)
     },
 
-    /** 同步某父消息的 reply_count（+1），并更新线程面板父引用。 */
+    /** 同步某父消息的 reply_count（+1），并更新线程面板父引用。
+     *  注意 threadParent 常与列表中的父消息是同一对象引用（openThread 直接传入列表项），
+     *  故仅当二者为不同对象时才对 threadParent 补加，避免同一条消息被 +2。 */
     bumpReplyCount(parentId: number) {
       const ch = this.byChannel[this.threadParent?.channel_id ?? -1]
       const target =
@@ -201,7 +203,7 @@ export const useMessageStore = defineStore('message', {
           .flatMap((c) => c.list)
           .find((m) => m.id === parentId)
       if (target) target.reply_count += 1
-      if (this.threadParent?.id === parentId) {
+      if (this.threadParent?.id === parentId && this.threadParent !== target) {
         this.threadParent.reply_count += 1
       }
     },
