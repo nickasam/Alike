@@ -194,13 +194,13 @@ const myRank = computed<{ rank: number; metric: number } | null>(() => {
 const podiumStyle = [
   // 冠军：金 order-2 居中拔高
   { order: 'order-2 md:scale-105', medal: 'text-[#3d2c00]', medalBg: 'linear-gradient(135deg,#fcd34d,#f59e0b)', val: 'text-gold',
-    cardBg: 'linear-gradient(180deg,rgba(251,191,36,.16),rgba(26,34,54,.6))', border: 'rgba(251,191,36,.4)' },
+    cardBg: 'linear-gradient(180deg,rgba(251,191,36,.16),var(--surface))', border: 'rgba(251,191,36,.4)' },
   // 亚军：银 order-1 居左
   { order: 'order-1', medal: 'text-[#2a2f3a]', medalBg: 'linear-gradient(135deg,#e2e8f0,#94a3b8)', val: 'text-[#cbd5e1]',
-    cardBg: 'linear-gradient(180deg,rgba(203,213,225,.16),rgba(26,34,54,.6))', border: 'rgba(203,213,225,.35)' },
+    cardBg: 'linear-gradient(180deg,rgba(148,163,184,.18),var(--surface))', border: 'rgba(148,163,184,.4)' },
   // 季军：铜 order-3 居右
   { order: 'order-3', medal: 'text-[#3a2410]', medalBg: 'linear-gradient(135deg,#f0a875,#c2703c)', val: 'text-[#e0955f]',
-    cardBg: 'linear-gradient(180deg,rgba(224,149,95,.16),rgba(26,34,54,.6))', border: 'rgba(224,149,95,.35)' },
+    cardBg: 'linear-gradient(180deg,rgba(224,149,95,.18),var(--surface))', border: 'rgba(224,149,95,.4)' },
 ]
 function podStyleOf(i: number) {
   return podiumStyle[i] ?? podiumStyle[2]
