@@ -8,10 +8,12 @@
  * - 共情按钮（EmpathyButton）经 POST/DELETE /api/diaries/:id/empathy 真实增删。
  */
 import { useAuthStore } from '~/stores/auth'
+import { useEmotions } from '~/composables/useEmotions'
 
 const route = useRoute()
 const api = useApi()
 const authStore = useAuthStore()
+const { resolve: resolveEmotion } = useEmotions()
 
 const diaryId = computed(() => Number(route.params.id))
 
@@ -204,7 +206,26 @@ watch(diaryId, () => {
         <div class="flex items-start justify-between gap-2">
           <h1 class="text-xl font-bold text-text">{{ diary.title || '无题日记' }}</h1>
           <span
-            v-if="diary.mood"
+            v-if="resolveEmotion(diary.mood)"
+            class="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+            :style="{ background: resolveEmotion(diary.mood)!.bg, color: resolveEmotion(diary.mood)!.color }"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-3 w-3 shrink-0"
+              aria-hidden="true"
+            >
+              <path v-for="(p, i) in resolveEmotion(diary.mood)!.icon" :key="i" :d="p" />
+            </svg>
+            {{ resolveEmotion(diary.mood)!.label }}
+          </span>
+          <span
+            v-else-if="diary.mood"
             class="shrink-0 rounded-full bg-warm/15 px-2 py-0.5 text-xs font-medium text-warm"
           >{{ diary.mood }}</span>
         </div>

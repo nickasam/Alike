@@ -166,11 +166,11 @@ onBeforeUnmount(() => {
     <!-- 氛围概括 -->
     <p
       v-if="moodSummary"
-      class="mb-3 flex items-center gap-1.5 text-xs text-dim"
+      class="mb-3 flex flex-wrap items-center gap-1.5 text-xs text-dim"
     >
       <span
         v-if="dominantMeta"
-        class="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-medium"
+        class="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-1.5 py-0.5 font-medium"
         :style="{ background: dominantMeta.bg, color: dominantMeta.color }"
         ><svg
           viewBox="0 0 24 24"

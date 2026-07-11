@@ -13,7 +13,7 @@ useHead({ title: '日记广场 · Alike' })
 
 const api = useApi()
 const authStore = useAuthStore()
-const { emotions } = useEmotions()
+const { emotions, resolve: resolveEmotion } = useEmotions()
 
 interface Author {
   id: number
@@ -169,7 +169,26 @@ onMounted(loadMore)
         <div class="flex items-center justify-between gap-2">
           <h2 class="truncate text-md font-semibold text-text">{{ d.title || '无题日记' }}</h2>
           <span
-            v-if="d.mood"
+            v-if="resolveEmotion(d.mood)"
+            class="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+            :style="{ background: resolveEmotion(d.mood)!.bg, color: resolveEmotion(d.mood)!.color }"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-3 w-3 shrink-0"
+              aria-hidden="true"
+            >
+              <path v-for="(p, i) in resolveEmotion(d.mood)!.icon" :key="i" :d="p" />
+            </svg>
+            {{ resolveEmotion(d.mood)!.label }}
+          </span>
+          <span
+            v-else-if="d.mood"
             class="shrink-0 rounded-full bg-warm/15 px-2 py-0.5 text-xs font-medium text-warm"
           >{{ d.mood }}</span>
         </div>
@@ -241,13 +260,13 @@ onMounted(loadMore)
             :key="m.key"
             type="button"
             class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition"
-            :style="form.mood === m.label
+            :style="form.mood === m.key
               ? { background: m.bg, color: m.color, borderColor: m.color }
               : {}"
-            :class="form.mood === m.label
+            :class="form.mood === m.key
               ? ''
               : 'border-border text-dim hover:text-text'"
-            @click="form.mood = form.mood === m.label ? '' : m.label"
+            @click="form.mood = form.mood === m.key ? '' : m.key"
           >
             <svg
               viewBox="0 0 24 24"
