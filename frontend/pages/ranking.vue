@@ -4,21 +4,24 @@
  *   最受共情榜 GET /api/ranking/empathy（帖子榜，条目为消息）
  *   最暖牛马榜 GET /api/ranking/warmest（用户榜，指标=被共情数）
  *   连续打卡榜 GET /api/ranking/streak（用户榜，指标=连续天数）
- * 切换 Tab 时惰性加载对应数据并缓存，Top 20 列表展示排名/头像/昵称/数值。
+ * 展示：前三名领奖台 + 完整榜单前 10 名 + 我的排名（仅用户榜，在已加载列表中查找）。
+ * 切换 Tab 时惰性加载对应数据并缓存。
  */
 import { useEmotions } from '~/composables/useEmotions'
+import { useAuthStore } from '~/stores/auth'
 
 useHead({ title: '排行榜 · Alike' })
 
 const api = useApi()
+const auth = useAuthStore()
 const { find: findEmotion } = useEmotions()
 
 type TabKey = 'empathy' | 'warmest' | 'streak'
 
-const tabs: { key: TabKey; label: string; path: string; unit: string }[] = [
-  { key: 'empathy', label: '最受共情榜', path: '/ranking/empathy', unit: '共情' },
-  { key: 'warmest', label: '最暖牛马榜', path: '/ranking/warmest', unit: '被共情' },
-  { key: 'streak', label: '连续打卡榜', path: '/ranking/streak', unit: '天' },
+const tabs: { key: TabKey; label: string; path: string; unit: string; icon: string }[] = [
+  { key: 'empathy', label: '最受共情榜', path: '/ranking/empathy', unit: '共情', icon: 'heart-handshake' },
+  { key: 'warmest', label: '最暖牛马榜', path: '/ranking/warmest', unit: '被共情', icon: 'trophy' },
+  { key: 'streak', label: '连续打卡榜', path: '/ranking/streak', unit: '连续打卡', icon: 'sparkles' },
 ]
 
 interface RankMessage {
@@ -45,6 +48,22 @@ interface RankStreak {
   days: number
 }
 
+/** 归一化后的榜单行，供领奖台 / 列表 / 我的排名统一渲染。 */
+interface RankRow {
+  key: string | number
+  name: string
+  sub: string
+  emotion?: string
+  avatarUrl: string
+  avatarChar: string
+  level: number | null
+  metric: number
+  unit: string
+  link: string
+  /** 关联用户 id（用户榜有；帖子榜匿名则无），用于「我的排名」匹配 */
+  userId: number | null
+}
+
 const active = ref<TabKey>('empathy')
 const loading = ref(false)
 const error = ref('')
@@ -61,7 +80,7 @@ async function load(key: TabKey) {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get<{ list: unknown[] }>(tab.path, { limit: 20 })
+    const res = await api.get<{ list: unknown[] }>(tab.path, { limit: 50 })
     cache[key] = (res.list ?? []) as never
   } catch {
     error.value = '榜单加载失败，稍后再试'
@@ -93,11 +112,79 @@ function levelClass(level: number): string {
   if (level >= 3) return 'bg-warm/15 text-warm'
   return 'bg-empathy-soft text-empathy'
 }
-/** 每个 Tab 的指标图标名（AppIcon）。 */
-function tabIcon(key: TabKey): string {
-  if (key === 'empathy') return 'heart-handshake'
-  if (key === 'warmest') return 'trophy'
-  return 'sparkles'
+
+/** 当前 Tab 单位文案。 */
+const activeUnit = computed(() => tabs.find((t) => t.key === active.value)!.unit)
+
+/** 将各 Tab 的缓存归一化为统一行结构。 */
+const rows = computed<RankRow[]>(() => {
+  if (active.value === 'empathy') {
+    return (cache.empathy ?? []).map((m) => ({
+      key: m.message_id,
+      name: m.is_anonymous ? '匿名牛马' : (m.author?.nickname ?? '牛马'),
+      sub: m.content,
+      emotion: m.emotion,
+      avatarUrl: m.is_anonymous ? '' : (m.author?.avatar_url ?? ''),
+      avatarChar: avatarChar(m.author?.nickname ?? '', m.is_anonymous),
+      level: null,
+      metric: m.empathy_count,
+      unit: '共情',
+      link: `/channel/${m.channel_id}`,
+      userId: m.is_anonymous ? null : (m.author?.id ?? null),
+    }))
+  }
+  if (active.value === 'warmest') {
+    return (cache.warmest ?? []).map((u) => ({
+      key: u.user_id,
+      name: u.nickname,
+      sub: `Lv.${u.level} 牛马`,
+      avatarUrl: u.avatar_url,
+      avatarChar: avatarChar(u.nickname),
+      level: u.level,
+      metric: u.metric,
+      unit: '被共情',
+      link: `/profile/${u.user_id}`,
+      userId: u.user_id,
+    }))
+  }
+  return (cache.streak ?? []).map((u) => ({
+    key: u.user_id,
+    name: u.nickname,
+    sub: `Lv.${u.level} 牛马`,
+    avatarUrl: u.avatar_url,
+    avatarChar: avatarChar(u.nickname),
+    level: u.level,
+    metric: u.days,
+    unit: '连续打卡',
+    link: `/profile/${u.user_id}`,
+    userId: u.user_id,
+  }))
+})
+
+/** 前三名（领奖台，按 亚/冠/季 顺序在模板里排布）。 */
+const podium = computed(() => rows.value.slice(0, 3))
+/** 第 4-10 名（完整榜单）。 */
+const restRows = computed(() => rows.value.slice(3, 10))
+
+/** 我的排名：仅用户榜、已登录时，在已加载列表中查找当前用户。
+ *  找到返回 { rank, row }；已登录但未上榜返回 { rank: 0 }；否则 null（帖子榜/未登录）。 */
+const myRank = computed<{ rank: number; row?: RankRow } | null>(() => {
+  if (active.value === 'empathy' || !auth.user) return null
+  const uid = auth.user.id
+  const idx = rows.value.findIndex((r) => r.userId === uid)
+  if (idx === -1) return { rank: 0 }
+  return { rank: idx + 1, row: rows.value[idx] }
+})
+
+/** 领奖台名次样式（金/银/铜）。 */
+const podiumStyle = [
+  { order: 'order-2 md:scale-105', ring: 'border-gold/40', medal: 'bg-grad-warm text-[#3d2c00]', val: 'text-gold' }, // rank1
+  { order: 'order-1', ring: 'border-border-strong', medal: 'bg-surface-hover text-text', val: 'text-text' }, // rank2
+  { order: 'order-3', ring: 'border-warm/35', medal: 'bg-warm/20 text-warm', val: 'text-warm' }, // rank3
+]
+/** podium 数组按 [冠,亚,季]，渲染时映射到样式索引 [1,2,3] 名。 */
+function podStyleOf(i: number) {
+  return podiumStyle[i] ?? podiumStyle[2]
 }
 
 onMounted(() => load('empathy'))
@@ -128,133 +215,126 @@ onMounted(() => load('empathy'))
           : 'glass-card !rounded-full text-dim hover:-translate-y-0.5 hover:text-text'"
         @click="switchTab(t.key)"
       >
-        <AppIcon :name="tabIcon(t.key)" :size="16" />
+        <AppIcon :name="t.icon" :size="16" />
         {{ t.label }}
       </button>
     </div>
 
-    <div class="glass-card overflow-hidden">
-      <p v-if="loading" class="py-10 text-center text-sm text-mute">加载中…</p>
-      <p v-else-if="error" class="py-10 text-center text-sm text-danger">{{ error }}</p>
+    <p v-if="loading" class="glass-card py-10 text-center text-sm text-mute">加载中…</p>
+    <p v-else-if="error" class="glass-card py-10 text-center text-sm text-danger">{{ error }}</p>
+    <p v-else-if="!rows.length" class="glass-card py-10 text-center text-sm text-mute">
+      还没有上榜的{{ active === 'empathy' ? '心声' : '牛马' }}。
+    </p>
 
-      <!-- 最受共情榜（帖子） -->
-      <ul v-else-if="active === 'empathy'" class="flex flex-col">
-        <li v-if="!cache.empathy?.length" class="py-10 text-center text-sm text-mute">
-          还没有上榜的心声。
-        </li>
+    <template v-else>
+      <!-- 领奖台：前三名（顺序 亚-冠-季，冠军居中拔高） -->
+      <div class="flex items-end justify-center gap-3 md:gap-4">
         <NuxtLink
-          v-for="(m, i) in cache.empathy ?? []"
-          :key="m.message_id"
-          :to="`/channel/${m.channel_id}`"
+          v-for="(r, i) in podium"
+          :key="r.key"
+          :to="r.link"
+          class="glass-card relative flex flex-1 flex-col items-center px-3 pb-5 pt-6 text-center"
+          :class="podStyleOf(i).order"
+          style="max-width:200px"
+        >
+          <!-- 冠军皇冠 -->
+          <AppIcon
+            v-if="i === 0"
+            name="trophy"
+            :size="26"
+            class="absolute -top-3 left-1/2 -translate-x-1/2 text-gold drop-shadow-[0_2px_8px_rgba(251,191,36,.5)]"
+          />
+          <div class="relative">
+            <div class="grid h-16 w-16 place-items-center overflow-hidden rounded-xl bg-grad-ai text-xl font-extrabold text-white shadow-md">
+              <img v-if="r.avatarUrl" :src="r.avatarUrl" :alt="r.name" class="h-full w-full object-cover" />
+              <template v-else>{{ r.avatarChar }}</template>
+            </div>
+            <span
+              class="absolute -bottom-1.5 -right-1.5 grid h-7 w-7 place-items-center rounded-full text-xs font-extrabold ring-2 ring-surface-solid"
+              :class="podStyleOf(i).medal"
+            >{{ i + 1 }}</span>
+          </div>
+          <p class="mt-3 truncate text-sm font-extrabold text-text">{{ r.name }}</p>
+          <span
+            v-if="r.level !== null"
+            class="mt-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold"
+            :class="levelClass(r.level)"
+          >{{ levelLabel(r.level) }}</span>
+          <p class="mt-2.5 text-2xl font-extrabold leading-none" :class="podStyleOf(i).val">{{ r.metric }}</p>
+          <p class="mt-1 text-xs text-mute">{{ r.unit }}</p>
+        </NuxtLink>
+      </div>
+
+      <!-- 完整榜单：第 4-10 名 -->
+      <div class="glass-card overflow-hidden">
+        <div class="flex items-center gap-2 border-b border-border px-5 py-3.5 text-sm font-bold">
+          <AppIcon name="trophy" :size="16" class="text-ai-2" />
+          完整榜单 · {{ tabs.find((t) => t.key === active)!.label }}
+        </div>
+        <p v-if="!restRows.length" class="py-8 text-center text-xs text-mute">
+          仅有前三名上榜。
+        </p>
+        <NuxtLink
+          v-for="(r, i) in restRows"
+          :key="r.key"
+          :to="r.link"
           class="flex items-center gap-3.5 border-b border-border px-5 py-3.5 transition last:border-b-0 hover:bg-surface-hover"
         >
-          <span
-            class="w-8 shrink-0 text-center text-md font-extrabold"
-            :class="i < 3 ? 'text-warm' : 'text-mute'"
-          >{{ i + 1 }}</span>
+          <span class="w-8 shrink-0 text-center text-md font-extrabold text-mute">{{ i + 4 }}</span>
+          <div class="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-md bg-grad-ai text-md font-bold text-white">
+            <img v-if="r.avatarUrl" :src="r.avatarUrl" :alt="r.name" class="h-full w-full object-cover" />
+            <template v-else>{{ r.avatarChar }}</template>
+          </div>
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="text-sm font-bold text-text">
-                {{ m.is_anonymous ? '匿名牛马' : (m.author?.nickname ?? '牛马') }}
-              </span>
+              <span class="truncate text-sm font-bold text-text">{{ r.name }}</span>
               <span
-                v-if="findEmotion(m.emotion)"
+                v-if="r.level !== null"
+                class="rounded-full px-2 py-0.5 text-xs font-bold"
+                :class="levelClass(r.level)"
+              >{{ levelLabel(r.level) }}</span>
+              <span
+                v-else-if="findEmotion(r.emotion)"
                 class="rounded-full px-2 py-0.5 text-xs font-medium"
-                :style="{ background: findEmotion(m.emotion)!.bg, color: findEmotion(m.emotion)!.color }"
-              >{{ findEmotion(m.emotion)!.label }}</span>
+                :style="{ background: findEmotion(r.emotion)!.bg, color: findEmotion(r.emotion)!.color }"
+              >{{ findEmotion(r.emotion)!.label }}</span>
             </div>
-            <p class="mt-0.5 truncate text-xs text-mute">{{ m.content }}</p>
+            <p class="mt-0.5 truncate text-xs text-mute">{{ r.sub }}</p>
           </div>
           <span class="flex shrink-0 flex-col items-end">
-            <span class="text-lg font-extrabold text-empathy">{{ m.empathy_count }}</span>
-            <span class="flex items-center gap-1 text-xs text-mute">
-              <AppIcon name="heart-handshake" :size="12" />共情
-            </span>
+            <span class="text-lg font-extrabold" :class="active === 'streak' ? 'text-warm' : 'text-empathy'">{{ r.metric }}</span>
+            <span class="text-xs text-mute">{{ r.unit }}</span>
           </span>
         </NuxtLink>
-      </ul>
+      </div>
 
-      <!-- 最暖牛马榜 / 连续打卡榜（用户） -->
-      <ul v-else class="flex flex-col">
-        <li
-          v-if="active === 'warmest' ? !cache.warmest?.length : !cache.streak?.length"
-          class="py-10 text-center text-sm text-mute"
-        >
-          还没有上榜的牛马。
-        </li>
-        <template v-if="active === 'warmest'">
-          <NuxtLink
-            v-for="(u, i) in cache.warmest ?? []"
-            :key="u.user_id"
-            :to="`/profile/${u.user_id}`"
-            class="flex items-center gap-3.5 border-b border-border px-5 py-3.5 transition last:border-b-0 hover:bg-surface-hover"
-          >
-            <span
-              class="w-8 shrink-0 text-center text-md font-extrabold"
-              :class="i < 3 ? 'text-warm' : 'text-mute'"
-            >{{ i + 1 }}</span>
-            <div class="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-md bg-grad-ai text-md font-bold text-white">
-              <img
-                v-if="u.avatar_url"
-                :src="u.avatar_url"
-                :alt="u.nickname"
-                class="h-full w-full object-cover"
-              />
-              <template v-else>{{ avatarChar(u.nickname) }}</template>
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="truncate text-sm font-bold text-text">{{ u.nickname }}</span>
-                <span class="rounded-full px-2 py-0.5 text-xs font-bold" :class="levelClass(u.level)">
-                  {{ levelLabel(u.level) }}
-                </span>
-              </div>
-              <p class="mt-0.5 text-xs text-mute">Lv.{{ u.level }} 牛马</p>
-            </div>
-            <span class="flex shrink-0 flex-col items-end">
-              <span class="text-lg font-extrabold text-empathy">{{ u.metric }}</span>
-              <span class="flex items-center gap-1 text-xs text-mute">
-                <AppIcon name="heart-handshake" :size="12" />被共情
-              </span>
-            </span>
-          </NuxtLink>
-        </template>
-        <template v-else>
-          <NuxtLink
-            v-for="(u, i) in cache.streak ?? []"
-            :key="u.user_id"
-            :to="`/profile/${u.user_id}`"
-            class="flex items-center gap-3.5 border-b border-border px-5 py-3.5 transition last:border-b-0 hover:bg-surface-hover"
-          >
-            <span
-              class="w-8 shrink-0 text-center text-md font-extrabold"
-              :class="i < 3 ? 'text-warm' : 'text-mute'"
-            >{{ i + 1 }}</span>
-            <div class="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-md bg-grad-ai text-md font-bold text-white">
-              <img
-                v-if="u.avatar_url"
-                :src="u.avatar_url"
-                :alt="u.nickname"
-                class="h-full w-full object-cover"
-              />
-              <template v-else>{{ avatarChar(u.nickname) }}</template>
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="truncate text-sm font-bold text-text">{{ u.nickname }}</span>
-                <span class="rounded-full px-2 py-0.5 text-xs font-bold" :class="levelClass(u.level)">
-                  {{ levelLabel(u.level) }}
-                </span>
-              </div>
-              <p class="mt-0.5 text-xs text-mute">Lv.{{ u.level }} 牛马</p>
-            </div>
-            <span class="flex shrink-0 flex-col items-end">
-              <span class="text-lg font-extrabold text-warm">{{ u.days }}</span>
-              <span class="text-xs text-mute">连续打卡</span>
-            </span>
-          </NuxtLink>
-        </template>
-      </ul>
-    </div>
+      <!-- 我的排名（仅用户榜、已登录时展示） -->
+      <div
+        v-if="myRank"
+        class="flex items-center gap-3.5 rounded-lg border border-dashed border-ai-1 px-5 py-4"
+        style="background:linear-gradient(135deg,rgba(99,102,241,.12),var(--glass-bg))"
+      >
+        <span class="w-10 shrink-0 text-center text-md font-extrabold text-ai-1">
+          {{ myRank.rank > 0 ? `#${myRank.rank}` : '—' }}
+        </span>
+        <div class="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-md bg-grad-warm text-md font-bold text-white">
+          <img v-if="auth.user?.avatar_url" :src="auth.user.avatar_url" :alt="auth.user?.nickname" class="h-full w-full object-cover" />
+          <template v-else>{{ avatarChar(auth.user?.nickname ?? '') }}</template>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="truncate text-sm font-bold text-text">{{ auth.user?.nickname }}</span>
+            <span class="rounded-full bg-grad-ai px-2 py-0.5 text-xs font-extrabold text-white">就是你</span>
+          </div>
+          <p class="mt-0.5 text-xs text-mute">
+            {{ myRank.rank > 0 ? '继续加油，稳住名次！' : `还没进前 ${rows.length} 名，多互动就能上榜啦` }}
+          </p>
+        </div>
+        <span v-if="myRank.row" class="flex shrink-0 flex-col items-end">
+          <span class="text-lg font-extrabold" :class="active === 'streak' ? 'text-warm' : 'text-empathy'">{{ myRank.row.metric }}</span>
+          <span class="text-xs text-mute">{{ activeUnit }}</span>
+        </span>
+      </div>
+    </template>
   </div>
 </template>
