@@ -53,6 +53,7 @@ let offThreadReply: (() => void) | null = null
 let offEmpathy: (() => void) | null = null
 let offDeleted: (() => void) | null = null
 let offError: (() => void) | null = null
+let offTyping: (() => void) | null = null
 
 /** 服务端 error 帧的短暂提示。 */
 const wsError = ref('')
@@ -61,6 +62,25 @@ function showWsError(msg: string) {
   wsError.value = msg
   if (wsErrorTimer) clearTimeout(wsErrorTimer)
   wsErrorTimer = setTimeout(() => (wsError.value = ''), 4000)
+}
+
+/** 「对方正在输入」提示：收到他人 typing 事件后短暂显示，1.5s 无新事件自动消失。 */
+const someoneTyping = ref(false)
+let typingTimer: ReturnType<typeof setTimeout> | null = null
+function onRemoteTyping(userId?: number) {
+  if (userId && auth.user?.id === userId) return // 忽略自己
+  someoneTyping.value = true
+  if (typingTimer) clearTimeout(typingTimer)
+  typingTimer = setTimeout(() => (someoneTyping.value = false), 1500)
+}
+
+/** 本地输入时节流上报 typing（1s 内至多发一次），避免每次按键都发帧。 */
+let lastTypingSent = 0
+function onLocalTyping() {
+  const now = Date.now()
+  if (now - lastTypingSent < 1000) return
+  lastTypingSent = now
+  ws.sendTyping(channelId.value)
 }
 
 function subscribeWs() {
@@ -75,6 +95,9 @@ function subscribeWs() {
   offError = ws.on<{ message?: string }>('error', (payload) =>
     showWsError(payload?.message || '操作失败，请重试'),
   )
+  offTyping = ws.on<{ user_id?: number }>('typing', (payload) =>
+    onRemoteTyping(payload?.user_id),
+  )
 }
 
 function unsubscribeWs() {
@@ -83,7 +106,10 @@ function unsubscribeWs() {
   offEmpathy?.()
   offDeleted?.()
   offError?.()
-  offMessage = offThreadReply = offEmpathy = offDeleted = offError = null
+  offTyping?.()
+  offMessage = offThreadReply = offEmpathy = offDeleted = offError = offTyping = null
+  if (typingTimer) clearTimeout(typingTimer)
+  someoneTyping.value = false
 }
 
 /** 发送消息（乐观回显 + 经 WebSocket send_message，回环 new_message 按 client_msg_id 合并去重）。 */
@@ -243,11 +269,17 @@ onBeforeUnmount(() => {
         />
       </div>
 
+      <!-- 对方正在输入提示 -->
+      <p v-if="someoneTyping" class="px-1 text-xs text-mute" aria-live="polite">
+        有牛马正在输入…
+      </p>
+
       <!-- 输入框 -->
       <MessageInput
         :sending="sending"
         :default-anonymous="auth.user?.is_anonymous ?? false"
         @send="onSend"
+        @typing="onLocalTyping"
       />
     </section>
 
