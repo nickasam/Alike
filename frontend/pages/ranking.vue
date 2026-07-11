@@ -27,11 +27,12 @@ const tabs: { key: TabKey; label: string; path: string; unit: string; icon: stri
 interface RankMessage {
   message_id: number
   channel_id: number
+  channel_name: string
   content: string
   emotion?: string
   is_anonymous: boolean
   empathy_count: number
-  author?: { id: number; nickname: string; avatar_url: string }
+  author?: { id: number; nickname: string; avatar_url: string; level: number }
 }
 interface RankUser {
   user_id: number
@@ -123,11 +124,11 @@ const rows = computed<RankRow[]>(() => {
     return (cache.empathy ?? []).map((m) => ({
       key: m.message_id,
       name: m.is_anonymous ? '匿名牛马' : (m.author?.nickname ?? '牛马'),
-      sub: m.content,
+      sub: m.channel_name ? `#${m.channel_name} · ${m.content}` : m.content,
       emotion: m.emotion,
       avatarUrl: m.is_anonymous ? '' : (m.author?.avatar_url ?? ''),
       avatarChar: avatarChar(m.author?.nickname ?? '', m.is_anonymous),
-      level: null,
+      level: m.is_anonymous ? null : (m.author?.level ?? null),
       metric: m.empathy_count,
       unit: '共情',
       link: `/channel/${m.channel_id}`,
@@ -192,11 +193,14 @@ const myRank = computed<{ rank: number; metric: number } | null>(() => {
 /** 领奖台名次样式（金/银/铜）。数组顺序对应 podium 的 [冠,亚,季]。 */
 const podiumStyle = [
   // 冠军：金 order-2 居中拔高
-  { order: 'order-2 md:scale-105', medal: 'text-[#3d2c00]', medalBg: 'linear-gradient(135deg,#fcd34d,#f59e0b)', val: 'text-gold' },
+  { order: 'order-2 md:scale-105', medal: 'text-[#3d2c00]', medalBg: 'linear-gradient(135deg,#fcd34d,#f59e0b)', val: 'text-gold',
+    cardBg: 'linear-gradient(180deg,rgba(251,191,36,.16),rgba(26,34,54,.6))', border: 'rgba(251,191,36,.4)' },
   // 亚军：银 order-1 居左
-  { order: 'order-1', medal: 'text-[#2a2f3a]', medalBg: 'linear-gradient(135deg,#e2e8f0,#94a3b8)', val: 'text-[#cbd5e1]' },
+  { order: 'order-1', medal: 'text-[#2a2f3a]', medalBg: 'linear-gradient(135deg,#e2e8f0,#94a3b8)', val: 'text-[#cbd5e1]',
+    cardBg: 'linear-gradient(180deg,rgba(203,213,225,.16),rgba(26,34,54,.6))', border: 'rgba(203,213,225,.35)' },
   // 季军：铜 order-3 居右
-  { order: 'order-3', medal: 'text-[#3a2410]', medalBg: 'linear-gradient(135deg,#f0a875,#c2703c)', val: 'text-[#e0955f]' },
+  { order: 'order-3', medal: 'text-[#3a2410]', medalBg: 'linear-gradient(135deg,#f0a875,#c2703c)', val: 'text-[#e0955f]',
+    cardBg: 'linear-gradient(180deg,rgba(224,149,95,.16),rgba(26,34,54,.6))', border: 'rgba(224,149,95,.35)' },
 ]
 function podStyleOf(i: number) {
   return podiumStyle[i] ?? podiumStyle[2]
@@ -250,7 +254,7 @@ onMounted(() => load('empathy'))
           :to="r.link"
           class="glass-card relative flex flex-1 flex-col items-center px-3 pb-5 pt-6 text-center"
           :class="podStyleOf(i).order"
-          style="max-width:200px"
+          :style="{ maxWidth: '200px', background: podStyleOf(i).cardBg, borderColor: podStyleOf(i).border }"
         >
           <!-- 冠军皇冠 -->
           <AppIcon
@@ -310,7 +314,7 @@ onMounted(() => load('empathy'))
                 :class="levelClass(r.level)"
               >{{ levelLabel(r.level) }}</span>
               <span
-                v-else-if="findEmotion(r.emotion)"
+                v-if="findEmotion(r.emotion)"
                 class="rounded-full px-2 py-0.5 text-xs font-medium"
                 :style="{ background: findEmotion(r.emotion)!.bg, color: findEmotion(r.emotion)!.color }"
               >{{ findEmotion(r.emotion)!.label }}</span>

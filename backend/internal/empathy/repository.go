@@ -196,9 +196,10 @@ func (r *Repository) ListUsers(ctx context.Context, messageID int64, page, pageS
 
 // RankingEmpathy 返回最受共情的帖子榜（按 empathy_count DESC），仅统计未删除主消息与回复。
 func (r *Repository) RankingEmpathy(ctx context.Context, limit int) ([]*RankMessage, error) {
-	const q = `SELECT m.id, m.channel_id, m.content, COALESCE(m.emotion, ''), m.is_anonymous, m.empathy_count,
-		m.user_id, u.nickname, COALESCE(u.avatar_url, '')
+	const q = `SELECT m.id, m.channel_id, COALESCE(c.name, ''), m.content, COALESCE(m.emotion, ''), m.is_anonymous, m.empathy_count,
+		m.user_id, u.nickname, COALESCE(u.avatar_url, ''), u.level
 		FROM messages m JOIN users u ON u.id = m.user_id
+		LEFT JOIN channels c ON c.id = m.channel_id
 		WHERE m.deleted_at IS NULL AND m.empathy_count > 0
 		ORDER BY m.empathy_count DESC, m.created_at DESC
 		LIMIT $1`
@@ -213,12 +214,13 @@ func (r *Repository) RankingEmpathy(ctx context.Context, limit int) ([]*RankMess
 		var m RankMessage
 		var authorID int64
 		var nickname, avatar string
-		if err := rows.Scan(&m.MessageID, &m.ChannelID, &m.Content, &m.Emotion, &m.IsAnonymous, &m.EmpathyCount,
-			&authorID, &nickname, &avatar); err != nil {
+		var level int
+		if err := rows.Scan(&m.MessageID, &m.ChannelID, &m.ChannelName, &m.Content, &m.Emotion, &m.IsAnonymous, &m.EmpathyCount,
+			&authorID, &nickname, &avatar, &level); err != nil {
 			return nil, err
 		}
 		if !m.IsAnonymous {
-			m.Author = &Author{ID: authorID, Nickname: nickname, AvatarURL: avatar}
+			m.Author = &Author{ID: authorID, Nickname: nickname, AvatarURL: avatar, Level: level}
 		}
 		list = append(list, &m)
 	}

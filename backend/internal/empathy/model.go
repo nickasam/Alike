@@ -14,6 +14,7 @@ type User struct {
 type RankMessage struct {
 	MessageID    int64   `json:"message_id"`
 	ChannelID    int64   `json:"channel_id"`
+	ChannelName  string  `json:"channel_name"`
 	Content      string  `json:"content"`
 	Emotion      string  `json:"emotion,omitempty"`
 	IsAnonymous  bool    `json:"is_anonymous"`
@@ -35,4 +36,5 @@ type Author struct {
 	ID        int64  `json:"id"`
 	Nickname  string `json:"nickname"`
 	AvatarURL string `json:"avatar_url"`
+	Level     int    `json:"level"`
 }
