@@ -154,6 +154,16 @@ function displayName(c: Comment): string {
   return c.author?.nickname ?? '牛马'
 }
 
+/** 评论头像图 URL：匿名/软删除不展示；本人评论取响应式当前用户头像（换头像即时同步），
+ *  他人取评论快照里的作者头像。 */
+function commentAvatarUrl(c: Comment): string {
+  if (c.is_anonymous || c.is_deleted) return ''
+  if (!c.is_anonymous && authStore.user?.id === c.author?.id) {
+    return authStore.user?.avatar_url ?? ''
+  }
+  return c.author?.avatar_url ?? ''
+}
+
 function formatDate(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
@@ -246,10 +256,16 @@ watch(diaryId, () => {
           </div>
           <div v-for="c in comments" :key="c.id" class="glass-card flex gap-3 p-4">
             <div
-              class="grid h-9 w-9 shrink-0 place-items-center rounded-md text-sm font-semibold text-white"
+              class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-md text-sm font-semibold text-white"
               :class="c.is_anonymous ? 'bg-surface-hover text-dim' : 'bg-grad-ai'"
             >
-              {{ c.is_anonymous ? '匿' : (c.author?.nickname?.charAt(0) ?? '牛') }}
+              <img
+                v-if="commentAvatarUrl(c)"
+                :src="commentAvatarUrl(c)"
+                :alt="displayName(c)"
+                class="h-full w-full object-cover"
+              />
+              <template v-else>{{ c.is_anonymous ? '匿' : (c.author?.nickname?.charAt(0) ?? '牛') }}</template>
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
