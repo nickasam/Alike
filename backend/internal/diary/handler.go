@@ -34,16 +34,74 @@ func NewHandler(repo *Repository) *Handler {
 
 // List 处理 GET /api/diaries，游标分页返回公开日记流。
 // query: before=<日记ID>（返回更早的），limit（默认 20，上限 50）。
+// 经 optionalAuth 时读取当前用户用于计算 empathized。
 func (h *Handler) List(c *gin.Context) {
 	before := parseCursor(c, "before")
 	limit := parseLimit(c)
+	viewerID, _ := middleware.CurrentUserID(c)
 
-	list, hasMore, err := h.repo.ListPublic(c.Request.Context(), before, limit)
+	list, hasMore, err := h.repo.ListPublic(c.Request.Context(), viewerID, before, limit)
 	if err != nil {
 		response.Fail(c, response.CodeInternalError)
 		return
 	}
 	response.Success(c, listData(list, hasMore))
+}
+
+// CreateEmpathy 处理 POST /api/diaries/:id/empathy，为日记共情（需登录）。
+func (h *Handler) CreateEmpathy(c *gin.Context) {
+	uid, ok := middleware.CurrentUserID(c)
+	if !ok {
+		response.Fail(c, response.CodeUnauthorized)
+		return
+	}
+	diaryID, ok := parseID(c, "id")
+	if !ok {
+		return
+	}
+	count, err := h.repo.CreateEmpathy(c.Request.Context(), diaryID, uid)
+	switch {
+	case errors.Is(err, ErrDiaryNotFound):
+		response.Error(c, response.CodeNotFound, "日记不存在")
+		return
+	case errors.Is(err, ErrSelfEmpathy):
+		response.Error(c, response.CodeValidationError, "不能对自己的日记共情")
+		return
+	case errors.Is(err, ErrAlreadyEmpathized):
+		// 幂等：已共情视为成功，返回当前状态。
+		response.Success(c, gin.H{"empathy_count": count, "empathized": true})
+		return
+	case err != nil:
+		response.Fail(c, response.CodeInternalError)
+		return
+	}
+	response.Success(c, gin.H{"empathy_count": count, "empathized": true})
+}
+
+// DeleteEmpathy 处理 DELETE /api/diaries/:id/empathy，取消日记共情（需登录）。
+func (h *Handler) DeleteEmpathy(c *gin.Context) {
+	uid, ok := middleware.CurrentUserID(c)
+	if !ok {
+		response.Fail(c, response.CodeUnauthorized)
+		return
+	}
+	diaryID, ok := parseID(c, "id")
+	if !ok {
+		return
+	}
+	count, err := h.repo.DeleteEmpathy(c.Request.Context(), diaryID, uid)
+	switch {
+	case errors.Is(err, ErrDiaryNotFound):
+		response.Error(c, response.CodeNotFound, "日记不存在")
+		return
+	case errors.Is(err, ErrNotEmpathized):
+		response.Success(c, gin.H{"empathy_count": count, "empathized": false})
+		return
+	case err != nil:
+		response.Fail(c, response.CodeInternalError)
+		return
+	}
+	response.Success(c, gin.H{"empathy_count": count, "empathized": false})
 }
 
 // Create 处理 POST /api/diaries，写日记（需登录）。

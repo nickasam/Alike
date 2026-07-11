@@ -7,11 +7,13 @@
  * - 「写日记」按钮需登录，弹窗内 POST /api/diaries 创建后插入流首。
  */
 import { useAuthStore } from '~/stores/auth'
+import { useEmotions } from '~/composables/useEmotions'
 
 useHead({ title: '日记广场 · Alike' })
 
 const api = useApi()
 const authStore = useAuthStore()
+const { emotions } = useEmotions()
 
 interface Author {
   id: number
@@ -25,6 +27,8 @@ interface Diary {
   mood?: string
   is_public: boolean
   comment_count: number
+  empathy_count: number
+  empathized: boolean
   author?: Author
   created_at: string
 }
@@ -40,8 +44,7 @@ const hasMore = ref(true)
 const cursor = ref(0)
 const error = ref('')
 
-/** 心情选项（打工日记语境）。 */
-const moods = ['疲惫', '崩溃', '还行', '开心', '想润', '佛系']
+/** 心情选项 = 情绪看板同款 8 种情绪（带图标/配色），统一体验。 */
 
 async function loadMore() {
   if (loading.value || !hasMore.value) return
@@ -114,6 +117,23 @@ function formatDate(iso: string): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+/** 列表卡「我懂你」：调后端增删共情，用响应更新该卡计数与已共情态。 */
+async function onEmpathy(d: Diary, payload: { action: 'add' | 'remove' }) {
+  if (!authStore.isAuthenticated) {
+    navigateTo({ path: '/login', query: { redirect: '/diary' } })
+    return
+  }
+  try {
+    const res = payload.action === 'add'
+      ? await api.post<{ empathy_count: number; empathized: boolean }>(`/diaries/${d.id}/empathy`)
+      : await api.del<{ empathy_count: number; empathized: boolean }>(`/diaries/${d.id}/empathy`)
+    d.empathy_count = res.empathy_count
+    d.empathized = res.empathized
+  } catch {
+    // 失败静默：计数保持不变
+  }
+}
+
 onMounted(loadMore)
 </script>
 
@@ -160,9 +180,17 @@ onMounted(loadMore)
           <span>{{ d.author?.nickname ?? '匿名牛马' }}</span>
           <span>·</span>
           <span>{{ formatDate(d.created_at) }}</span>
-          <span class="ml-auto flex items-center gap-1">
+          <span class="flex items-center gap-1">
             <AppIcon name="hash" :size="12" />{{ d.comment_count }} 评论
           </span>
+          <EmpathyButton
+            class="ml-auto"
+            size="sm"
+            :count="d.empathy_count"
+            :empathized="d.empathized"
+            @empathy="(p) => onEmpathy(d, p)"
+            @click.prevent.stop
+          />
         </div>
       </NuxtLink>
 
@@ -209,15 +237,32 @@ onMounted(loadMore)
         />
         <div class="mb-3 flex flex-wrap gap-2">
           <button
-            v-for="m in moods"
-            :key="m"
+            v-for="m in emotions"
+            :key="m.key"
             type="button"
-            class="rounded-full px-3 py-1 text-xs transition"
-            :class="form.mood === m
-              ? 'bg-grad-warm text-[#1a0f00]'
-              : 'border border-border text-dim hover:text-text'"
-            @click="form.mood = form.mood === m ? '' : m"
-          >{{ m }}</button>
+            class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition"
+            :style="form.mood === m.label
+              ? { background: m.bg, color: m.color, borderColor: m.color }
+              : {}"
+            :class="form.mood === m.label
+              ? ''
+              : 'border-border text-dim hover:text-text'"
+            @click="form.mood = form.mood === m.label ? '' : m.label"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-3.5 w-3.5 shrink-0"
+              aria-hidden="true"
+            >
+              <path v-for="(p, i) in m.icon" :key="i" :d="p" />
+            </svg>
+            {{ m.label }}
+          </button>
         </div>
         <label class="mb-4 flex items-center gap-2 text-sm text-dim">
           <input v-model="form.is_public" type="checkbox" class="accent-ai-1" />

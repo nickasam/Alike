@@ -109,9 +109,11 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	diaryHandler := diary.NewHandler(diary.NewRepository(deps.DB))
 	diaries := api.Group("/diaries")
 	{
-		diaries.GET("", diaryHandler.List)
+		diaries.GET("", optionalAuthMW, diaryHandler.List)
 		diaries.POST("", authMW, writeRL, diaryHandler.Create)
 		diaries.GET("/:id", optionalAuthMW, diaryHandler.Get)
+		diaries.POST("/:id/empathy", authMW, writeRL, diaryHandler.CreateEmpathy)
+		diaries.DELETE("/:id/empathy", authMW, diaryHandler.DeleteEmpathy)
 		diaries.GET("/:id/comments", optionalAuthMW, diaryHandler.Comments)
 		diaries.POST("/:id/comments", authMW, writeRL, diaryHandler.CreateComment)
 		diaries.GET("/streak/:user_id", diaryHandler.Streak)

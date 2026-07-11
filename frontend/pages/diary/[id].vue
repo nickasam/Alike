@@ -5,7 +5,7 @@
  * - GET /api/diaries/:id 日记正文；
  * - GET /api/diaries/:id/comments 评论列表（分页）；
  * - POST /api/diaries/:id/comments 发表评论（需登录，支持匿名）；
- * - 共情按钮（EmpathyButton）为本地共鸣手势——日记暂无独立共情端点。
+ * - 共情按钮（EmpathyButton）经 POST/DELETE /api/diaries/:id/empathy 真实增删。
  */
 import { useAuthStore } from '~/stores/auth'
 
@@ -27,6 +27,8 @@ interface Diary {
   mood?: string
   is_public: boolean
   comment_count: number
+  empathy_count: number
+  empathized: boolean
   author?: Author
   created_at: string
 }
@@ -56,7 +58,7 @@ const page = ref(1)
 const total = ref(0)
 const commentsLoading = ref(false)
 
-// 本地共鸣手势（日记无独立共情端点）
+// 共情状态（来自后端日记真实数据，loadDiary 后初始化）
 const empathized = ref(false)
 const empathyCount = ref(0)
 
@@ -69,6 +71,8 @@ async function loadDiary() {
   error.value = ''
   try {
     diary.value = await api.get<Diary>(`/diaries/${diaryId.value}`)
+    empathyCount.value = diary.value.empathy_count ?? 0
+    empathized.value = diary.value.empathized ?? false
   } catch {
     error.value = '日记不存在或加载失败'
   } finally {
@@ -139,13 +143,24 @@ async function postComment() {
   }
 }
 
-function onEmpathy(payload: { action: 'add' | 'remove' }) {
-  if (payload.action === 'add') {
-    empathized.value = true
-    empathyCount.value += 1
-  } else {
-    empathized.value = false
-    empathyCount.value = Math.max(0, empathyCount.value - 1)
+/** 「我懂你」：调后端增删日记共情，用响应更新计数与已共情态；未登录跳登录。 */
+async function onEmpathy(payload: { action: 'add' | 'remove' }) {
+  if (!authStore.isAuthenticated) {
+    navigateTo({ path: '/login', query: { redirect: `/diary/${diaryId.value}` } })
+    return
+  }
+  try {
+    const res = payload.action === 'add'
+      ? await api.post<{ empathy_count: number; empathized: boolean }>(`/diaries/${diaryId.value}/empathy`)
+      : await api.del<{ empathy_count: number; empathized: boolean }>(`/diaries/${diaryId.value}/empathy`)
+    empathyCount.value = res.empathy_count
+    empathized.value = res.empathized
+    if (diary.value) {
+      diary.value.empathy_count = res.empathy_count
+      diary.value.empathized = res.empathized
+    }
+  } catch {
+    // 失败静默：状态保持不变
   }
 }
 

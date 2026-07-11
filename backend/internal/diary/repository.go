@@ -13,6 +13,15 @@ var ErrDiaryNotFound = errors.New("diary not found")
 // ErrUserNotFound 表示用户不存在。
 var ErrUserNotFound = errors.New("user not found")
 
+// ErrAlreadyEmpathized 表示已对该日记共情过。
+var ErrAlreadyEmpathized = errors.New("already empathized")
+
+// ErrNotEmpathized 表示尚未对该日记共情。
+var ErrNotEmpathized = errors.New("not empathized")
+
+// ErrSelfEmpathy 表示不能对自己的日记共情。
+var ErrSelfEmpathy = errors.New("cannot empathize own diary")
+
 // Repository 封装 diaries / diary_comments 表的数据库访问。
 type Repository struct {
 	db *sql.DB
@@ -23,25 +32,29 @@ func NewRepository(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
 
-// diaryColumns 是查询日记时选取的列，顺序与 scanDiary 一致。
-// comment_count 通过子查询统计未删除评论数。
-const diaryColumns = `d.id, COALESCE(d.title, ''), d.content, COALESCE(d.mood, ''), d.is_public,
-	(SELECT COUNT(*) FROM diary_comments dc WHERE dc.diary_id = d.id AND dc.deleted_at IS NULL) AS comment_count,
-	d.user_id, u.nickname, COALESCE(u.avatar_url, ''), d.created_at`
+// diaryCols 返回查询日记时选取的列，顺序与 scanDiary 一致。
+// comment_count / empathy_count 用冗余或子查询；empathized 依据 viewer 参数占位符判断当前用户是否已共情。
+func diaryCols(viewerParam string) string {
+	return `d.id, COALESCE(d.title, ''), d.content, COALESCE(d.mood, ''), d.is_public,
+		(SELECT COUNT(*) FROM diary_comments dc WHERE dc.diary_id = d.id AND dc.deleted_at IS NULL) AS comment_count,
+		d.empathy_count,
+		EXISTS(SELECT 1 FROM diary_empathies e WHERE e.diary_id = d.id AND e.user_id = ` + viewerParam + `) AS empathized,
+		d.user_id, u.nickname, COALESCE(u.avatar_url, ''), d.created_at`
+}
 
 const diaryFrom = ` FROM diaries d JOIN users u ON u.id = d.user_id`
 
 // ListPublic 返回公开日记流（is_public=true），按 created_at DESC 游标分页。
-// before>0 时仅返回更早的记录。返回列表与 hasMore 标记。
-func (r *Repository) ListPublic(ctx context.Context, before int64, limit int) ([]*Diary, bool, error) {
-	args := []any{}
+// before>0 时仅返回更早的记录。viewerID 用于计算当前用户是否已共情（<=0 视为未登录）。
+func (r *Repository) ListPublic(ctx context.Context, viewerID, before int64, limit int) ([]*Diary, bool, error) {
+	args := []any{viewerID} // $1 = viewer（empathized 判断）
 	where := `WHERE d.is_public = TRUE`
 	if before > 0 {
-		where += ` AND (d.created_at, d.id) < (SELECT created_at, id FROM diaries WHERE id = $1)`
+		where += ` AND (d.created_at, d.id) < (SELECT created_at, id FROM diaries WHERE id = $2)`
 		args = append(args, before)
 	}
 	args = append(args, limit+1) // 多取 1 条判断是否还有更多
-	q := `SELECT ` + diaryColumns + diaryFrom + ` ` + where +
+	q := `SELECT ` + diaryCols("$1") + diaryFrom + ` ` + where +
 		` ORDER BY d.created_at DESC, d.id DESC LIMIT $` + itoa(len(args))
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
@@ -73,7 +86,7 @@ func (r *Repository) ListPublic(ctx context.Context, before int64, limit int) ([
 // 其他访问者（含未登录，viewerID<=0）对私密日记视为不存在，避免泄露。
 // 日记不存在或无权查看返回 ErrDiaryNotFound。
 func (r *Repository) Get(ctx context.Context, diaryID, viewerID int64) (*Diary, error) {
-	q := `SELECT ` + diaryColumns + diaryFrom + ` WHERE d.id = $1 AND (d.is_public = TRUE OR d.user_id = $2)`
+	q := `SELECT ` + diaryCols("$2") + diaryFrom + ` WHERE d.id = $1 AND (d.is_public = TRUE OR d.user_id = $2)`
 	d, err := scanDiary(r.db.QueryRowContext(ctx, q, diaryID, viewerID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrDiaryNotFound
@@ -82,6 +95,108 @@ func (r *Repository) Get(ctx context.Context, diaryID, viewerID int64) (*Diary, 
 		return nil, err
 	}
 	return d, nil
+}
+
+// CreateEmpathy 事务化地为日记添加一次共情：
+// INSERT diary_empathies + diaries.empathy_count+1 + 作者 empathy_received+1 + 当前用户 empathy_given+1。
+// 日记不存在返回 ErrDiaryNotFound；重复共情返回 ErrAlreadyEmpathized；对自己日记共情返回 ErrSelfEmpathy。
+// 返回日记最新共情计数。
+func (r *Repository) CreateEmpathy(ctx context.Context, diaryID, userID int64) (int64, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() //nolint:errcheck // 提交成功后回滚为 no-op
+
+	var authorID int64
+	err = tx.QueryRowContext(ctx, `SELECT user_id FROM diaries WHERE id = $1`, diaryID).Scan(&authorID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, ErrDiaryNotFound
+	}
+	if err != nil {
+		return 0, err
+	}
+	if authorID == userID {
+		return 0, ErrSelfEmpathy
+	}
+
+	res, err := tx.ExecContext(ctx,
+		`INSERT INTO diary_empathies (diary_id, user_id) VALUES ($1, $2) ON CONFLICT (diary_id, user_id) DO NOTHING`,
+		diaryID, userID)
+	if err != nil {
+		return 0, err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return 0, ErrAlreadyEmpathized
+	}
+
+	var count int64
+	if err := tx.QueryRowContext(ctx,
+		`UPDATE diaries SET empathy_count = empathy_count + 1 WHERE id = $1 RETURNING empathy_count`,
+		diaryID).Scan(&count); err != nil {
+		return 0, err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE users SET empathy_received = empathy_received + 1 WHERE id = $1`, authorID); err != nil {
+		return 0, err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE users SET empathy_given = empathy_given + 1 WHERE id = $1`, userID); err != nil {
+		return 0, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// DeleteEmpathy 事务化地取消一次日记共情，做 CreateEmpathy 的反向操作。计数不降到 0 以下。
+// 日记不存在返回 ErrDiaryNotFound；未共情返回 ErrNotEmpathized。返回日记最新共情计数。
+func (r *Repository) DeleteEmpathy(ctx context.Context, diaryID, userID int64) (int64, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() //nolint:errcheck // 提交成功后回滚为 no-op
+
+	var authorID int64
+	err = tx.QueryRowContext(ctx, `SELECT user_id FROM diaries WHERE id = $1`, diaryID).Scan(&authorID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, ErrDiaryNotFound
+	}
+	if err != nil {
+		return 0, err
+	}
+
+	res, err := tx.ExecContext(ctx,
+		`DELETE FROM diary_empathies WHERE diary_id = $1 AND user_id = $2`, diaryID, userID)
+	if err != nil {
+		return 0, err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return 0, ErrNotEmpathized
+	}
+
+	var count int64
+	if err := tx.QueryRowContext(ctx,
+		`UPDATE diaries SET empathy_count = GREATEST(empathy_count - 1, 0) WHERE id = $1 RETURNING empathy_count`,
+		diaryID).Scan(&count); err != nil {
+		return 0, err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE users SET empathy_received = GREATEST(empathy_received - 1, 0) WHERE id = $1`, authorID); err != nil {
+		return 0, err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE users SET empathy_given = GREATEST(empathy_given - 1, 0) WHERE id = $1`, userID); err != nil {
+		return 0, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 // Create 插入一篇日记并同步累计打卡天数，返回完整记录（含作者信息）。
@@ -364,6 +479,7 @@ func scanDiary(s rowScanner) (*Diary, error) {
 	)
 	if err := s.Scan(
 		&d.ID, &d.Title, &d.Content, &d.Mood, &d.IsPublic, &d.CommentCount,
+		&d.EmpathyCount, &d.Empathized,
 		&authorID, &nickname, &avatarURL, &d.CreatedAt,
 	); err != nil {
 		return nil, err

@@ -20,6 +20,8 @@ type Diary struct {
 	Mood         string    `json:"mood,omitempty"`
 	IsPublic     bool      `json:"is_public"`
 	CommentCount int       `json:"comment_count"`
+	EmpathyCount int       `json:"empathy_count"`
+	Empathized   bool      `json:"empathized"` // 请求方是否已对本日记共情
 	Author       *Author   `json:"author,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 }
