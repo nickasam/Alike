@@ -39,6 +39,14 @@ function avatarChar(m: Message): string {
   return m.author?.nickname?.charAt(0) ?? '牛'
 }
 
+/** 头像图片 URL：匿名/软删除不展示；本人消息取响应式当前用户头像（换头像即时同步），
+ *  他人取消息快照里的作者头像。 */
+function avatarUrl(m: Message): string {
+  if (m.is_anonymous || m.is_deleted) return ''
+  if (isOwn(m)) return auth.user?.avatar_url ?? ''
+  return m.author?.avatar_url ?? ''
+}
+
 function displayName(m: Message): string {
   if (m.is_anonymous) return '匿名牛马'
   return m.author?.nickname ?? '牛马'
@@ -99,11 +107,19 @@ function submit() {
       <!-- 父消息 -->
       <article v-if="parentMessage" class="flex gap-3 border-b border-border pb-4">
         <div
-          class="grid h-10 w-10 shrink-0 place-items-center rounded-md text-sm font-semibold text-white"
+          class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-md text-sm font-semibold text-white"
           :class="parentMessage.is_anonymous ? 'bg-surface-hover text-dim' : 'bg-grad-ai'"
           aria-hidden="true"
         >
-          <template v-if="!parentMessage.is_deleted">{{ avatarChar(parentMessage) }}</template>
+          <template v-if="!parentMessage.is_deleted">
+            <img
+              v-if="avatarUrl(parentMessage)"
+              :src="avatarUrl(parentMessage)"
+              :alt="displayName(parentMessage)"
+              class="h-full w-full object-cover"
+            />
+            <template v-else>{{ avatarChar(parentMessage) }}</template>
+          </template>
         </div>
         <div class="min-w-0 flex-1">
           <p
@@ -154,11 +170,19 @@ function submit() {
           :class="isOwn(r) ? 'flex-row-reverse' : ''"
         >
           <div
-            class="grid h-8 w-8 shrink-0 place-items-center rounded-md text-xs font-semibold text-white"
+            class="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-md text-xs font-semibold text-white"
             :class="r.is_anonymous ? 'bg-surface-hover text-dim' : 'bg-grad-ai'"
             aria-hidden="true"
           >
-            <template v-if="!r.is_deleted">{{ avatarChar(r) }}</template>
+            <template v-if="!r.is_deleted">
+              <img
+                v-if="avatarUrl(r)"
+                :src="avatarUrl(r)"
+                :alt="displayName(r)"
+                class="h-full w-full object-cover"
+              />
+              <template v-else>{{ avatarChar(r) }}</template>
+            </template>
           </div>
           <div class="min-w-0 flex-1" :class="isOwn(r) ? 'flex flex-col items-end' : ''">
             <p

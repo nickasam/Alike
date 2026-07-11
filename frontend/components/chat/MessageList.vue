@@ -78,6 +78,14 @@ function avatarChar(m: Message): string {
   return m.author?.nickname?.charAt(0) ?? '牛'
 }
 
+/** 头像图片 URL：匿名/软删除不展示；本人消息取响应式的当前用户头像，
+ *  以便换头像后自己（含历史）所有消息即时同步；他人取消息快照里的作者头像。 */
+function avatarUrl(m: Message): string {
+  if (m.is_anonymous || m.is_deleted) return ''
+  if (isOwn(m)) return auth.user?.avatar_url ?? ''
+  return m.author?.avatar_url ?? ''
+}
+
 /** HH:mm 展示时间。 */
 function formatTime(iso: string): string {
   const d = new Date(iso)
@@ -142,11 +150,19 @@ function isOwn(m: Message): boolean {
     >
       <!-- 头像：软删除/匿名不展示真实头像 -->
       <div
-        class="grid h-10 w-10 shrink-0 place-items-center rounded-md text-sm font-semibold text-white"
+        class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-md text-sm font-semibold text-white"
         :class="m.is_anonymous ? 'bg-surface-hover text-dim' : 'bg-grad-ai'"
         aria-hidden="true"
       >
-        <template v-if="!m.is_deleted">{{ avatarChar(m) }}</template>
+        <template v-if="!m.is_deleted">
+          <img
+            v-if="avatarUrl(m)"
+            :src="avatarUrl(m)"
+            :alt="displayName(m)"
+            class="h-full w-full object-cover"
+          />
+          <template v-else>{{ avatarChar(m) }}</template>
+        </template>
       </div>
 
       <div class="min-w-0 flex-1" :class="isOwn(m) ? 'flex flex-col items-end' : ''">
