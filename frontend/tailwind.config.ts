@@ -115,6 +115,7 @@ export default <Partial<Config>>{
       maxWidth: {
         app: '1440px',
         content: '760px',
+        'content-wide': '1040px',
       },
       transitionTimingFunction: {
         out: 'cubic-bezier(0.16, 1, 0.3, 1)',

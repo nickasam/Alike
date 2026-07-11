@@ -33,7 +33,7 @@ onBeforeUnmount(() => offNotif?.())
 </script>
 
 <template>
-  <div class="min-h-screen text-text">
+  <div class="flex h-screen flex-col text-text">
     <TopNav @toggle-drawer="drawerOpen = !drawerOpen" />
 
     <!-- 移动端抽屉遮罩 -->
@@ -43,24 +43,31 @@ onBeforeUnmount(() => offNotif?.())
       @click="drawerOpen = false"
     />
 
-    <div class="mx-auto flex max-w-app gap-5 px-4 py-5">
-      <!-- 左侧频道栏：桌面/平板常驻(粘顶，不随主内容高度变化而跳动)，移动端抽屉 -->
+    <!-- 满屏三栏 shell：顶栏下方占满剩余高度，侧栏/右栏贴边毛玻璃 -->
+    <div class="flex min-h-0 flex-1">
+      <!-- 左侧频道栏：贴边毛玻璃 + 右边框；移动端抽屉 -->
       <aside
-        class="glass-card fixed inset-y-0 left-0 z-50 w-sidebar -translate-x-full transition-transform duration-std ease-out md:static md:z-auto md:block md:w-sidebar md:translate-x-0 md:self-start md:sticky md:top-5 md:max-h-[calc(100vh-2.5rem)] md:overflow-y-auto"
+        class="fixed inset-y-0 left-0 z-50 w-sidebar -translate-x-full overflow-y-auto border-r border-border bg-surface backdrop-blur-glass transition-transform duration-std ease-out md:static md:z-auto md:block md:w-sidebar md:translate-x-0"
         :class="{ 'translate-x-0': drawerOpen }"
       >
         <ChannelSidebar />
       </aside>
 
-      <!-- 主内容 -->
-      <main class="min-w-0 flex-1">
-        <slot />
+      <!-- 主内容：可滚动 -->
+      <main class="min-w-0 flex-1 overflow-y-auto px-6 py-6">
+        <div class="mx-auto max-w-content-wide">
+          <slot />
+        </div>
       </main>
 
-      <!-- 右侧栏：仅桌面(≥1280)显示。首页等非频道页展示全站今日聚合。 -->
-      <aside class="hidden w-aside flex-shrink-0 flex-col gap-5 xl:flex">
-        <EmotionBoard :global="globalBoard" />
-        <WarmestBoard />
+      <!-- 右侧栏：贴边毛玻璃 + 左边框，仅桌面(≥1280)显示 -->
+      <aside
+        class="hidden w-aside flex-shrink-0 overflow-y-auto border-l border-border bg-surface px-4 py-5 backdrop-blur-glass xl:block"
+      >
+        <div class="flex flex-col gap-5">
+          <EmotionBoard :global="globalBoard" />
+          <WarmestBoard />
+        </div>
       </aside>
     </div>
   </div>

@@ -50,24 +50,31 @@ function enterChannel() {
 <template>
   <div class="flex flex-col gap-6">
     <!-- Hero -->
-    <section class="glass-card animate-rise-in p-8">
-      <h1 class="text-gradient text-2xl font-extrabold leading-tight md:text-3xl">
+    <section class="glass-card animate-rise-in relative overflow-hidden p-8">
+      <div
+        class="pointer-events-none absolute -right-16 -top-24 h-80 w-80 rounded-full"
+        style="background: radial-gradient(circle, rgba(99,102,241,.22), transparent 65%)"
+        aria-hidden="true"
+      />
+      <h1 class="text-gradient relative text-2xl font-extrabold leading-tight md:text-3xl">
         汇聚天下牛马
       </h1>
-      <p class="mt-2 text-md text-dim">
+      <p class="relative mt-2 text-md text-dim">
         总有人懂你的辛苦，你不是一个人在扛。
       </p>
-      <div class="mt-5 flex flex-wrap gap-3">
+      <div class="relative mt-5 flex flex-wrap gap-3">
         <button
-          class="btn-primary px-5 py-2 text-base font-semibold"
+          class="btn-primary inline-flex items-center gap-2 px-5 py-2 text-base font-semibold"
           @click="enterChannel"
         >
+          <AppIcon name="hash" :size="18" />
           进入频道吐槽
         </button>
         <NuxtLink
           to="/ranking"
-          class="rounded-md border border-border-strong px-5 py-2 text-base text-dim transition hover:text-text"
+          class="inline-flex items-center gap-2 rounded-md border border-border-strong bg-surface-solid px-5 py-2 text-base text-text shadow-md transition hover:border-warm hover:text-warm hover:shadow-glow-warm"
         >
+          <AppIcon name="trophy" :size="18" />
           今日牛马榜
         </NuxtLink>
       </div>
@@ -90,11 +97,17 @@ function enterChannel() {
           :to="`/channel/${ch.id}`"
           class="glass-card block p-5"
         >
-          <div class="flex items-center justify-between">
-            <h3 class="text-md font-semibold">#{{ displayName(ch.name) }}</h3>
-            <span class="text-xs text-mute">{{ ch.member_count }} 位牛马</span>
+          <div class="flex items-center gap-3">
+            <span
+              class="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-grad-ai text-white shadow-glow-ai"
+              aria-hidden="true"
+            >
+              <AppIcon name="hash" :size="22" />
+            </span>
+            <h3 class="min-w-0 flex-1 truncate text-md font-semibold">#{{ displayName(ch.name) }}</h3>
+            <span class="shrink-0 text-xs text-mute">{{ ch.member_count }} 位牛马</span>
           </div>
-          <p v-if="ch.description" class="mt-1 text-sm text-dim">{{ ch.description }}</p>
+          <p v-if="ch.description" class="mt-3 text-sm text-dim">{{ ch.description }}</p>
         </NuxtLink>
       </div>
     </section>

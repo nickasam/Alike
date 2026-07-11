@@ -170,9 +170,18 @@ onBeforeUnmount(() => {
     >
       <span
         v-if="dominantMeta"
-        class="rounded-full px-1.5 py-0.5 font-medium"
+        class="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-medium"
         :style="{ background: dominantMeta.bg, color: dominantMeta.color }"
-        >{{ dominantMeta.label }}</span
+        ><svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="h-3 w-3 shrink-0"
+          aria-hidden="true"
+        ><path v-for="(p, i) in dominantMeta.icon" :key="i" :d="p" /></svg>{{ dominantMeta.label }}</span
       >
       {{ moodSummary }}
     </p>
@@ -190,7 +199,7 @@ onBeforeUnmount(() => {
         :class="{ 'opacity-45': row.count === 0 }"
       >
         <span
-          class="w-12 shrink-0 rounded-full px-2 py-0.5 text-center text-xs font-medium ring-offset-0 transition"
+          class="inline-flex w-16 shrink-0 items-center justify-center gap-1 rounded-full px-2 py-0.5 text-center text-xs font-medium ring-offset-0 transition"
           :class="{ 'ring-2': row.dominant }"
           :style="{
             background: row.bg,
@@ -198,6 +207,18 @@ onBeforeUnmount(() => {
             boxShadow: row.dominant ? `0 0 0 2px ${row.color}` : 'none',
           }"
         >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-3 w-3 shrink-0"
+            aria-hidden="true"
+          >
+            <path v-for="(p, i) in row.icon" :key="i" :d="p" />
+          </svg>
           {{ row.label }}
         </span>
         <div class="h-2 flex-1 overflow-hidden rounded-full bg-surface-hover">
