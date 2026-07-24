@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alike · 打工日记</title>
+<title>Alike · 打工日记广场</title>
 <style>
   :root{
     --bg:#0a0e1a; --bg-2:#0b1220;
@@ -57,8 +57,9 @@
     --glow-empathy:0 0 24px rgba(20,184,166,.25);
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
   body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
-    color:var(--text);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;
+    font-size:14px;line-height:1.6;color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased;
     transition:background .4s var(--ease-out),color .3s var(--ease-out);
     background:
       radial-gradient(ellipse 80% 60% at 20% 0%,rgba(99,102,241,.15),transparent 60%),
@@ -71,279 +72,282 @@
       radial-gradient(ellipse 60% 40% at 85% 10%,rgba(34,211,238,.05),transparent 60%),
       var(--bg)}
   a{color:inherit;text-decoration:none}
-  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar{width:7px;height:7px}
   ::-webkit-scrollbar-thumb{background:rgba(148,163,184,.3);border-radius:8px}
   ::-webkit-scrollbar-track{background:transparent}
   .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
   .icon-sm{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .glass-card{background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border:var(--glass-border);border-radius:var(--radius-lg);box-shadow:var(--glass-shadow),var(--glass-highlight)}
+  .text-gradient{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
 
   /* ---------- 顶部导航 ---------- */
-  .topnav{position:sticky;top:0;z-index:50;height:var(--nav-h);display:flex;align-items:center;gap:20px;padding:0 20px;
-    background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-bottom:var(--glass-border);box-shadow:var(--glass-shadow)}
-  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px}
+  .topnav{height:var(--nav-h);display:flex;align-items:center;gap:20px;padding:0 20px;
+    background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border-bottom:var(--glass-border);flex-shrink:0;box-shadow:var(--glass-shadow)}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;flex-shrink:0}
   .logo .mark{width:36px;height:36px;border-radius:var(--radius-md);display:grid;place-items:center;
     background:var(--grad-ai);box-shadow:var(--glow-ai);color:#fff}
   .logo .mark svg{width:20px;height:20px;stroke:#fff}
   .logo .name{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
   .search{flex:1;max-width:420px;position:relative}
-  .search input{width:100%;height:42px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--surface);
-    color:var(--text);padding:0 14px 0 42px;outline:none;transition:.25s var(--ease-out);font-size:14px;
-    backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+  .search input{width:100%;height:42px;border-radius:var(--radius-md);border:1px solid var(--border);
+    background:var(--surface);color:var(--text);padding:0 14px 0 42px;font-size:14px;outline:none;
+    transition:.25s var(--ease-out);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
   .search input::placeholder{color:var(--text-mute)}
   .search input:focus{border-color:var(--ai-1);box-shadow:0 0 0 3px rgba(99,102,241,.18)}
-  .search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-mute);display:flex}
+  .search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-mute)}
   .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
   .icon-btn{width:42px;height:42px;border-radius:var(--radius-md);display:grid;place-items:center;cursor:pointer;
-    background:var(--surface);border:1px solid var(--border);position:relative;color:var(--text-dim);
-    transition:.2s var(--ease-out);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);font-family:inherit}
+    background:var(--surface);border:1px solid var(--border);position:relative;transition:.2s var(--ease-out);
+    color:var(--text-dim);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);font-family:inherit}
   .icon-btn:hover{background:var(--surface-hover);color:var(--ai-1);transform:translateY(-1px)}
   .badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
     background:var(--danger);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg)}
-  .avatar{width:42px;height:42px;border-radius:var(--radius-md);background:var(--grad-ai);color:#fff;
-    display:grid;place-items:center;font-weight:700;cursor:pointer;position:relative;transition:.2s var(--ease-out);box-shadow:var(--glow-ai)}
+  .avatar{width:40px;height:40px;border-radius:var(--radius-md);background:var(--grad-ai);
+    display:grid;place-items:center;font-weight:700;cursor:pointer;color:#fff;position:relative;box-shadow:var(--glow-ai);overflow:hidden}
   .avatar::after{content:'';position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;
     background:var(--ai-2);box-shadow:var(--glow-cyan);border:2px solid var(--bg)}
 
-  /* ---------- 布局 ---------- */
-  .layout{display:grid;grid-template-columns:240px 1fr;gap:22px;max-width:1400px;margin:0 auto;padding:22px;align-items:start}
-  @media(max-width:900px){.layout{grid-template-columns:1fr;padding:14px}.sidebar{display:none}}
+  /* ---------- 主体三列 shell ---------- */
+  .shell{display:flex;height:calc(100vh - var(--nav-h))}
+  .sidebar{width:250px;overflow-y:auto;padding:14px 10px;flex-shrink:0;
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-right:1px solid var(--border)}
+  .side-title{font-size:11px;letter-spacing:1px;color:var(--text-mute);text-transform:uppercase;padding:12px 10px 4px;font-weight:700}
+  .nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-md);cursor:pointer;
+    transition:.15s var(--ease-out);color:var(--text-dim)}
+  .nav-link:hover{background:var(--surface-hover);color:var(--text)}
+  .nav-link.active{background:rgba(99,102,241,.14);color:var(--ai-1);font-weight:600}
+  .light .nav-link.active{background:rgba(124,111,240,.1)}
+  .nav-link svg{width:18px;height:18px}
+  .side-filter{position:relative;margin:10px 6px}
+  .side-filter .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-mute)}
+  .side-filter input{width:100%;height:38px;border-radius:var(--radius-md);border:1px solid var(--border);
+    background:var(--surface-solid);color:var(--text);padding:0 12px 0 34px;font-size:13px;outline:none;transition:.2s var(--ease-out)}
+  .side-filter input::placeholder{color:var(--text-mute)}
+  .side-filter input:focus{border-color:var(--ai-1)}
+  .chan{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--radius-md);cursor:pointer;
+    transition:.15s var(--ease-out);color:var(--text-dim)}
+  .chan:hover{background:var(--surface-hover);color:var(--text)}
+  .chan .hash{font-weight:700;color:var(--text-mute)}
+  .chan .cname{flex:1}
+  .chan .cnt{font-size:11px;color:var(--text-mute)}
+  .side-create{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 6px 4px;padding:9px 10px;
+    border-radius:var(--radius-md);border:1px dashed var(--border-strong);background:transparent;color:var(--text-dim);
+    cursor:pointer;font-family:inherit;font-size:13px;transition:.2s var(--ease-out);width:calc(100% - 12px)}
+  .side-create:hover{border-color:var(--ai-1);color:var(--ai-1)}
+  @media(max-width:768px){.sidebar{display:none}}
 
-  .panel{background:var(--glass-bg);border:var(--glass-border);border-radius:var(--radius-lg);
-    box-shadow:var(--glass-shadow),var(--glass-highlight);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .content{flex:1;overflow-y:auto;padding:24px}
+  .content-inner{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
 
-  /* ---------- 左侧 ---------- */
-  .sidebar{position:sticky;top:calc(var(--nav-h) + 22px);display:flex;flex-direction:column;gap:16px}
-  .side-p{padding:14px}
-  .side-title{font-size:11px;letter-spacing:1px;color:var(--text-mute);text-transform:uppercase;padding:4px 8px 8px;font-weight:700}
-  .filt{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:var(--radius-md);cursor:pointer;
-    transition:.15s var(--ease-out);color:var(--text-dim);font-size:13px}
-  .filt:hover{background:var(--surface-hover);color:var(--text)}
-  .filt.active{background:rgba(99,102,241,.14);color:var(--ai-1);font-weight:600}
-  .light .filt.active{background:rgba(124,111,240,.1)}
-  .filt .cnt{margin-left:auto;font-size:11px;color:var(--text-mute)}
-  .filt.active .cnt{color:var(--ai-1)}
-  .filt svg{width:16px;height:16px;flex-shrink:0}
+  /* 页头 */
+  .diary-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:24px}
+  .diary-head h1{display:flex;align-items:center;gap:8px;font-size:24px;font-weight:800}
+  .diary-head h1 svg{width:24px;height:24px}
+  .diary-head .sub{margin-top:4px;font-size:13px;color:var(--text-dim)}
+  .btn-primary{border:none;border-radius:var(--radius-md);background:var(--grad-ai);color:#fff;
+    padding:8px 18px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:var(--glow-ai);font-family:inherit;transition:.25s var(--ease-out);flex-shrink:0}
+  .btn-primary:hover{transform:translateY(-2px) scale(1.02)}
 
-  /* ---------- 打卡日历卡 ---------- */
-  .streak-card{padding:20px;text-align:center;
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 0%,rgba(99,102,241,.18),transparent 70%),
-      var(--glass-bg);
-    border:var(--glass-border);border-radius:var(--radius-lg);
-    box-shadow:var(--glass-shadow),var(--glass-highlight);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
-  .streak-num{font-size:40px;font-weight:900;background:var(--grad-text);
-    -webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
-  .streak-lbl{color:var(--text-dim);font-size:13px;margin-top:4px}
-  .streak-fire{display:inline-flex;align-items:center;justify-content:center;
-    width:44px;height:44px;border-radius:50%;background:rgba(99,102,241,.14);margin-bottom:6px}
-  .streak-fire svg{width:24px;height:24px;stroke:var(--ai-1);fill:none;stroke-width:1.5}
-  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:14px}
-  .cal .d{aspect-ratio:1;border-radius:var(--radius-sm);background:var(--surface-hover);
-    display:grid;place-items:center;font-size:10px;color:var(--text-mute);font-weight:500}
-  .cal .d.done{background:var(--grad-ai);color:#fff;font-weight:700}
-  .cal .d.today{outline:2px solid var(--ai-2);color:var(--ai-2);font-weight:700;background:rgba(34,211,238,.12)}
+  /* 日记流（单列） */
+  .dlist{display:flex;flex-direction:column;gap:12px}
+  .dcard{display:block;padding:20px;transition:.2s var(--ease-out);cursor:pointer}
+  .dcard:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,.5)}
+  .dcard .dh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .dcard h2{font-size:16px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* 心情药丸（图标+文字），对齐 useEmotions 8 种 */
+  .mood{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;border-radius:var(--radius-full);padding:2px 9px;font-size:12px;font-weight:600}
+  .mood svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .mood-tired{background:rgba(148,163,184,.14);color:#cbd5e1}
+  .mood-angry{background:rgba(248,113,113,.14);color:#f87171}
+  .mood-wronged{background:rgba(96,165,250,.14);color:#60a5fa}
+  .mood-broken{background:rgba(167,139,250,.16);color:#a78bfa}
+  .mood-numb{background:rgba(100,116,139,.18);color:#94a3b8}
+  .mood-quit{background:rgba(251,146,60,.14);color:#fb923c}
+  .mood-anxious{background:rgba(251,191,36,.14);color:#fbbf24}
+  .mood-cheer{background:rgba(52,211,153,.14);color:#34d399}
+  .dcard .excerpt{margin-top:6px;font-size:14px;line-height:1.7;color:var(--text-dim)}
+  .dcard-foot{margin-top:12px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-mute)}
+  .dcard-foot .empathy-btn{margin-left:auto}
+  .empathy-btn{display:inline-flex;align-items:center;gap:6px;border-radius:var(--radius-full);padding:4px 11px;font-size:13px;
+    font-weight:500;cursor:pointer;border:1px solid var(--border-strong);background:transparent;color:var(--text-dim);
+    transition:.2s var(--ease-out);font-family:inherit}
+  .empathy-btn svg{width:14px;height:14px}
+  .empathy-btn:hover{border-color:var(--empathy);color:var(--empathy);background:var(--empathy-soft)}
+  .empathy-btn.on{background:var(--empathy-soft);border-color:var(--empathy);color:var(--empathy);box-shadow:var(--glow-empathy)}
+  .foot-meta{display:inline-flex;align-items:center;gap:4px}
+  .foot-meta svg{width:12px;height:12px}
 
-  /* ---------- 主区 ---------- */
-  .main{min-width:0}
-  .diary-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
-  .diary-head h1{font-size:22px;font-weight:800;flex:1;display:flex;align-items:center;gap:8px}
-  .diary-head h1 svg{width:24px;height:24px;stroke:var(--ai-1);fill:none;stroke-width:1.5}
-  .diary-head h1 span{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .btn{padding:11px 20px;border-radius:var(--radius-md);font-weight:700;cursor:pointer;
-    border:1px solid transparent;transition:.25s var(--ease-out);font-size:14px;
-    display:inline-flex;align-items:center;gap:7px}
-  .btn svg{width:18px;height:18px}
-  .btn-primary{background:var(--grad-ai);color:#fff;box-shadow:var(--glow-ai)}
-  .btn-primary:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 0 32px rgba(99,102,241,.5)}
-  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
-  .tab{padding:8px 16px;border-radius:var(--radius-full);background:var(--surface);border:1px solid var(--border);
-    cursor:pointer;font-size:13px;font-weight:600;color:var(--text-dim);
-    transition:.2s var(--ease-out);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
-  .tab:hover{color:var(--text);background:var(--surface-hover)}
-  .tab.active{background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.4);color:var(--ai-1)}
-  .light .tab.active{background:rgba(124,111,240,.1);border-color:rgba(124,111,240,.3)}
-
-  /* ---------- 瀑布流 ---------- */
-  .masonry{columns:3;column-gap:18px}
-  @media(max-width:1200px){.masonry{columns:2}}
-  @media(max-width:640px){.masonry{columns:1}}
-  .dcard{break-inside:avoid;margin-bottom:18px;
-    background:var(--glass-bg);border:var(--glass-border);border-radius:var(--radius-lg);
-    padding:18px;transition:.25s var(--ease-out);cursor:pointer;position:relative;overflow:hidden;
-    box-shadow:var(--glass-shadow),var(--glass-highlight);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
-  .dcard:hover{transform:translateY(-4px);box-shadow:0 14px 40px rgba(0,0,0,.5),var(--glass-highlight);border-color:var(--border-strong)}
-  .light .dcard:hover{box-shadow:0 14px 40px rgba(80,80,160,.16),var(--glass-highlight)}
-  .dcard .mood{position:absolute;top:14px;right:16px;width:30px;height:30px;border-radius:var(--radius-full);
-    display:grid;place-items:center}
-  .dcard .mood svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-  .mood-tired{background:rgba(148,163,184,.16);color:#cbd5e1}
-  .mood-cheer{background:rgba(52,211,153,.16);color:#34d399}
-  .mood-wronged{background:rgba(96,165,250,.16);color:#60a5fa}
-  .mood-escape{background:rgba(34,211,238,.16);color:#22d3ee}
-  .mood-numb{background:rgba(100,116,139,.2);color:#94a3b8}
-  .mood-broken{background:rgba(192,132,252,.16);color:#c084fc}
-  .mood-grow{background:rgba(52,211,153,.16);color:#34d399}
-  .dcard h3{font-size:16px;font-weight:700;margin-bottom:8px;padding-right:34px;color:var(--text)}
-  .dcard .content{color:var(--text-dim);font-size:13px;margin-bottom:14px;line-height:1.7}
-  .dcard .banner{height:120px;border-radius:var(--radius-md);margin-bottom:12px;display:grid;place-items:center;
-    position:relative;overflow:hidden}
-  .dcard .banner svg{width:44px;height:44px;stroke:#fff;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.92;filter:drop-shadow(0 2px 8px rgba(0,0,0,.25))}
-  .dcard-foot{display:flex;align-items:center;gap:10px;padding-top:12px;border-top:1px solid var(--border)}
-  .author{display:flex;align-items:center;gap:8px}
-  .a-ava{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff}
-  .a-name{font-size:12px;font-weight:600;color:var(--text)}
-  .a-date{font-size:11px;color:var(--text-mute)}
-  .empathy{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-full);
-    cursor:pointer;background:var(--empathy-soft);border:1px solid rgba(52,211,153,.3);color:var(--empathy);
-    font-weight:600;font-size:12px;transition:.25s var(--ease-out)}
-  .empathy svg{width:16px;height:16px;stroke-width:1.5;transition:transform .25s var(--ease-spring)}
-  .empathy:hover{background:rgba(52,211,153,.2);box-shadow:var(--glow-empathy);transform:scale(1.05)}
-  .empathy:hover svg{transform:scale(1.3)}
-  .empathy.on{background:var(--grad-empathy);color:#fff;border-color:transparent;box-shadow:var(--glow-empathy)}
-  .day-badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:var(--radius-full);
-    background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.28);color:var(--ai-1);
-    font-weight:700;margin-bottom:10px}
-  .light .day-badge{background:rgba(124,111,240,.1);border-color:rgba(124,111,240,.18)}
+  /* ---------- 右侧栏 ---------- */
+  .rightbar{width:320px;overflow-y:auto;padding:18px 16px;flex-shrink:0;border-left:1px solid var(--border);
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+  .board{border-radius:var(--radius-lg);padding:16px;margin-bottom:18px;
+    background:var(--surface-solid);border:1px solid var(--border);box-shadow:var(--shadow)}
+  .board h3{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;margin-bottom:4px}
+  .board h3 svg{width:18px;height:18px}
+  .board h3 .right{margin-left:auto;font-size:12px;font-weight:400;color:var(--text-mute);cursor:pointer}
+  .mood-line{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);margin:8px 0 14px}
+  .mood-pill{border-radius:var(--radius-full);padding:2px 9px;font-weight:500;font-size:12px;display:inline-flex;align-items:center;gap:4px}
+  .emo-rows{display:flex;flex-direction:column;gap:9px}
+  .emo-row{display:flex;align-items:center;gap:11px}
+  .emo-tag{width:68px;flex-shrink:0;border-radius:var(--radius-full);padding:3px 9px;font-size:11px;font-weight:600;
+    display:inline-flex;align-items:center;justify-content:center;gap:4px}
+  .emo-ic{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .emo-bar{flex:1;height:8px;border-radius:var(--radius-full);background:var(--surface-hover);overflow:hidden}
+  .emo-bar span{display:block;height:100%;border-radius:var(--radius-full)}
+  .emo-num{width:62px;flex-shrink:0;text-align:right;font-size:11px;color:var(--text-mute)}
+  .rank-list{display:flex;flex-direction:column;gap:4px}
+  .rank-item{display:flex;align-items:center;gap:10px;padding:7px 6px;border-radius:var(--radius-md);transition:.15s var(--ease-out)}
+  .rank-item:hover{background:var(--surface-hover)}
+  .rank-item .no{width:18px;text-align:center;font-size:13px;font-weight:800;color:var(--text-mute);flex-shrink:0}
+  .rank-item:nth-child(-n+3) .no{color:var(--warm)}
+  .rank-item .ri-ava{width:30px;height:30px;border-radius:var(--radius-sm);display:grid;place-items:center;
+    font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+  .rank-item .ri-name{flex:1;min-width:0;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rank-item .ri-val{font-size:12px;font-weight:700;color:var(--empathy);flex-shrink:0}
+  @media(max-width:1100px){.rightbar{display:none}}
 </style>
 </head>
 <body>
   <nav class="topnav">
     <a class="logo" href="01-home.html">
-      <span class="mark">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="m9 10 2 2 4-4"/></svg>
-      </span>
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
       <span class="name">Alike</span>
     </a>
     <div class="search">
       <span class="ic"><svg class="icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
-      <input placeholder="搜索打工日记…" aria-label="搜索打工日记">
+      <input placeholder="搜索频道、日记、牛马…" aria-label="搜索">
     </div>
     <div class="nav-right">
       <button class="icon-btn" id="themeToggle" type="button" title="切换主题" aria-label="切换主题" onclick="toggleTheme()"></button>
-      <button class="icon-btn" type="button" aria-label="通知，5 条未读"><svg class="icon" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="badge" aria-hidden="true">5</span></button>
+      <button class="icon-btn" type="button" aria-label="通知，3 条未读">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="badge" aria-hidden="true">3</span>
+      </button>
       <a class="avatar" href="05-profile.html" aria-label="我的主页">牛</a>
     </div>
   </nav>
 
-  <div class="layout">
+  <div class="shell">
+    <!-- 左侧频道栏 -->
     <aside class="sidebar">
-      <div class="streak-card">
-        <div class="streak-fire"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5Z"/></svg></div>
-        <div class="streak-num">28</div>
-        <div class="streak-lbl">连续打卡天数</div>
-        <div class="cal">
-          <div class="d">一</div><div class="d">二</div><div class="d">三</div><div class="d">四</div><div class="d">五</div><div class="d">六</div><div class="d">日</div>
-          <div class="d done">17</div><div class="d done">18</div><div class="d done">19</div><div class="d done">20</div><div class="d done">21</div><div class="d done">22</div><div class="d done">23</div>
-          <div class="d done">24</div><div class="d done">25</div><div class="d done">26</div><div class="d done">27</div><div class="d done">28</div><div class="d done">29</div><div class="d today">30</div>
-        </div>
+      <div class="side-title">导航</div>
+      <a class="nav-link" href="01-home.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>首页</span></a>
+      <a class="nav-link active" href="03-diary.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>日记广场</span></a>
+      <a class="nav-link" href="06-learn.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>成长充电</span></a>
+      <a class="nav-link" href="04-ranking.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg><span>排行榜</span></a>
+
+      <div class="side-filter">
+        <span class="ic"><svg class="icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+        <input placeholder="过滤频道…" aria-label="过滤频道">
       </div>
-      <div class="panel side-p">
-        <div class="side-title">日记分类</div>
-        <div class="filt active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> 全部日记 <span class="cnt">3.1k</span></div>
-        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> 今日份疲惫 <span class="cnt">842</span></div>
-        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg> 小确幸 <span class="cnt">521</span></div>
-        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> 破防瞬间 <span class="cnt">433</span></div>
-        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg> 搞钱记录 <span class="cnt">318</span></div>
-        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7Z"/></svg> 成长复盘 <span class="cnt">276</span></div>
-        <div class="filt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> 我的私密 <span class="cnt">45</span></div>
-      </div>
+
+      <div class="side-title">主题频道</div>
+      <div class="chan"><span class="hash">#</span><span class="cname">吐槽大会</span><span class="cnt">4.2k</span></div>
+      <div class="chan"><span class="hash">#</span><span class="cname">打工日记</span><span class="cnt">1.2k</span></div>
+      <div class="chan"><span class="hash">#</span><span class="cname">薪资揭秘</span><span class="cnt">2.7k</span></div>
+      <div class="chan"><span class="hash">#</span><span class="cname">摸鱼技巧</span><span class="cnt">1.2k</span></div>
+      <button class="side-create" type="button"><svg class="icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>创建频道</span></button>
     </aside>
 
-    <main class="main">
-      <div class="diary-head">
-        <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>打工<span>日记</span>广场</h1>
-        <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>写今日日记</button>
+    <!-- 中间主区：日记广场 -->
+    <div class="main">
+      <div class="content">
+        <div class="content-inner">
+          <!-- 页头 -->
+          <header class="glass-card diary-head">
+            <div>
+              <h1 class="text-gradient"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--ai-1)"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> 打工日记广场</h1>
+              <p class="sub">记录每一天的辛苦，也许有人正读着你的故事。</p>
+            </div>
+            <button class="btn-primary" type="button">写日记</button>
+          </header>
+
+          <!-- 日记流 -->
+          <div class="dlist">
+            <a class="glass-card dcard" href="diary-detail.html">
+              <div class="dh">
+                <h2>又是被需求追着跑的一天</h2>
+                <span class="mood mood-tired"><svg viewBox="0 0 24 24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>疲惫</span>
+              </div>
+              <p class="excerpt">早上刚上线就被叫去改方案，改到第七版终于过了，结果测试说环境不对。今天大概走了两万步，全在工位和会议室之间……</p>
+              <div class="dcard-foot">
+                <span>大郑</span><span>·</span><span>2026-07-11</span>
+                <span class="foot-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg> 12 评论</span>
+                <button class="empathy-btn on" onclick="event.preventDefault();this.classList.toggle('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 已懂你 42</button>
+              </div>
+            </a>
+
+            <a class="glass-card dcard" href="diary-detail.html">
+              <div class="dh">
+                <h2>今天居然准时下班了</h2>
+                <span class="mood mood-cheer"><svg viewBox="0 0 24 24"><path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4m5-11 1-4a3 3 0 0 0-3-3l-4 8v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"/></svg>加油</span>
+              </div>
+              <p class="excerpt">六点整关电脑那一刻，感觉自己重新做人。虽然明天可能又要加班，但至少今晚是自由的。去吃了顿好的犒劳自己。</p>
+              <div class="dcard-foot">
+                <span>阿强不想上班</span><span>·</span><span>2026-07-09</span>
+                <span class="foot-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg> 8 评论</span>
+                <button class="empathy-btn" onclick="event.preventDefault();this.classList.toggle('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 我懂你 27</button>
+              </div>
+            </a>
+
+            <a class="glass-card dcard" href="diary-detail.html">
+              <div class="dh">
+                <h2>被领导当众批评了</h2>
+                <span class="mood mood-wronged"><svg viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg>委屈</span>
+              </div>
+              <p class="excerpt">明明不是我的锅，却在会上被点名。憋了一路的眼泪，回家路上才敢掉。有时候真的觉得成年人的世界太难了。</p>
+              <div class="dcard-foot">
+                <span>匿名牛马</span><span>·</span><span>2026-07-08</span>
+                <span class="foot-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg> 34 评论</span>
+                <button class="empathy-btn on" onclick="event.preventDefault();this.classList.toggle('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 已懂你 156</button>
+              </div>
+            </a>
+
+            <a class="glass-card dcard" href="diary-detail.html">
+              <div class="dh">
+                <h2>生产环境又炸了</h2>
+                <span class="mood mood-broken"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>崩溃</span>
+              </div>
+              <p class="excerpt">凌晨三点被电话叫醒，回滚、查日志、写复盘。天亮了 bug 修好了，人也废了。这个月第三次了，我想静静。</p>
+              <div class="dcard-foot">
+                <span>键盘敲烂了</span><span>·</span><span>2026-07-07</span>
+                <span class="foot-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg> 19 评论</span>
+                <button class="empathy-btn" onclick="event.preventDefault();this.classList.toggle('on')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 我懂你 89</button>
+              </div>
+            </a>
+          </div>
+        </div>
       </div>
-      <div class="tabs">
-        <div class="tab active">最热</div>
-        <div class="tab">最新</div>
-        <div class="tab">最多共情</div>
-        <div class="tab">精选</div>
-      </div>
+    </div>
 
-      <div class="masonry">
-        <article class="dcard">
-          <span class="mood mood-tired" role="img" aria-label="心情：疲惫"><svg viewBox="0 0 24 24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg></span>
-          <span class="day-badge">连续第 156 天</span>
-          <h3>又是被闹钟叫醒的一天</h3>
-          <div class="content">6点半的天还是黑的，地铁挤到怀疑人生。列车报站的声音像在念我的判决书。可是想想房贷，我又默默站直了。今天也要假装很有干劲。</div>
-          <div class="dcard-foot">
-            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#60a5fa,#6366f1)">早</div>
-              <div><div class="a-name">早八人自救</div><div class="a-date">今天 07:12</div></div></div>
-            <div class="empathy on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 421</div>
-          </div>
-        </article>
+    <!-- 右侧栏 -->
+    <aside class="rightbar">
+      <section class="board" aria-label="今日情绪看板">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="var(--ai-1)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/></svg> 今日情绪看板 <span class="right">128 条心声</span></h3>
+        <p class="mood-line"><span class="mood-pill" style="background:rgba(148,163,184,.14);color:#cbd5e1"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>疲惫</span> 大家今天都挺累的，抱抱</p>
+        <div class="emo-rows">
+          <div class="emo-row"><span class="emo-tag" style="background:rgba(148,163,184,.14);color:#cbd5e1;box-shadow:0 0 0 2px #cbd5e1"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>疲惫</span><div class="emo-bar"><span style="width:42%;background:#cbd5e1"></span></div><span class="emo-num">54 · 42%</span></div>
+          <div class="emo-row"><span class="emo-tag" style="background:rgba(248,113,113,.14);color:#f87171"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>愤怒</span><div class="emo-bar"><span style="width:20%;background:#f87171"></span></div><span class="emo-num">26 · 20%</span></div>
+          <div class="emo-row"><span class="emo-tag" style="background:rgba(96,165,250,.14);color:#60a5fa"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg>委屈</span><div class="emo-bar"><span style="width:16%;background:#60a5fa"></span></div><span class="emo-num">14 · 16%</span></div>
+          <div class="emo-row"><span class="emo-tag" style="background:rgba(167,139,250,.16);color:#a78bfa"><svg class="emo-ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>崩溃</span><div class="emo-bar"><span style="width:12%;background:#a78bfa"></span></div><span class="emo-num">10 · 12%</span></div>
+          <div class="emo-row"><span class="emo-tag" style="background:rgba(52,211,153,.14);color:#34d399"><svg class="emo-ic" viewBox="0 0 24 24"><path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4m5-11 1-4a3 3 0 0 0-3-3l-4 8v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"/></svg>加油</span><div class="emo-bar"><span style="width:10%;background:#34d399"></span></div><span class="emo-num">8 · 10%</span></div>
+        </div>
+      </section>
 
-        <article class="dcard">
-          <span class="mood mood-cheer" role="img" aria-label="心情：加油"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span>
-          <div class="banner" style="background:linear-gradient(135deg,#34d399,#10b981)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 2 11 5.5 14.5 4 13 7.5 16.5 9 13 10.5 14.5 14 11 12.5 9.5 16 8 12.5 4.5 14 6 10.5 2.5 9 6 7.5 4.5 4 8 5.5z"/><circle cx="18" cy="17" r="1"/><circle cx="6" cy="19" r="1"/><circle cx="19" cy="6" r="1"/></svg></div>
-          <h3>今天居然准点下班了！</h3>
-          <div class="content">难以置信，六点整走出公司大门的那一刻，夕阳打在脸上，我差点哭出来。原来正常人的生活是这样的。奖励自己一顿好的。</div>
-          <div class="dcard-foot">
-            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#34d399,#10b981)">准</div>
-              <div><div class="a-name">准点下班星人</div><div class="a-date">今天 18:03</div></div></div>
-            <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 892</div>
-          </div>
-        </article>
-
-        <article class="dcard">
-          <span class="mood mood-wronged" role="img" aria-label="心情：委屈"><svg viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg></span>
-          <h3>被领导当众批评了</h3>
-          <div class="content">会议室里，二十几个人看着我。其实不是我的锅，但我什么都没说。回到工位偷偷抹眼泪，然后继续改那个不是我造成的 bug。成年人的体面，真贵。</div>
-          <div class="dcard-foot">
-            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#f87171,#fb923c)">忍</div>
-              <div><div class="a-name">忍者神龟</div><div class="a-date">昨天 20:41</div></div></div>
-            <div class="empathy on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 1.2k</div>
-          </div>
-        </article>
-
-        <article class="dcard">
-          <span class="mood mood-escape" role="img" aria-label="心情：想润"><svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></span>
-          <span class="day-badge">连续第 30 天</span>
-          <h3>裸辞倒计时 15 天</h3>
-          <div class="content">存款够撑半年了，今天正式提了。HR 的脸色很精彩，但我心里的石头落地了。人生不是只有这一条路，我要去看看别的风景。</div>
-          <div class="dcard-foot">
-            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#a78bfa,#6366f1)">润</div>
-              <div><div class="a-name">已经在看机票了</div><div class="a-date">昨天 15:22</div></div></div>
-            <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 673</div>
-          </div>
-        </article>
-
-        <article class="dcard">
-          <span class="mood mood-numb" role="img" aria-label="心情：麻木"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
-          <h3>麻了，真的麻了</h3>
-          <div class="content">今天第 3 次改需求，我已经没有任何情绪了。改就改吧，反正明天还会再改。躺平的尽头是佛系，佛系的尽头是麻木。</div>
-          <div class="dcard-foot">
-            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#94a3b8,#64748b)">麻</div>
-              <div><div class="a-name">已读乱回</div><div class="a-date">昨天 11:08</div></div></div>
-            <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 355</div>
-          </div>
-        </article>
-
-        <article class="dcard">
-          <span class="mood mood-broken" role="img" aria-label="心情：崩溃"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
-          <div class="banner" style="background:linear-gradient(135deg,#6366f1,#22d3ee)"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-          <h3>甲方的第 8 版需求</h3>
-          <div class="content">"就改一个小地方，很简单的。" —— 这句话我今年听了 200 遍。每次都是重做。我的头发和我的耐心一起消失了。</div>
-          <div class="dcard-foot">
-            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">设</div>
-              <div><div class="a-name">设计狗汪汪</div><div class="a-date">前天 22:15</div></div></div>
-            <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 508</div>
-          </div>
-        </article>
-
-        <article class="dcard">
-          <span class="mood mood-grow" role="img" aria-label="心情：成长"><svg viewBox="0 0 24 24"><path d="M7 20h10"/><path d="M12 20c0-6 0-8 3-11"/><path d="M12 13C8 13 5 10 5 5c5 0 7 3 7 8z"/><path d="M12 12c0-3 2-5 6-5 0 4-3 6-6 6z"/></svg></span>
-          <h3>今天学会了对无理要求说不</h3>
-          <div class="content">同事又想把活甩给我，这次我笑着拒绝了。天没有塌，反而觉得轻松。原来边界感是可以练出来的。给自己点个赞。</div>
-          <div class="dcard-foot">
-            <div class="author"><div class="a-ava" style="background:linear-gradient(135deg,#34d399,#10b981)">边</div>
-              <div><div class="a-name">边界感修炼中</div><div class="a-date">前天 19:30</div></div></div>
-            <div class="empathy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 744</div>
-          </div>
-        </article>
-      </div>
-    </main>
+      <section class="board" aria-label="今日牛马榜">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="var(--warm)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg> 今日牛马榜 <span class="right">查看全部</span></h3>
+        <div class="rank-list">
+          <a class="rank-item" href="05-profile.html"><span class="no">1</span><span class="ri-ava" style="background:linear-gradient(135deg,#fb923c,#f97316)">大</span><span class="ri-name">大郑</span><span class="ri-val">9</span></a>
+          <a class="rank-item" href="05-profile.html"><span class="no">2</span><span class="ri-ava" style="background:linear-gradient(135deg,#22d3ee,#34d399)">强</span><span class="ri-name">阿强不想上班</span><span class="ri-val">7</span></a>
+          <a class="rank-item" href="05-profile.html"><span class="no">3</span><span class="ri-ava" style="background:linear-gradient(135deg,#a78bfa,#6366f1)">美</span><span class="ri-name">小美学不动了</span><span class="ri-val">5</span></a>
+          <a class="rank-item" href="05-profile.html"><span class="no">4</span><span class="ri-ava" style="background:linear-gradient(135deg,#6366f1,#22d3ee)">键</span><span class="ri-name">键盘敲烂了</span><span class="ri-val">3</span></a>
+          <a class="rank-item" href="05-profile.html"><span class="no">5</span><span class="ri-ava" style="background:linear-gradient(135deg,#f87171,#fb923c)">润</span><span class="ri-name">已经在看机票了</span><span class="ri-val">2</span></a>
+        </div>
+      </section>
+    </aside>
   </div>
 
   <script>
@@ -355,30 +359,13 @@
     }
     function toggleTheme(){
       document.documentElement.classList.toggle('light');
-      var isLight=document.documentElement.classList.contains('light');
-      localStorage.setItem('theme',isLight?'light':'dark');
+      localStorage.setItem('theme',document.documentElement.classList.contains('light')?'light':'dark');
       updateThemeIcon();
     }
     (function(){
       if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light');
       updateThemeIcon();
     })();
-    document.querySelectorAll('.empathy').forEach(function(e){
-      e.setAttribute('role','button');e.setAttribute('tabindex','0');e.setAttribute('aria-pressed',e.classList.contains('on'));
-      function toggle(ev){ev.stopPropagation();e.classList.toggle('on');e.setAttribute('aria-pressed',e.classList.contains('on'));}
-      e.addEventListener('click',toggle);
-      e.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();toggle(ev);}});
-    });
-    document.querySelectorAll('.tab,.filt').forEach(function(t){
-      t.setAttribute('role','button');t.setAttribute('tabindex','0');
-      function activate(){
-        var sel=t.classList.contains('tab')?'.tab':'.filt';
-        t.parentElement.querySelectorAll(sel).forEach(function(s){s.classList.remove('active')});
-        t.classList.add('active');
-      }
-      t.addEventListener('click',activate);
-      t.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();activate();}});
-    });
   </script>
 </body>
 </html>

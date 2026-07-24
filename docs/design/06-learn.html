@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alike · 成长充电站</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --bg-2:#0b1220;
+    --surface:rgba(26,34,54,.6); --surface-solid:#111729; --surface-hover:#1a2236;
+    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.14);
+    --shadow:0 8px 32px rgba(0,0,0,.4);
+    --text:#f1f5f9; --text-dim:#94a3b8; --text-mute:#7d8b9e;
+    --ai-1:#6366f1; --ai-2:#22d3ee; --ai-3:#a78bfa;
+    --grad-ai:linear-gradient(135deg,#6366f1,#22d3ee);
+    --grad-text:linear-gradient(135deg,#6366f1,#22d3ee,#a78bfa);
+    --warm:#fb923c; --warm-deep:#f97316;
+    --grad-warm:linear-gradient(135deg,#fb923c,#f97316);
+    --empathy:#34d399; --empathy-soft:rgba(52,211,153,.12);
+    --grad-empathy:linear-gradient(135deg,#34d399,#10b981);
+    --danger:#f87171; --info:#60a5fa; --gold:#fbbf24;
+    --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-xl:20px;
+    --radius-full:999px; --nav-h:64px;
+    --glass-bg:rgba(26,34,54,.6);
+    --glass-border:1px solid rgba(255,255,255,.08);
+    --glass-blur:blur(20px);
+    --glass-shadow:0 8px 32px rgba(0,0,0,.4);
+    --glow-ai:0 0 24px rgba(99,102,241,.4);
+    --glow-cyan:0 0 24px rgba(34,211,238,.4);
+    --glow-warm:0 0 24px rgba(251,146,60,.4);
+    --glow-empathy:0 0 24px rgba(52,211,153,.4);
+    --ease-out:cubic-bezier(0.16,1,0.3,1);
+    --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .light{
+    --bg:#FAFBFF; --bg-2:#F0F2FA;
+    --surface:rgba(255,255,255,.72); --surface-solid:#FFFFFF; --surface-hover:#F5F6FC;
+    --border:rgba(124,111,240,.14); --border-strong:rgba(124,111,240,.22);
+    --shadow:0 8px 30px rgba(80,80,160,.08);
+    --text:#1E2340; --text-dim:#5B6178; --text-mute:#6b7186;
+    --ai-1:#7C6FF0; --ai-2:#4A90FF; --ai-3:#22D3EE;
+    --grad-ai:linear-gradient(120deg,#7C6FF0,#4A90FF,#22D3EE);
+    --grad-text:linear-gradient(120deg,#7C6FF0,#4A90FF,#22D3EE);
+    --warm:#fb923c; --warm-deep:#f97316;
+    --grad-warm:linear-gradient(135deg,#fb923c,#f97316);
+    --empathy:#14B8A6; --empathy-soft:rgba(20,184,166,.10);
+    --grad-empathy:linear-gradient(135deg,#14B8A6,#2DD4BF);
+    --danger:#FB7185; --info:#60A5FA; --gold:#F59E0B;
+    --glass-bg:rgba(255,255,255,.72);
+    --glass-border:1px solid rgba(124,111,240,.14);
+    --glass-shadow:0 8px 30px rgba(80,80,160,.08);
+    --glow-ai:0 0 24px rgba(124,111,240,.25);
+    --glow-cyan:0 0 24px rgba(34,211,238,.25);
+    --glow-warm:0 0 24px rgba(251,146,60,.25);
+    --glow-empathy:0 0 24px rgba(20,184,166,.25);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:14px;line-height:1.6;color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased;
+    transition:background .4s var(--ease-out),color .3s var(--ease-out);
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 0%,rgba(99,102,241,.15),transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 10%,rgba(34,211,238,.10),transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 100%,rgba(167,139,250,.08),transparent 60%),
+      var(--bg)}
+  .light body{
+    background:
+      radial-gradient(ellipse 70% 50% at 15% 0%,rgba(124,111,240,.06),transparent 60%),
+      radial-gradient(ellipse 60% 40% at 85% 10%,rgba(34,211,238,.05),transparent 60%),
+      var(--bg)}
+  a{color:inherit;text-decoration:none}
+  ::-webkit-scrollbar{width:7px;height:7px}
+  ::-webkit-scrollbar-thumb{background:rgba(148,163,184,.3);border-radius:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .icon-sm{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+  /* ---------- 顶部导航 ---------- */
+  .topnav{height:var(--nav-h);display:flex;align-items:center;gap:20px;padding:0 20px;
+    background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border-bottom:var(--glass-border);flex-shrink:0;box-shadow:var(--glass-shadow)}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;flex-shrink:0}
+  .logo .mark{width:36px;height:36px;border-radius:var(--radius-md);display:grid;place-items:center;
+    background:var(--grad-ai);box-shadow:var(--glow-ai);color:#fff}
+  .logo .mark svg{width:20px;height:20px;stroke:#fff}
+  .logo .name{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .search{flex:1;max-width:420px;position:relative}
+  .search input{width:100%;height:42px;border-radius:var(--radius-md);border:1px solid var(--border);
+    background:var(--surface);color:var(--text);padding:0 14px 0 42px;font-size:14px;outline:none;
+    transition:.25s var(--ease-out);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur)}
+  .search input::placeholder{color:var(--text-mute)}
+  .search input:focus{border-color:var(--ai-1);box-shadow:0 0 0 3px rgba(99,102,241,.18)}
+  .search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-mute)}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .icon-btn{width:42px;height:42px;border-radius:var(--radius-md);display:grid;place-items:center;cursor:pointer;
+    background:var(--surface);border:1px solid var(--border);position:relative;transition:.2s var(--ease-out);
+    color:var(--text-dim);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);font-family:inherit}
+  .icon-btn:hover{background:var(--surface-hover);color:var(--ai-1);transform:translateY(-1px)}
+  .badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+    background:var(--danger);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg)}
+  .avatar{width:40px;height:40px;border-radius:var(--radius-md);background:var(--grad-ai);
+    display:grid;place-items:center;font-weight:700;cursor:pointer;color:#fff;position:relative;box-shadow:var(--glow-ai)}
+  .avatar::after{content:'';position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;
+    background:var(--ai-2);box-shadow:var(--glow-cyan);border:2px solid var(--bg)}
+
+  /* ---------- 主体三列 ---------- */
+  .shell{display:flex;height:calc(100vh - var(--nav-h))}
+  .sidebar{width:250px;overflow-y:auto;padding:14px 10px;flex-shrink:0;
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-right:1px solid var(--border)}
+  .side-title{font-size:11px;letter-spacing:1px;color:var(--text-mute);text-transform:uppercase;padding:12px 10px 4px;font-weight:700;
+    display:flex;align-items:center;justify-content:space-between}
+  .side-title a{color:var(--ai-2);font-size:11px;letter-spacing:0;text-transform:none;font-weight:600}
+  .nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-md);cursor:pointer;
+    transition:.15s var(--ease-out);color:var(--text-dim);font-weight:600}
+  .nav-link:hover{background:var(--surface-hover);color:var(--text)}
+  .nav-link.active{background:rgba(99,102,241,.14);color:var(--ai-1);font-weight:600}
+  .light .nav-link.active{background:rgba(124,111,240,.1)}
+  .nav-link svg{width:18px;height:18px}
+  .grp{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--radius-md);cursor:pointer;
+    transition:.15s var(--ease-out);color:var(--text-dim)}
+  .grp:hover{background:var(--surface-hover);color:var(--text)}
+  .grp.active{background:rgba(99,102,241,.14);color:var(--ai-1);font-weight:600}
+  .light .grp.active{background:rgba(124,111,240,.1)}
+  .grp .g-ic{width:30px;height:30px;border-radius:var(--radius-sm);display:grid;place-items:center;flex-shrink:0;
+    font-size:14px;background:var(--surface-solid);border:1px solid var(--border)}
+  .grp .g-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .grp .g-dot{width:7px;height:7px;border-radius:50%;background:var(--empathy);box-shadow:var(--glow-empathy);flex-shrink:0}
+  .grp .g-cnt{font-size:11px;color:var(--text-mute);font-weight:600;flex-shrink:0}
+  .grp.active .g-cnt{color:var(--ai-1)}
+  .side-tip{font-size:12px;color:var(--text-mute);line-height:1.6;padding:12px 12px 4px}
+  .find-btn{margin:8px 6px 4px;padding:9px;border-radius:var(--radius-md);border:1px dashed var(--border-strong);
+    background:transparent;color:var(--text-dim);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;width:calc(100% - 12px);
+    display:flex;align-items:center;justify-content:center;gap:7px;transition:.2s var(--ease-out)}
+  .find-btn:hover{border-color:var(--ai-1);color:var(--ai-1)}
+  @media(max-width:768px){.sidebar{display:none}}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .feed{flex:1;overflow-y:auto;padding:18px 24px 32px}
+
+  /* ---------- 板块头 + Tab ---------- */
+  .learn-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .learn-head .h-ic{width:44px;height:44px;border-radius:var(--radius-md);display:grid;place-items:center;
+    background:var(--grad-ai);color:#fff;box-shadow:var(--glow-ai);flex-shrink:0}
+  .learn-head .h-ic svg{width:24px;height:24px;stroke:#fff}
+  .learn-head h1{font-size:22px;font-weight:800;background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .learn-head p{color:var(--text-dim);font-size:13px;margin-top:1px}
+
+  /* ---------- 今日充电卡 Hero ---------- */
+  .charge-hero{position:relative;border-radius:var(--radius-xl);padding:22px 24px;margin-bottom:20px;overflow:hidden;
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border:1px solid transparent;background-clip:padding-box;box-shadow:var(--glass-shadow);
+    display:flex;align-items:center;gap:20px}
+  .charge-hero:before{content:"";position:absolute;inset:0;border-radius:var(--radius-xl);padding:1px;
+    background:var(--grad-ai);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.7}
+  .charge-hero .zap{width:58px;height:58px;border-radius:var(--radius-lg);display:grid;place-items:center;flex-shrink:0;
+    background:rgba(99,102,241,.14);color:var(--ai-2);animation:pulse 2.4s var(--ease-out) infinite}
+  .charge-hero .zap svg{width:30px;height:30px;stroke:var(--ai-2)}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,211,238,.35)}50%{box-shadow:0 0 26px 4px rgba(34,211,238,.45)}}
+  @media(prefers-reduced-motion:reduce){.charge-hero .zap{animation:none}}
+  .charge-hero .h-txt{flex:1;min-width:0}
+  .charge-hero .h-txt h2{font-size:18px;font-weight:800}
+  .charge-hero .h-txt p{color:var(--text-dim);font-size:13px;margin-top:3px}
+  .charge-hero .h-cta{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .btn-primary{padding:9px 18px;border-radius:var(--radius-md);border:none;cursor:pointer;font-weight:700;font-size:13px;
+    background:var(--grad-ai);color:#fff;box-shadow:var(--glow-ai);transition:.25s var(--ease-out);font-family:inherit;
+    display:inline-flex;align-items:center;gap:7px}
+  .btn-primary:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 0 32px rgba(99,102,241,.5)}
+  .btn-primary svg{width:15px;height:15px;stroke:#fff}
+  .btn-ghost{padding:9px 18px;border-radius:var(--radius-md);border:1px solid var(--border-strong);cursor:pointer;
+    font-weight:600;font-size:13px;background:var(--surface-solid);color:var(--text);transition:.25s var(--ease-out);font-family:inherit;
+    display:inline-flex;align-items:center;gap:7px}
+  .btn-ghost:hover{border-color:var(--ai-1);color:var(--ai-1);transform:translateY(-1px)}
+  .btn-ghost svg{width:15px;height:15px}
+  @media(max-width:560px){.charge-hero{flex-direction:column;align-items:flex-start}}
+
+  /* ---------- 打卡卡片 ---------- */
+  .post{position:relative;border-radius:var(--radius-lg);padding:16px 18px 16px 20px;margin-bottom:14px;
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border:1px solid var(--border);box-shadow:var(--shadow);transition:.25s var(--ease-out);cursor:pointer}
+  .post:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,.5);border-color:var(--border-strong)}
+  .post:before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px}
+  .post.k-exp:before{background:var(--warm)}
+  .post.k-qa:before{background:var(--ai-2)}
+  .post.k-checkin:before{background:var(--empathy)}
+  .post.k-res:before{background:var(--ai-3)}
+  .p-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .p-ava{width:36px;height:36px;border-radius:var(--radius-md);display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+  .p-meta{flex:1;min-width:0}
+  .p-name{font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .p-sub{color:var(--text-mute);font-size:12px}
+  .kind-tag{font-size:11px;padding:2px 9px;border-radius:var(--radius-full);font-weight:700;display:inline-flex;align-items:center;gap:3px}
+  .kind-study{background:var(--empathy-soft);color:var(--empathy)}
+  .kind-practice{background:rgba(34,211,238,.14);color:var(--ai-2)}
+  .kind-review{background:rgba(251,146,60,.14);color:var(--warm)}
+  .kind-output{background:rgba(167,139,250,.16);color:var(--ai-3)}
+  /* 旧类名保留兼容 */
+  .kind-exp{background:rgba(251,146,60,.14);color:var(--warm)}
+  .kind-checkin{background:var(--empathy-soft);color:var(--empathy)}
+  /* 充电类型选择器（打卡必填锚） */
+  .type-pick{display:flex;gap:8px;margin:12px 0 4px;flex-wrap:wrap}
+  .type-opt{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius-md);cursor:pointer;
+    background:var(--surface-solid);border:1px solid var(--border);color:var(--text-dim);font-weight:600;font-size:13px;
+    transition:.18s var(--ease-out);font-family:inherit}
+  .type-opt:hover{border-color:var(--ai-1);color:var(--text);transform:translateY(-1px)}
+  .type-opt.sel{background:rgba(99,102,241,.14);border-color:var(--ai-1);color:var(--ai-1);box-shadow:var(--glow-ai)}
+  .type-opt .em{font-size:15px}
+  .type-hint{font-size:12px;color:var(--text-mute);margin-top:6px;display:flex;align-items:center;gap:6px}
+  .type-hint a{color:var(--ai-2);font-weight:600}
+  .p-excerpt{color:var(--text-dim);font-size:13.5px;line-height:1.65}
+  .p-tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center}
+  .p-tags .t{font-size:11px;color:var(--text-mute);background:var(--surface-solid);border:1px solid var(--border);padding:2px 9px;border-radius:var(--radius-sm)}
+  .p-foot{display:flex;align-items:center;gap:6px;margin-top:12px;flex-wrap:wrap}
+  .useful{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:var(--radius-full);cursor:pointer;
+    background:var(--empathy-soft);border:1px solid rgba(52,211,153,.3);color:var(--empathy);font-weight:600;font-size:12px;transition:.25s var(--ease-out)}
+  .useful svg{width:14px;height:14px;transition:transform .35s var(--ease-spring)}
+  .useful:hover{background:rgba(52,211,153,.2);box-shadow:var(--glow-empathy);transform:scale(1.04)}
+  .useful.on{background:var(--grad-empathy);color:#fff;border-color:transparent;box-shadow:var(--glow-empathy)}
+  .p-read{margin-left:auto;color:var(--text-mute);font-size:12px;display:inline-flex;align-items:center;gap:5px}
+  /* 主题线 chip（可点：回看该主题时间线） */
+  .topic-chip{font-size:11px;padding:2px 10px;border-radius:var(--radius-full);cursor:pointer;font-weight:700;
+    background:rgba(99,102,241,.12);color:var(--ai-1);border:1px solid rgba(99,102,241,.28);
+    display:inline-flex;align-items:center;gap:4px;transition:.15s var(--ease-out)}
+  .light .topic-chip{background:rgba(124,111,240,.1)}
+  .topic-chip:hover{background:rgba(99,102,241,.22);border-color:var(--ai-1)}
+  .topic-chip svg{width:11px;height:11px}
+  .streak-chip{font-size:11px;padding:2px 9px;border-radius:var(--radius-full);background:var(--empathy-soft);color:var(--empathy);font-weight:700;
+    display:inline-flex;align-items:center;gap:4px}
+  .streak-chip svg{width:11px;height:11px}
+
+  /* ---------- 右侧栏 ---------- */
+  .rightbar{width:320px;overflow-y:auto;padding:18px 16px;flex-shrink:0;border-left:1px solid var(--border)}
+  .card{border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;
+    background:var(--surface);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border:1px solid var(--border);box-shadow:var(--shadow)}
+  .card h3{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .card h3 svg{width:16px;height:16px}
+  .card h3 .more{margin-left:auto;font-size:12px;font-weight:500;color:var(--text-mute);cursor:pointer}
+
+  /* 电量环 */
+  .power{display:flex;flex-direction:column;align-items:center;text-align:center}
+  .ring{position:relative;width:150px;height:150px;margin-bottom:6px}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .num{font-size:34px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;
+    background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .ring .unit{font-size:11px;color:var(--text-mute);margin-top:3px}
+  .power .streak{font-size:14px;font-weight:700;color:var(--text)}
+  .power .streak b{color:var(--warm)}
+  .power .quip{font-size:12px;color:var(--text-dim);margin-top:3px}
+  .checkin-btn{margin-top:14px;width:100%;padding:11px;border-radius:var(--radius-md);border:none;cursor:pointer;
+    background:var(--grad-empathy);color:#fff;font-weight:700;font-size:14px;box-shadow:var(--glow-empathy);
+    transition:.25s var(--ease-out);font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  .checkin-btn svg{width:16px;height:16px;stroke:#fff}
+  .checkin-btn:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(52,211,153,.55)}
+  .checkin-btn.done{background:var(--surface-solid);color:var(--empathy);border:1px solid rgba(52,211,153,.4);box-shadow:none;cursor:default}
+
+  /* 充电榜 */
+  .rank-item{display:flex;align-items:center;gap:10px;padding:8px 6px;border-radius:var(--radius-md);transition:.15s var(--ease-out);cursor:pointer}
+  .rank-item:hover{background:var(--surface-hover)}
+  .rank-item .no{width:20px;text-align:center;font-weight:800;font-size:13px;color:var(--text-mute);flex-shrink:0}
+  .rank-item:nth-child(1) .no{color:var(--gold)}
+  .rank-item:nth-child(2) .no{color:#cbd5e1}
+  .rank-item:nth-child(3) .no{color:var(--warm)}
+  .rank-item .r-ava{width:30px;height:30px;border-radius:var(--radius-sm);display:grid;place-items:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+  .rank-item .r-name{flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rank-item .r-val{font-size:12px;font-weight:700;color:var(--empathy);flex-shrink:0}
+
+  /* 找搭子 CTA */
+  .buddy{text-align:center}
+  .buddy p{font-size:13px;color:var(--text-dim);margin-bottom:12px}
+  .buddy-tip{font-size:12px;color:var(--text-mute);line-height:1.6;padding-top:10px;margin-top:8px;border-top:1px solid var(--border)}
+  @media(max-width:1180px){.rightbar{display:none}}
+
+  /* 充电成功飘字 */
+  .toast{position:fixed;left:50%;top:90px;transform:translateX(-50%);z-index:60;padding:10px 20px;border-radius:var(--radius-full);
+    background:var(--grad-empathy);color:#fff;font-weight:700;font-size:14px;box-shadow:var(--glow-empathy);
+    opacity:0;pointer-events:none;transition:.4s var(--ease-out);display:flex;align-items:center;gap:8px}
+  .toast.show{opacity:1;top:80px}
+</style>
+</head>
+<body>
+  <nav class="topnav">
+    <a class="logo" href="01-home.html">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <span class="name">Alike</span>
+    </a>
+    <div class="search">
+      <span class="ic"><svg class="icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+      <input placeholder="搜索频道、日记、牛马…" aria-label="搜索">
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn" id="themeToggle" type="button" title="切换主题" aria-label="切换主题" onclick="toggleTheme()"></button>
+      <button class="icon-btn" type="button" aria-label="通知，3 条未读">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="badge" aria-hidden="true">3</span>
+      </button>
+      <a class="avatar" href="05-profile.html" aria-label="我的主页">牛</a>
+    </div>
+  </nav>
+
+  <div class="shell">
+    <!-- 左侧：导航 + 我的主题线 -->
+    <aside class="sidebar">
+      <div class="side-title">导航</div>
+      <a class="nav-link" href="01-home.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>首页</span></a>
+      <a class="nav-link" href="03-diary.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>日记广场</span></a>
+      <a class="nav-link active" href="06-learn.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>成长充电</span></a>
+      <a class="nav-link" href="04-ranking.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg><span>排行榜</span></a>
+
+      <div class="side-title" style="margin-top:8px">我的主题线 <a href="#">全部</a></div>
+      <div class="grp active">
+        <span class="g-ic" style="background:linear-gradient(135deg,#6366f1,#22d3ee)">Go</span>
+        <span class="g-name">#Go 转岗</span>
+        <span class="g-cnt">12 次</span>
+      </div>
+      <div class="grp">
+        <span class="g-ic" style="background:linear-gradient(135deg,#fb923c,#f97316)">英</span>
+        <span class="g-name">#英语</span>
+        <span class="g-cnt">28 次</span>
+      </div>
+      <div class="grp">
+        <span class="g-ic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)">副</span>
+        <span class="g-name">#副业探索</span>
+        <span class="g-cnt">5 次</span>
+      </div>
+      <div class="side-tip">点主题，回看自己在这条线上的每一次充电。碎片自动串成一条成长线。</div>
+    </aside>
+
+    <!-- 主列：合一打卡动态流 -->
+    <div class="main">
+      <div class="feed">
+        <div class="learn-head">
+          <div class="h-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+          <div>
+            <h1>成长充电站</h1>
+            <p>今天也在偷偷变强——打卡你学了/练了/复盘了什么，被人看见。情绪吐槽去<a href="03-diary.html" style="color:var(--ai-2);font-weight:600">日记广场</a></p>
+          </div>
+        </div>
+
+        <!-- 今日充电 Hero -->
+        <div class="charge-hero">
+          <div class="zap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+          <div class="h-txt">
+            <h2>今天充了什么电？先选个类型</h2>
+            <p>打卡你今天学了/练了/复盘了/输出了什么，可选主题（如 #Go 转岗），电量就+1</p>
+            <div class="type-pick" role="group" aria-label="充电类型（必选）">
+              <button class="type-opt sel" type="button"><span class="em">📖</span>学</button>
+              <button class="type-opt" type="button"><span class="em">🔧</span>练</button>
+              <button class="type-opt" type="button"><span class="em">🔍</span>复盘</button>
+              <button class="type-opt" type="button"><span class="em">✍️</span>输出</button>
+            </div>
+            <div class="type-hint">选好类型再记一句话即可 · 只是想吐槽情绪？<a href="03-diary.html">去日记广场更合适 →</a></div>
+            <div class="h-cta">
+              <button class="btn-primary" type="button" onclick="doCheckin()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> 记一条今日充电</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 打卡：带主题线 + 情绪 + 连签 -->
+        <div class="post k-checkin">
+          <div class="p-head">
+            <div class="p-ava" style="background:linear-gradient(135deg,#34d399,#10b981)">林</div>
+            <div class="p-meta">
+              <div class="p-name">通勤小林
+                <span class="kind-tag kind-study">📖 学</span>
+                <span class="streak-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> 连充 7 天</span>
+              </div>
+              <div class="p-sub">运营 · 工龄 1 年 · 今天 08:40</div>
+            </div>
+          </div>
+          <div class="p-excerpt">地铁上看完了「爆款标题的 5 个套路」，原来钩子要放前三个字。今天也在偷偷变强，冲！</div>
+          <div class="p-tags"><span class="topic-chip" role="button" tabindex="0"># 新媒体运营 · 已记录 15 次</span><span class="t">😤 不想上班但还是学了</span></div>
+          <div class="p-foot">
+            <span class="useful" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 加油 · 24</span>
+            <span class="p-read">今天也在动 ⚡</span>
+          </div>
+        </div>
+
+        <!-- 心得干货（收编进打卡流，非独立干货流）：充电类型=输出 -->
+        <div class="post k-res">
+          <div class="p-head">
+            <div class="p-ava" style="background:linear-gradient(135deg,#a78bfa,#6366f1)">王</div>
+            <div class="p-meta">
+              <div class="p-name">老王聊产品
+                <span class="kind-tag kind-output">✍️ 输出</span>
+                <span class="streak-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> 连充 32 天</span>
+              </div>
+              <div class="p-sub">资深产品 · 工龄 8 年 · 2 小时前</div>
+            </div>
+          </div>
+          <div class="p-excerpt">带了 3 年团队才想明白：向上汇报老板要的不是过程，是结论先行 + 风险前置 + 你要什么支持。今天把这套逼自己写成了三句话模板。</div>
+          <div class="p-tags"><span class="topic-chip" role="button" tabindex="0"># 职场沟通 · 已记录 40 次</span><span class="t">💡 顿悟了</span></div>
+          <div class="p-foot">
+            <span class="useful on" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 加油 · 328</span>
+            <span class="p-read">今天也在动 ⚡</span>
+          </div>
+        </div>
+
+        <!-- 打卡：卡关踩坑的复盘也长在打卡流里（问答式互助是 P1，这里是复盘型打卡） -->
+        <div class="post k-exp">
+          <div class="p-head">
+            <div class="p-ava" style="background:linear-gradient(135deg,#22d3ee,#34d399)">M</div>
+            <div class="p-meta">
+              <div class="p-name">阿May转开发
+                <span class="kind-tag kind-review">🔍 复盘</span>
+                <span class="streak-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> 连充 5 天</span>
+              </div>
+              <div class="p-sub">测试转开发中 · 工龄 5 年 · 4 小时前</div>
+            </div>
+          </div>
+          <div class="p-excerpt">今天卡在 Go 的并发死锁一整天，快哭了。晚上才发现是 channel 没关…写下来提醒自己：worker pool 一定先想清楚退出。</div>
+          <div class="p-tags"><span class="topic-chip" role="button" tabindex="0"># Go 转岗 · 已记录 12 次</span><span class="t">😭 崩溃了一下</span></div>
+          <div class="p-foot">
+            <span class="useful" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 加油 · 52</span>
+            <span class="p-read">今天也在动 ⚡</span>
+          </div>
+        </div>
+
+        <!-- 匿名打卡：动手练 -->
+        <div class="post k-qa">
+          <div class="p-head">
+            <div class="p-ava" style="background:linear-gradient(135deg,#a78bfa,#6366f1)">匿</div>
+            <div class="p-meta">
+              <div class="p-name">匿名牛马 <span class="kind-tag kind-practice">🔧 练</span></div>
+              <div class="p-sub">已隐身 · 昨天 21:10</div>
+            </div>
+          </div>
+          <div class="p-excerpt">下班后啃了 40 分钟 Excel 透视表，终于会做数据看板了。不敢让同事知道我连这个都要现学，就在这儿偷偷记一笔。</div>
+          <div class="p-tags"><span class="topic-chip" role="button" tabindex="0"># 自救学 Excel · 已记录 8 次</span><span class="t">🙂 有点小成就</span></div>
+          <div class="p-foot">
+            <span class="useful" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> 加油 · 167</span>
+            <span class="p-read">今天也在动 ⚡</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧：电量环 + 主题线 + 本周一起充电 -->
+    <aside class="rightbar">
+      <div class="card">
+        <div class="power">
+          <div class="ring">
+            <svg width="150" height="150" viewBox="0 0 150 150">
+              <circle cx="75" cy="75" r="64" fill="none" stroke="rgba(148,163,184,.15)" stroke-width="11"/>
+              <circle cx="75" cy="75" r="64" fill="none" stroke="url(#pg)" stroke-width="11" stroke-linecap="round"
+                stroke-dasharray="402" stroke-dashoffset="72"/>
+              <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#6366f1"/><stop offset="0.5" stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/>
+              </linearGradient></defs>
+            </svg>
+            <div class="val"><span class="num">82%</span><span class="unit">今日电量</span></div>
+          </div>
+          <div class="streak">连充 <b>7 天</b> · 今天已充电</div>
+          <div class="quip">昨天休息了一下也没关系，今天回来就好 🔋</div>
+          <button class="checkin-btn done" type="button" id="ckBtn" onclick="doCheckin()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            今天已充电 · 第 7 天
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> 我的主题线</h3>
+        <div class="rank-item"><span class="r-ava" style="background:linear-gradient(135deg,#fb923c,#f97316)">英</span><span class="r-name"># 英语</span><span class="r-val">28 次</span></div>
+        <div class="rank-item"><span class="r-ava" style="background:linear-gradient(135deg,#6366f1,#22d3ee)">Go</span><span class="r-name"># Go 转岗</span><span class="r-val">12 次</span></div>
+        <div class="rank-item"><span class="r-ava" style="background:linear-gradient(135deg,#a78bfa,#6366f1)">副</span><span class="r-name"># 副业探索</span><span class="r-val">5 次</span></div>
+        <div class="buddy-tip">点一条主题线，回看自己的每一次充电。</div>
+      </div>
+
+      <div class="card buddy">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 今天，你不是一个人</h3>
+        <p><b style="color:var(--empathy)">1,284</b> 位牛马今天也偷偷充了电。你刚打的卡，已经有人给你加油了。</p>
+      </div>
+    </aside>
+  </div>
+
+  <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> <span id="toastMsg">+50⚡ 今天也在偷偷变强</span></div>
+
+  <script>
+    var SUN='<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+    var MOON='<svg class="icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+    function updateThemeIcon(){
+      var isLight=document.documentElement.classList.contains('light');
+      document.getElementById('themeToggle').innerHTML=isLight?MOON:SUN;
+    }
+    function toggleTheme(){
+      document.documentElement.classList.toggle('light');
+      localStorage.setItem('theme',document.documentElement.classList.contains('light')?'light':'dark');
+      updateThemeIcon();
+    }
+    (function(){
+      if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light');
+      updateThemeIcon();
+    })();
+    // 充电成功飘字
+    var toastTimer;
+    function fireToast(msg){
+      var t=document.getElementById('toast');
+      if(msg)document.getElementById('toastMsg').textContent=msg;
+      t.classList.add('show');clearTimeout(toastTimer);
+      toastTimer=setTimeout(function(){t.classList.remove('show')},1800);
+    }
+    function doCheckin(){
+      var b=document.getElementById('ckBtn');
+      if(b.classList.contains('done')){
+        // 今天已充电：再点当作补一条内容，给主题进度反馈
+        fireToast('已经充过啦，明天再来一口 🔋');
+        return;
+      }
+      b.classList.add('done');
+      b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 今天已充电 · 第 8 天';
+      // 打卡成功 + 主题进度（选了主题时显示"已记录第 N 次"）
+      fireToast('+50⚡ 「Go 转岗」已记录第 13 次，今天也在偷偷变强');
+    }
+    // useful/加油 切换（键盘可达）
+    document.querySelectorAll('.useful').forEach(function(e){
+      e.setAttribute('aria-pressed',e.classList.contains('on'));
+      function toggle(ev){ev.stopPropagation();e.classList.toggle('on');e.setAttribute('aria-pressed',e.classList.contains('on'));}
+      e.addEventListener('click',toggle);
+      e.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();toggle(ev);}});
+    });
+    // 主题线 chip：点开回看该主题时间线（原型用 toast 示意）
+    document.querySelectorAll('.topic-chip').forEach(function(c){
+      function open(ev){ev.stopPropagation();fireToast('回看「'+c.textContent.replace(/^#\s*/,'').split(' · ')[0]+'」这条主题线');}
+      c.addEventListener('click',open);
+      c.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();open(ev);}});
+    });
+    // 充电类型单选（必填锚）
+    document.querySelectorAll('.type-pick .type-opt').forEach(function(o){
+      o.addEventListener('click',function(){
+        document.querySelectorAll('.type-pick .type-opt').forEach(function(x){x.classList.remove('sel');});
+        o.classList.add('sel');
+      });
+    });
+  </script>
+</body>
+</html>
