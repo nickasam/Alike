@@ -19,7 +19,7 @@ func init() {
 // TestHealthEndpoint 在依赖全部为 nil/未配置时，应返回统一格式的 200、
 // 各依赖标记 unavailable、整体 status=ok（unavailable 不判定为故障）。
 func TestHealthEndpoint(t *testing.T) {
-	engine, _ := New(&Deps{
+	engine, _, _ := New(&Deps{
 		Cfg: nil, // 无配置 → MinIO store 为 nil → unavailable
 		JWT: jwt.NewManager("s", 0, 0),
 	})

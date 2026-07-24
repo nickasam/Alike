@@ -14,14 +14,16 @@ import (
 	"github.com/Alike/backend/internal/message"
 	"github.com/Alike/backend/internal/middleware"
 	"github.com/Alike/backend/internal/notification"
+	"github.com/Alike/backend/internal/pulse"
+	"github.com/Alike/backend/internal/pulse/scheduler"
 	"github.com/Alike/backend/internal/search"
 	"github.com/Alike/backend/internal/storage"
 	"github.com/Alike/backend/internal/user"
 	"github.com/Alike/backend/internal/ws"
 )
 
-// registerRoutes 注册各业务模块的路由分组，返回 WebSocket Hub 供优雅关闭。
-func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
+// registerRoutes 注册各业务模块的路由分组，返回 WebSocket Hub 与 Pulse Scheduler 供优雅关闭。
+func registerRoutes(api *gin.RouterGroup, deps *Deps) (*ws.Hub, *scheduler.Scheduler) {
 	// 需鉴权的中间件
 	authMW := middleware.Auth(deps.JWT)
 	// 尽力而为鉴权：登录则识别本人，未登录仍放行（用于日记详情等半公开读接口）
@@ -143,6 +145,16 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	searchHandler := search.NewHandler(search.NewRepository(deps.DB))
 	api.GET("/search", searchHandler.Search)
 
+	// 最近发生（Pulse / 世界脉搏）：只读展示外部信号（GitHub Trending / HN AI）。
+	// 全部公开可读，不接入 authMW；M0 阶段仅返回种子专题，M1 起接入 collector。
+	pulseRepo := pulse.NewRepository(deps.DB)
+	pulseHandler := pulse.NewHandler(pulseRepo)
+	pulseGroup := api.Group("/pulse")
+	{
+		pulseGroup.GET("/topics", pulseHandler.ListTopics)
+		pulseGroup.GET("/topics/:slug/items", pulseHandler.GetItems)
+	}
+
 	// 全站今日情绪看板（首页用，公开读）。
 	api.GET("/emotion/board", emotionHandler.GlobalBoard)
 
@@ -160,5 +172,9 @@ func registerRoutes(api *gin.RouterGroup, deps *Deps) *ws.Hub {
 	// WebSocket 端点
 	api.GET("/ws", wsHandler.Handle)
 
-	return hub
+	// Pulse Scheduler：M0 阶段构造对象但不 Start（由 main.go 决定生命周期）；
+	// deps.DB=nil 时（如 router 单测）仍能返回一个可用的空对象。
+	pulseSched := scheduler.New(pulseRepo)
+
+	return hub, pulseSched
 }
