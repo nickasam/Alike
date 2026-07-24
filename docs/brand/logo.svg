@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="56" viewBox="0 0 200 56" role="img" aria-label="Alike">
+  <defs>
+    <!-- 品牌渐变：indigo → cyan → violet（与线上 --grad-text 一致） -->
+    <linearGradient id="alikeBrandGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6366f1"/>
+      <stop offset="0.5" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+    <!-- 图标底 tile 用同色渐变（与 topnav 的 .mark 一致） -->
+    <linearGradient id="alikeMarkGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <!-- 图标底 tile 的柔光 -->
+    <filter id="alikeGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 圆角方块底 + 心形 icon（复用 heart-handshake path，与线上 .brand .mark 完全一致） -->
+  <g filter="url(#alikeGlow)">
+    <rect x="4" y="10" width="36" height="36" rx="8" fill="url(#alikeMarkGrad)"/>
+    <path d="M22 40 14 32a4 4 0 0 1 6-6l2 2 2-2a4 4 0 0 1 6 6z"
+          fill="none" stroke="#fff" stroke-width="1.75"
+          stroke-linecap="round" stroke-linejoin="round"
+          transform="translate(0,-4)"/>
+  </g>
+
+  <!-- Alike wordmark：Inter 风格 800，蓝紫青渐变填色 -->
+  <text x="50" y="37"
+        font-family="Inter, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif"
+        font-size="26" font-weight="800" letter-spacing="-0.5"
+        fill="url(#alikeBrandGrad)">Alike</text>
+</svg>
