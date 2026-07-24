@@ -4,5 +4,5 @@ package collector
 
 func init() {
 	Register(&GitHubTrending{})
-	// HackerNewsAI 在 M2 阶段加入
+	Register(&HackerNewsAI{})
 }

@@ -25,6 +25,12 @@ interface RepoExtra {
   forks?: number
 }
 
+interface HNExtra {
+  hn_id?: string
+  comments?: number
+  domain?: string
+}
+
 interface Item {
   id: number
   topic_id: number
@@ -35,7 +41,7 @@ interface Item {
   url: string
   author?: string
   score: number
-  extra?: RepoExtra
+  extra?: RepoExtra & HNExtra
   captured_at: string
   published_at?: string
 }
@@ -146,6 +152,12 @@ function rankClass(i: number): string {
   if (i === 2) return 'text-warm'
   return 'text-mute'
 }
+
+/** 打开 HN 帖子讨论页（阻止外层 <a> 冒泡） */
+function openHNDiscuss(hnID?: string) {
+  if (!hnID) return
+  window.open(`https://news.ycombinator.com/item?id=${hnID}`, '_blank', 'noopener')
+}
 </script>
 
 <template>
@@ -240,7 +252,7 @@ function rankClass(i: number): string {
       </p>
       <p v-else-if="!currentData?.list || currentData.list.length === 0" class="glass-card p-5 text-sm text-mute">
         <template v-if="activeSlug === 'ai-news'">
-          🤖 AI 圈大事将在 M2 上线。GitHub 每日 Star 榜先试试？
+          🤖 AI 圈今天很安静，或者关键词还没捞到高分帖。等等再来。
         </template>
         <template v-else>
           世界今天很安静，或者服务器在偷懒 🐢
@@ -297,7 +309,56 @@ function rankClass(i: number): string {
             <span class="row-accent" aria-hidden="true" />
           </a>
 
-          <!-- HN / AI 卡片：M2 上线，M1 阶段用简单展示 -->
+          <!-- HN / AI 卡片：与 RepoCard 平级但视觉上左侧 HN 橙彩条 -->
+          <a
+            v-else-if="it.source === 'hackernews'"
+            :href="it.url"
+            target="_blank"
+            rel="noopener"
+            class="news-row glass-card relative flex items-stretch gap-3.5 p-4 pl-5"
+          >
+            <span class="rank shrink-0 pt-0.5 text-sm font-extrabold text-mute" :class="rankClass(i)">
+              {{ i + 1 }}
+            </span>
+            <div class="min-w-0 flex-1 flex flex-col gap-1.5">
+              <h3 class="text-md font-semibold leading-tight line-clamp-2">
+                {{ it.title }}
+              </h3>
+              <p v-if="it.summary" class="line-clamp-2 text-sm text-dim">
+                {{ it.summary }}
+              </p>
+              <div class="mt-0.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-mute">
+                <span v-if="it.extra?.domain" class="inline-flex items-center gap-1 font-medium">
+                  🌐 {{ it.extra.domain }}
+                </span>
+                <span v-if="it.extra?.comments" class="inline-flex items-center gap-1">
+                  💬 {{ it.extra.comments }} 评论
+                </span>
+                <span v-if="it.published_at" class="inline-flex items-center gap-1">
+                  🕒 {{ relativeTime(it.published_at) }}
+                </span>
+              </div>
+            </div>
+            <div class="shrink-0 flex flex-col items-end justify-between gap-2">
+              <span class="hn-score inline-flex items-center gap-1 text-xl font-extrabold leading-none tabular-nums">
+                {{ it.score }}
+                <span class="text-sm font-semibold ml-0.5">points</span>
+              </span>
+              <button
+                v-if="it.extra?.hn_id"
+                type="button"
+                class="hn-discuss inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold transition"
+                aria-label="打开 HN 讨论"
+                @click.stop.prevent="openHNDiscuss(it.extra?.hn_id)"
+              >
+                HN 讨论 ↗
+              </button>
+            </div>
+            <!-- 左侧 HN 橙彩条 -->
+            <span class="row-accent-hn" aria-hidden="true" />
+          </a>
+
+          <!-- 未来其它 source 兜底 -->
           <a
             v-else
             :href="it.url"
@@ -354,5 +415,32 @@ function rankClass(i: number): string {
   width: 3px;
   background: var(--grad-warm);
   opacity: .55;
+}
+
+/* HN 卡片：与 repo-row 平级，但左侧 HN 橙彩条 + 分数用 HN 橙 */
+.news-row {
+  overflow: hidden;
+  transition: all .25s var(--ease-out);
+}
+.news-row:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+}
+.row-accent-hn {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #ff8a3d, #ff6600);
+  opacity: .65;
+}
+.hn-score { color: #ff6600; }
+.hn-discuss {
+  color: #ff6600;
+  border-color: rgba(255,102,0,.3);
+  background: rgba(255,102,0,.08);
+}
+.hn-discuss:hover {
+  background: rgba(255,102,0,.16);
+  border-color: #ff6600;
 }
 </style>
