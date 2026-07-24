@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -150,12 +151,17 @@ func (r *Repository) MarkTopicError(ctx context.Context, topicID int64, msg stri
 	return err
 }
 
-// CleanupOldItems 删除 topicID 超过 window 时间的旧数据（M0 尚不调用，M1 scheduler 每日跑）。
+// CleanupOldItems 删除 topicID 超过 window 时间的旧数据（M1+ scheduler 每日跑）。
 // 返回删除行数。
 func (r *Repository) CleanupOldItems(ctx context.Context, window time.Duration) (int64, error) {
+	// pg interval 无法解析 Go 的 "168h0m0s" 格式，转成 "N hours" 语法。
+	hours := int64(window / time.Hour)
+	if hours <= 0 {
+		hours = 1
+	}
 	res, err := r.db.ExecContext(ctx,
-		`DELETE FROM pulse_items WHERE captured_at < NOW() - $1::interval`,
-		window.String())
+		`DELETE FROM pulse_items WHERE captured_at < NOW() - ($1::text || ' hours')::interval`,
+		fmt.Sprintf("%d", hours))
 	if err != nil {
 		return 0, err
 	}
