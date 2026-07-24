@@ -43,12 +43,20 @@ func main() {
 
 	jwtMgr := jwt.NewManager(cfg.JWTSecret, cfg.JWTAccessExpire, cfg.JWTRefreshExpire)
 
-	engine, hub := router.New(&router.Deps{
+	engine, hub, pulseSched := router.New(&router.Deps{
 		Cfg:   cfg,
 		DB:    db,
 		Redis: rdb,
 		JWT:   jwtMgr,
 	})
+
+	// 启动 Pulse 定时抓取（DB 可用时才 Start；否则跳过）。
+	// scheduler 内部会立即跑一次不等 tick，减少 M0/M1 首次访问的空页面时长。
+	schedCtx, schedCancel := context.WithCancel(context.Background())
+	defer schedCancel()
+	if db != nil && pulseSched != nil {
+		pulseSched.Start(schedCtx)
+	}
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.ServerPort,
@@ -76,6 +84,9 @@ func main() {
 	// 先关闭 WebSocket Hub（停止 Redis 订阅循环 + 关闭所有连接出站队列），
 	// 再优雅关闭 HTTP 服务；两者都完成后 main 返回，defer 才关闭 rdb/db，
 	// 避免订阅 goroutine 在 Redis 关闭后仍读取已关闭连接。
+	if pulseSched != nil {
+		pulseSched.Stop()
+	}
 	if hub != nil {
 		hub.Shutdown()
 	}

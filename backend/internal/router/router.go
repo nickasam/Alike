@@ -12,6 +12,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/Alike/backend/internal/middleware"
+	"github.com/Alike/backend/internal/pulse/scheduler"
 	"github.com/Alike/backend/internal/storage"
 	"github.com/Alike/backend/internal/ws"
 	"github.com/Alike/backend/pkg/config"
@@ -27,8 +28,9 @@ type Deps struct {
 	JWT   *jwt.Manager
 }
 
-// New 构建并返回配置好的 Gin 引擎，以及 WebSocket Hub（供优雅关闭使用；无 DB 时可能为 nil）。
-func New(deps *Deps) (*gin.Engine, *ws.Hub) {
+// New 构建并返回配置好的 Gin 引擎，以及 WebSocket Hub 与 Pulse Scheduler
+// （供优雅关闭使用；无 DB 时可能为 nil）。
+func New(deps *Deps) (*gin.Engine, *ws.Hub, *scheduler.Scheduler) {
 	if deps.Cfg != nil && deps.Cfg.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -55,9 +57,9 @@ func New(deps *Deps) (*gin.Engine, *ws.Hub) {
 	r.GET("/api/health", healthHandler(deps))
 
 	api := r.Group("/api")
-	hub := registerRoutes(api, deps)
+	hub, pulseSched := registerRoutes(api, deps)
 
-	return r, hub
+	return r, hub, pulseSched
 }
 
 // corsOrigins 从配置读取 CORS 白名单（nil 安全）。

@@ -57,6 +57,8 @@ const paths: Record<string, string[]> = {
     'M16 17l5-5-5-5',
     'M21 12H9',
   ],
+  // activity: 心电图折线（Lucide 'activity'）。用作「最近发生」入口图标。
+  activity: ['M22 12h-4l-3 9L9 3l-3 9H2'],
 }
 
 const d = computed(() => paths[props.name] ?? [])

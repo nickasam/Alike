@@ -13,11 +13,13 @@ interface NavLink {
   to: string
   label: string
   icon: string
+  pulse?: boolean // 呼吸绿点：暗示"正在跳动"
 }
 
 const nav: NavLink[] = [
   { to: '/', label: '首页', icon: 'home' },
   { to: '/diary', label: '日记广场', icon: 'book-open' },
+  { to: '/pulse', label: '最近发生', icon: 'activity', pulse: true },
   { to: '/ranking', label: '排行榜', icon: 'trophy' },
 ]
 
@@ -65,6 +67,11 @@ onMounted(async () => {
         >
           <AppIcon :name="link.icon" :size="18" />
           <span class="text-base">{{ link.label }}</span>
+          <span
+            v-if="link.pulse"
+            class="ml-auto h-1.5 w-1.5 rounded-full bg-empathy pulse-dot"
+            aria-hidden="true"
+          />
         </NuxtLink>
       </li>
     </ul>
@@ -115,3 +122,18 @@ onMounted(async () => {
     </button>
   </nav>
 </template>
+
+<style scoped>
+/*「最近发生」入口的呼吸绿点：暗示这里正在跳动。 */
+.pulse-dot {
+  box-shadow: 0 0 8px var(--empathy);
+  animation: pulseDot 1.6s ease-in-out infinite;
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: .4; transform: scale(.9); }
+  50%      { opacity: 1;  transform: scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot { animation: none; opacity: .9; }
+}
+</style>

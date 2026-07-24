@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alike · 最近发生（世界脉搏）</title>
+<style>
+  /* ===== 严格对齐线上 http://39.107.58.169/ 的 Design Tokens ===== */
+  :root{
+    --bg:#0a0e1a; --bg-2:#0b1220;
+    --surface:rgba(26,34,54,.6); --surface-solid:#111729; --surface-hover:#1a2236;
+    --border:hsla(0,0%,100%,.08); --border-strong:hsla(0,0%,100%,.14);
+    --text:#f1f5f9; --text-dim:#94a3b8; --text-mute:#64748b; --text-disabled:#475569;
+    --ai-1:#6366f1; --ai-2:#22d3ee; --ai-3:#a78bfa;
+    --grad-ai:linear-gradient(135deg,#6366f1,#22d3ee);
+    --grad-text:linear-gradient(135deg,#6366f1,#22d3ee,#a78bfa);
+    --warm:#fb923c; --warm-deep:#f97316;
+    --grad-warm:linear-gradient(135deg,#fb923c,#f97316);
+    --empathy:#34d399; --empathy-soft:rgba(52,211,153,.12);
+    --grad-empathy:linear-gradient(135deg,#34d399,#10b981);
+    --danger:#f87171; --info:#60a5fa; --gold:#fbbf24;
+    --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-xl:20px;
+    --radius-full:999px; --nav-h:64px;
+    --shadow-sm:0 2px 8px rgba(0,0,0,.2);
+    --shadow-md:0 4px 16px rgba(0,0,0,.3);
+    --shadow-lg:0 8px 32px rgba(0,0,0,.4);
+    --shadow-xl:0 16px 48px rgba(0,0,0,.5);
+    --glow-ai:0 0 24px rgba(99,102,241,.4);
+    --glow-cyan:0 0 24px rgba(34,211,238,.4);
+    --glow-warm:0 0 24px rgba(251,146,60,.4);
+    --glow-empathy:0 0 24px rgba(52,211,153,.4);
+    --glass-bg:rgba(26,34,54,.6);
+    --glass-border:1px solid hsla(0,0%,100%,.08);
+    --glass-blur:blur(20px);
+    --glass-shadow:0 8px 32px rgba(0,0,0,.4);
+    --inner-glow:inset 0 1px 0 hsla(0,0%,100%,.06);
+    --ease-out:cubic-bezier(.16,1,.3,1);
+    --ease-in-out:cubic-bezier(.65,0,.35,1);
+    --ease-spring:cubic-bezier(.34,1.56,.64,1);
+    /* 编程语言色点（GitHub 官方色） */
+    --lang-ts:#3178c6; --lang-js:#f1e05a; --lang-py:#3572a5; --lang-go:#00add8;
+    --lang-rs:#dea584; --lang-java:#b07219; --lang-md:#083fa1;
+    /* HN 橙 */
+    --hn:#ff6600;
+  }
+  html.light{
+    --bg:#fafbff; --bg-2:#f0f2fa;
+    --surface:hsla(0,0%,100%,.72); --surface-solid:#fff; --surface-hover:#f5f6fc;
+    --border:rgba(124,111,240,.14); --border-strong:rgba(124,111,240,.22);
+    --text:#1e2340; --text-dim:#5b6178; --text-mute:#7c839a; --text-disabled:#c8cce0;
+    --ai-1:#7c6ff0; --ai-2:#4a90ff; --ai-3:#22d3ee;
+    --grad-ai:linear-gradient(120deg,#7c6ff0,#4a90ff,#22d3ee);
+    --grad-text:linear-gradient(120deg,#7c6ff0,#4a90ff,#22d3ee);
+    --empathy:#14b8a6; --empathy-soft:rgba(20,184,166,.1);
+    --grad-empathy:linear-gradient(135deg,#14b8a6,#2dd4bf);
+    --danger:#fb7185; --gold:#f59e0b;
+    --shadow-sm:0 2px 8px rgba(80,80,160,.06);
+    --shadow-md:0 4px 16px rgba(80,80,160,.08);
+    --shadow-lg:0 8px 30px rgba(80,80,160,.1);
+    --shadow-xl:0 16px 48px rgba(80,80,160,.12);
+    --glow-ai:0 0 24px rgba(124,111,240,.25);
+    --glow-cyan:0 0 24px rgba(34,211,238,.25);
+    --glow-warm:0 0 24px rgba(251,146,60,.25);
+    --glow-empathy:0 0 24px rgba(20,184,166,.25);
+    --glass-bg:hsla(0,0%,100%,.72);
+    --glass-border:1px solid rgba(124,111,240,.14);
+    --glass-shadow:0 8px 30px rgba(80,80,160,.08);
+    --inner-glow:inset 0 1px 0 hsla(0,0%,100%,.8);
+  }
+
+  /* Reset & base（对齐线上 typography / scrollbar / focus） */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;border:0 solid #e5e7eb}
+  html,body{min-height:100%;height:100%}
+  body{
+    color:var(--text);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow:hidden;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 0,rgba(99,102,241,.15),transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 10%,rgba(34,211,238,.1),transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 100%,rgba(167,139,250,.08),transparent 60%),
+      var(--bg);
+    background-attachment:fixed;
+    transition:background .4s var(--ease-out),color .3s var(--ease-out);
+  }
+  html.light body{
+    background:
+      radial-gradient(ellipse 70% 50% at 15% 0,rgba(124,111,240,.06),transparent 60%),
+      radial-gradient(ellipse 60% 40% at 85% 10%,rgba(34,211,238,.05),transparent 60%),
+      var(--bg);
+    background-attachment:fixed;
+  }
+  /* ===== light 主题：语义色/半透明层/警示色的分主题覆写 ===== */
+  .light .pulse-hero::before{background:radial-gradient(circle,rgba(124,111,240,.28),transparent 65%)}
+  .light .meta-chip.live{border-color:rgba(20,184,166,.35)}
+  .light .stale-note{background:rgba(217,119,6,.1);border-color:rgba(217,119,6,.4);color:#b45309}
+  .light .row.repo .kind{background:rgba(251,146,60,.2)}
+  .light .row.news .kind{background:rgba(255,102,0,.18)}
+  .light .row.news .hn-btn{background:rgba(255,102,0,.14);border-color:rgba(255,102,0,.4)}
+  .light .quiet-strip{background:linear-gradient(135deg,rgba(124,111,240,.06),rgba(34,211,238,.05));border-color:rgba(124,111,240,.22)}
+  .light .coming-item{border-color:rgba(124,111,240,.28);background:hsla(0,0%,100%,.7)}
+  .light .coming-item .badge{background:rgba(124,111,240,.14);color:var(--ai-1)}
+  .light .side-nav a.active{background:rgba(124,111,240,.1);color:var(--ai-1)}
+  a{color:inherit;text-decoration:none}
+  button{cursor:pointer;background:transparent;color:inherit;font:inherit}
+  input{color:inherit;font:inherit}
+  ul{list-style:none}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:rgba(148,163,184,.3);border-radius:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  :focus-visible{outline:2px solid var(--ai-1);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+
+  /* Utility 类：直接复用线上的命名 */
+  .glass-card{
+    background:var(--glass-bg);
+    border:var(--glass-border);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--glass-shadow),var(--inner-glow);
+    backdrop-filter:var(--glass-blur);
+    -webkit-backdrop-filter:var(--glass-blur);
+    transition:all .25s var(--ease-out);
+  }
+  .glass-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg),var(--inner-glow)}
+  .text-gradient{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .btn-primary{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--grad-ai);color:#fff;
+    border-radius:var(--radius-md);
+    box-shadow:var(--glow-ai);
+    padding:8px 20px;font-weight:600;font-size:14px;
+    transition:all .25s var(--ease-out);
+    border:none;
+  }
+  .btn-primary:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 0 32px rgba(99,102,241,.6)}
+  .btn-outline{
+    display:inline-flex;align-items:center;gap:8px;
+    border:1px solid var(--border-strong);
+    background:var(--surface-solid);
+    padding:8px 20px;border-radius:var(--radius-md);
+    font-weight:500;font-size:14px;color:var(--text);
+    box-shadow:var(--shadow-md);
+    transition:all .25s var(--ease-out);
+  }
+  .btn-outline:hover{border-color:var(--warm);color:var(--warm);box-shadow:var(--glow-warm);transform:translateY(-1px)}
+
+  @keyframes rise-in{0%{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .animate-rise-in{animation:rise-in .4s var(--ease-out) both}
+  @keyframes pulseDot{0%,100%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1.15)}}
+  @keyframes softPulse{0%,60%,100%{opacity:.25;transform:scale(1)}30%{opacity:.55;transform:scale(1.06)}}
+
+  /* ===== 布局：sticky top nav + sidebar + main + aside ===== */
+  .shell{display:flex;flex-direction:column;height:100vh}
+  .topnav{
+    position:sticky;top:0;z-index:50;
+    display:flex;align-items:center;gap:20px;
+    height:var(--nav-h);padding:0 20px;
+    border-bottom:1px solid var(--border);
+    background:var(--glass-bg);
+    backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    box-shadow:var(--glass-shadow);
+    flex-shrink:0;
+  }
+  .brand{display:flex;align-items:center;gap:8px;flex-shrink:0;font-weight:700}
+  .brand .mark{
+    width:36px;height:36px;border-radius:var(--radius-md);
+    display:grid;place-items:center;color:#fff;
+    background:var(--grad-ai);box-shadow:var(--glow-ai);
+  }
+  .brand .mark svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .brand .name{font-size:22px;font-weight:800}
+  .brand .tag{color:var(--text-mute);font-size:11px;font-weight:500}
+  @media (max-width:1279px){.brand .tag{display:none}}
+  .search{position:relative;flex:1;max-width:460px;display:none}
+  @media (min-width:768px){.search{display:block}}
+  .search input{
+    width:100%;height:40px;
+    border-radius:var(--radius-md);
+    border:1px solid var(--border);
+    background:var(--surface);color:var(--text);
+    padding:0 12px 0 40px;font-size:14px;outline:none;
+    transition:border .15s var(--ease-out);
+  }
+  .search input::placeholder{color:var(--text-mute)}
+  .search input:focus{border-color:var(--ai-1)}
+  .search .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-mute);pointer-events:none}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .theme-toggle{
+    display:grid;place-items:center;
+    width:40px;height:40px;
+    border-radius:var(--radius-md);
+    border:1px solid var(--border);
+    background:var(--surface);color:var(--text-dim);
+    transition:all .2s var(--ease-out);
+  }
+  .theme-toggle:hover{background:var(--surface-hover);color:var(--ai-1);transform:translateY(-1px)}
+  .btn-login{
+    padding:8px 12px;border-radius:var(--radius-md);
+    border:1px solid var(--border);
+    background:var(--surface);color:var(--text-dim);
+    font-size:13px;font-weight:500;
+    transition:all .2s var(--ease-out);
+  }
+  .btn-login:hover{background:var(--surface-hover);border-color:var(--border-strong);color:var(--ai-1);transform:translateY(-1px)}
+  .btn-register{
+    background:var(--grad-ai);color:#fff;
+    padding:8px 12px;border-radius:var(--radius-md);
+    font-size:13px;font-weight:600;
+    box-shadow:var(--glow-ai);
+    transition:all .25s var(--ease-out);
+  }
+  .btn-register:hover{transform:translateY(-1px);box-shadow:0 0 24px rgba(99,102,241,.55)}
+  .menu-btn{display:grid;place-items:center;width:40px;height:40px;border-radius:var(--radius-md);border:1px solid var(--border);color:var(--text-dim);transition:all .15s var(--ease-out)}
+  .menu-btn:hover{background:var(--surface-hover);color:var(--ai-1);transform:translateY(-1px)}
+  @media (min-width:768px){.menu-btn{display:none}}
+  .icon{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .icon-sm{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+  .body-row{display:flex;flex:1;min-height:0}
+
+  /* ===== 左侧 sidebar ===== */
+  .sidebar{
+    width:260px;flex-shrink:0;
+    border-right:1px solid var(--border);
+    background:var(--surface);
+    backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    overflow-y:auto;
+    display:flex;flex-direction:column;
+    padding:16px;gap:20px;
+  }
+  @media (max-width:767px){.sidebar{display:none}}
+  .side-nav{display:flex;flex-direction:column;gap:4px}
+  .side-nav a{
+    display:flex;align-items:center;gap:12px;
+    padding:8px 12px;border-radius:var(--radius-md);
+    color:var(--text-dim);font-size:14px;
+    transition:all .15s var(--ease-out);
+  }
+  .side-nav a:hover{background:var(--surface-hover);color:var(--text)}
+  .side-nav a.active{background:rgba(99,102,241,.14);color:var(--ai-1);font-weight:600}
+  .side-nav a svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .side-nav a .pulse-dot{margin-left:auto;width:6px;height:6px;border-radius:50%;background:var(--empathy);box-shadow:0 0 8px var(--empathy);animation:pulseDot 1.6s ease-in-out infinite}
+  .side-filter{position:relative}
+  .side-filter input{
+    width:100%;padding:8px 12px 8px 36px;
+    border-radius:var(--radius-md);
+    border:1px solid var(--border-strong);
+    background:var(--surface);color:var(--text);
+    font-size:14px;outline:none;
+    transition:border .15s var(--ease-out);
+  }
+  .side-filter input::placeholder{color:var(--text-mute)}
+  .side-filter input:focus{border-color:var(--ai-1)}
+  .side-filter .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-mute);pointer-events:none}
+  .side-section{display:flex;flex-direction:column;gap:4px;flex:1;min-height:0;overflow-y:auto}
+  .side-title{padding:4px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.025em;color:var(--text-mute)}
+  .side-empty{padding:4px 12px;font-size:11px;color:var(--text-mute)}
+  .side-create{
+    margin-top:auto;display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:8px 12px;
+    border:1px dashed var(--border-strong);border-radius:var(--radius-md);
+    color:var(--text-dim);font-size:14px;background:transparent;
+    transition:all .15s var(--ease-out);
+  }
+  .side-create:hover{color:var(--ai-1);border-color:var(--ai-1)}
+
+  /* ===== 主区域 ===== */
+  .main{flex:1;min-width:0;overflow-y:auto;padding:24px}
+  .content-wide{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+
+  /* Hero */
+  .pulse-hero{position:relative;overflow:hidden;padding:32px}
+  .pulse-hero::before{
+    content:'';position:absolute;top:-96px;right:-64px;
+    width:320px;height:320px;border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle,rgba(99,102,241,.22),transparent 65%);
+    animation:softPulse 4s ease-in-out infinite;
+  }
+  .pulse-hero .pulse-mark{
+    position:absolute;bottom:24px;right:24px;
+    width:64px;height:64px;opacity:.15;pointer-events:none;
+  }
+  .pulse-hero .pulse-mark svg{width:100%;height:100%;stroke:var(--ai-1);stroke-width:1.5;fill:none;stroke-linecap:round}
+  .pulse-hero h1{
+    position:relative;font-size:28px;font-weight:800;line-height:1.25;letter-spacing:-.5px;
+  }
+  @media (min-width:768px){.pulse-hero h1{font-size:36px}}
+  .pulse-hero .subtitle{position:relative;color:var(--text-dim);font-size:16px;margin-top:8px;line-height:1.6}
+  .pulse-hero .meta-bar{position:relative;margin-top:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .meta-chip{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 12px;border-radius:var(--radius-full);
+    background:var(--surface);border:1px solid var(--border);
+    font-size:13px;font-weight:500;color:var(--text-dim);
+  }
+  .meta-chip svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .meta-chip.live{color:var(--empathy);border-color:rgba(52,211,153,.3);background:var(--empathy-soft);font-weight:600}
+  .meta-chip.live .dot{width:6px;height:6px;border-radius:50%;background:var(--empathy);box-shadow:0 0 8px var(--empathy);animation:pulseDot 1.6s ease-in-out infinite}
+  .stale-note{
+    display:none;padding:12px 16px;border-radius:var(--radius-md);
+    background:rgba(234,179,8,.08);
+    border:1px solid rgba(234,179,8,.35);
+    color:#eab308;font-size:13px;
+    align-items:center;gap:10px;
+  }
+  .stale-note.show{display:flex}
+  .stale-note svg{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+  /* 板块标题 */
+  .section-h{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:600;margin-bottom:12px}
+  .section-h svg{width:20px;height:20px;color:var(--ai-1)}
+  .section-h .count{margin-left:auto;font-size:11px;color:var(--text-mute);font-weight:400}
+
+  /* Tab */
+  .tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .tab{
+    display:flex;align-items:center;gap:8px;
+    padding:8px 16px;border-radius:var(--radius-full);
+    background:var(--surface);border:1px solid var(--border);
+    font-size:13px;font-weight:600;color:var(--text-dim);
+    transition:all .2s var(--ease-out);
+    backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  }
+  .tab:hover{color:var(--text);border-color:var(--border-strong);transform:translateY(-1px)}
+  .tab.active{background:var(--grad-ai);color:#fff;border-color:transparent;box-shadow:var(--glow-ai)}
+  .tab .emo{font-size:14px;line-height:1}
+  .tab .cnt{font-size:11px;padding:2px 8px;border-radius:var(--radius-full);background:hsla(0,0%,100%,.14);color:#fff;font-weight:700;display:none}
+  .tab.active .cnt{display:inline-block}
+
+  /* ===== 卡片列表 ===== */
+  .feed{display:flex;flex-direction:column;gap:12px}
+  .feed[hidden]{display:none}
+  .row{
+    display:flex;gap:14px;align-items:stretch;
+    padding:16px 20px;position:relative;overflow:hidden;
+    text-decoration:none;color:inherit;
+    background:var(--glass-bg);
+    border:var(--glass-border);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--glass-shadow),var(--inner-glow);
+    backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    transition:all .25s var(--ease-out);
+  }
+  .row:hover{transform:translateY(-2px);border-color:var(--border-strong);box-shadow:var(--shadow-lg),var(--inner-glow)}
+  .row .rank{flex-shrink:0;width:32px;font-size:13px;font-weight:800;color:var(--text-mute);padding-top:2px;font-variant-numeric:tabular-nums}
+  .row:nth-child(1) .rank{color:var(--gold)}
+  .row:nth-child(2) .rank{color:#cbd5e1}
+  .row:nth-child(3) .rank{color:var(--warm)}
+  .light .row:nth-child(2) .rank{color:#94a3b8}
+  .row .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+  .row .title-line{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .row h3{font-size:16px;font-weight:600;line-height:1.35;letter-spacing:-.2px}
+  .row h3 .owner{color:var(--text-dim);font-weight:500}
+  .row h3 .slash{color:var(--text-mute);margin:0 1px;font-weight:400}
+  .row .summary{color:var(--text-dim);font-size:13px;line-height:1.55;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .row .meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--text-mute);margin-top:2px;font-variant-numeric:tabular-nums}
+  .row .meta-item{display:inline-flex;align-items:center;gap:6px}
+  .row .meta-item svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .row .lang-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .row .score-block{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:6px;min-width:96px}
+  .row .score{font-size:22px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:6px}
+  .row .score .unit{font-size:11px;color:var(--text-mute);font-weight:600}
+  .row .external{color:var(--text-mute);display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;transition:color .15s}
+  .row:hover .external{color:var(--ai-2)}
+  .row .external svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .row .kind{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:var(--radius-full);font-weight:700;letter-spacing:.025em}
+
+  /* GitHub 变体 */
+  .row.repo::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--grad-warm);opacity:.55}
+  .row.repo .score{color:var(--warm)}
+  .row.repo .score svg{width:18px;height:18px;fill:var(--warm);stroke:var(--warm)}
+  .row.repo .kind{background:rgba(251,146,60,.14);color:var(--warm)}
+
+  /* HN 变体 */
+  .row.news::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#ff8a3d,var(--hn));opacity:.65}
+  .row.news .score{color:var(--hn)}
+  .row.news .score .fire{width:16px;height:16px;fill:none;stroke:var(--hn)}
+  .row.news .kind{background:rgba(255,102,0,.14);color:var(--hn)}
+  .row.news .hn-btn{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:11px;font-weight:700;color:var(--hn);
+    padding:2px 8px;border-radius:var(--radius-full);
+    border:1px solid rgba(255,102,0,.3);
+    background:rgba(255,102,0,.08);
+    transition:all .15s var(--ease-out);
+  }
+  .row.news .hn-btn:hover{background:rgba(255,102,0,.16);border-color:var(--hn)}
+  .row.news .hn-btn svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .row.news .domain{font-size:11px;color:var(--text-mute);display:inline-flex;align-items:center;gap:4px;font-weight:500}
+  .row.news .domain svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+  @media (max-width:640px){
+    .row{padding:14px;flex-wrap:wrap}
+    .row .body{flex:1 1 100%}
+    .row .score-block{min-width:auto;flex-direction:row;align-items:center;justify-content:space-between;width:100%;margin-top:6px}
+  }
+
+  /* 底部克制感说明 */
+  .quiet-strip{
+    padding:16px 20px;border-radius:var(--radius-lg);
+    background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(34,211,238,.06));
+    border:1px solid rgba(99,102,241,.2);
+    color:var(--text-dim);font-size:13px;line-height:1.75;
+  }
+  .quiet-strip b{color:var(--ai-2)}
+  .quiet-strip a{transition:opacity .15s var(--ease-out)}
+  .quiet-strip a:hover{text-decoration:underline;opacity:.85}
+  .quiet-strip .qt{display:block;margin-top:6px;font-size:11px;color:var(--text-mute);font-style:italic}
+
+  /* ===== 右侧 aside（xl 断点，对齐线上） ===== */
+  .rightbar{
+    width:320px;flex-shrink:0;
+    border-left:1px solid var(--border);
+    background:var(--surface);
+    backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    overflow-y:auto;padding:20px 16px;
+    display:flex;flex-direction:column;gap:20px;
+  }
+  @media (max-width:1279px){.rightbar{display:none}}
+  .board{padding:16px}
+  .board h3{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;margin-bottom:12px}
+  .board h3 svg{width:18px;height:18px}
+  .board h3 .more{margin-left:auto;font-size:11px;font-weight:400;color:var(--text-mute);cursor:pointer;transition:color .15s var(--ease-out)}
+  .board h3 .more:hover{color:var(--text)}
+
+  /* 今日快报 */
+  .brief-item{display:flex;align-items:flex-start;gap:10px;padding:8px 4px;border-bottom:1px dashed var(--border);font-size:13px}
+  .brief-item:last-child{border-bottom:none}
+  .brief-item .b-emo{font-size:16px;width:22px;text-align:center;flex-shrink:0;padding-top:2px}
+  .brief-item .b-txt{flex:1;min-width:0;overflow:hidden}
+  .brief-item .b-lbl{font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+  .brief-item .b-val{display:block;font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .brief-item .b-val b{color:var(--warm);font-weight:700}
+  .brief-item .b-val em{font-style:normal;color:var(--hn);font-weight:700}
+
+  /* 候补专题 */
+  .coming-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+  .coming-item{
+    display:flex;align-items:center;gap:10px;
+    padding:8px 12px;border-radius:var(--radius-md);
+    background:var(--surface);
+    border:1px dashed var(--border);
+    opacity:.7;
+    font-size:13px;color:var(--text-dim);
+    cursor:pointer;transition:all .15s var(--ease-out);
+  }
+  .coming-item:hover{opacity:1;border-color:var(--border-strong)}
+  .coming-item .emo{font-size:14px;width:22px;text-align:center;flex-shrink:0}
+  .coming-item .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .coming-item .badge{
+    font-size:10px;padding:2px 8px;border-radius:var(--radius-full);
+    background:rgba(148,163,184,.18);color:var(--text-mute);
+    font-weight:700;flex-shrink:0;
+  }
+  .vote-btn{
+    width:100%;padding:10px;border-radius:var(--radius-md);
+    border:1px solid var(--border-strong);
+    background:transparent;color:var(--text-dim);
+    font-size:13px;font-weight:600;
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    transition:all .2s var(--ease-out);
+  }
+  .vote-btn:hover{border-color:var(--ai-1);color:var(--ai-1)}
+  .vote-btn svg{width:14px;height:14px}
+
+  /* toast — 与 06-learn.html 反馈系统一致 */
+  .toast{position:fixed;left:50%;top:90px;transform:translateX(-50%);z-index:60;
+    padding:10px 20px;border-radius:var(--radius-full);
+    background:var(--grad-empathy);color:#fff;font-size:13px;font-weight:600;
+    display:inline-flex;align-items:center;gap:8px;box-shadow:var(--glow-empathy);
+    opacity:0;pointer-events:none;transition:all .35s var(--ease-out)}
+  .toast.show{opacity:1;top:80px}
+  .toast svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ============ 顶部导航（严格对齐线上 未登录态） ============ -->
+  <header class="topnav">
+    <button class="menu-btn" aria-label="打开菜单">
+      <svg viewBox="0 0 24 24" class="icon"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+    </button>
+
+    <a class="brand" href="01-home.html">
+      <span class="mark"><svg viewBox="0 0 24 24"><path d="M12 20 4 12a4 4 0 0 1 6-6l2 2 2-2a4 4 0 0 1 6 6z"/></svg></span>
+      <span class="name text-gradient">Alike</span>
+      <span class="tag">汇聚天下牛马</span>
+    </a>
+
+    <div class="search">
+      <span class="ic"><svg viewBox="0 0 24 24" class="icon-sm"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+      <input type="search" placeholder="搜索频道、日记、牛马…" aria-label="搜索">
+    </div>
+
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" aria-label="切换到亮色" onclick="toggleTheme()"></button>
+      <a class="btn-login" href="#">登录</a>
+      <a class="btn-register" href="#">注册</a>
+    </div>
+  </header>
+
+  <div class="body-row">
+
+    <!-- ============ 左侧栏（对齐线上：首页/日记/排行榜 + 新增 最近发生） ============ -->
+    <aside class="sidebar">
+      <ul class="side-nav">
+        <li><a href="01-home.html">
+          <svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>
+          <span>首页</span>
+        </a></li>
+        <li><a href="03-diary.html">
+          <svg viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 5h6a2 2 0 0 1 2 2v14a2.5 2.5 0 0 0-2-1H3z"/><path d="M21 5h-6a2 2 0 0 0-2 2v14a2.5 2.5 0 0 1 2-1h6z"/></svg>
+          <span>日记广场</span>
+        </a></li>
+        <li><a href="07-pulse.html" class="active">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>最近发生</span>
+          <span class="pulse-dot" aria-label="正在跳动"></span>
+        </a></li>
+        <li><a href="04-ranking.html">
+          <svg viewBox="0 0 24 24"><path d="M6 4h12v4a6 6 0 0 1-12 0z"/><path d="M6 6H4a2 2 0 0 0 0 4h2"/><path d="M18 6h2a2 2 0 0 1 0 4h-2"/><path d="M12 14v4"/><path d="M8 21h8"/><path d="M10 18h4"/></svg>
+          <span>排行榜</span>
+        </a></li>
+      </ul>
+
+      <div class="side-filter">
+        <span class="ic"><svg viewBox="0 0 24 24" class="icon-sm"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+        <input type="text" placeholder="过滤频道…" aria-label="过滤频道">
+      </div>
+
+      <div class="side-section">
+        <div class="side-title">最近发生 · 专题</div>
+        <ul class="side-nav">
+          <li><a href="#" class="active" data-tab="github">
+            <span style="font-size:14px;width:18px;text-align:center">🌟</span>
+            <span>GitHub 每日 Star</span>
+            <span class="badge" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:999px;background:var(--surface-hover);color:var(--text-mute);font-weight:700">25</span>
+          </a></li>
+          <li><a href="#" data-tab="ai">
+            <span style="font-size:14px;width:18px;text-align:center">🤖</span>
+            <span>AI 圈大事</span>
+            <span class="badge" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:999px;background:var(--surface-hover);color:var(--text-mute);font-weight:700">20</span>
+          </a></li>
+        </ul>
+        <div class="side-title" style="margin-top:12px">候补中 · P1</div>
+        <p class="side-empty">🔥 HN 全站热榜 · 📉 裁员/融资 · 📢 AI 官方公告 · 🇨🇳 国内技术圈</p>
+      </div>
+
+      <button class="side-create">
+        <svg viewBox="0 0 24 24" class="icon-sm"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span>创建频道</span>
+      </button>
+    </aside>
+
+    <!-- ============ 主内容 ============ -->
+    <main class="main">
+      <div class="content-wide">
+
+        <!-- Hero -->
+        <section class="glass-card animate-rise-in pulse-hero">
+          <div class="pulse-mark">
+            <svg viewBox="0 0 100 40"><polyline points="0,20 20,20 25,20 30,5 35,35 40,10 45,30 50,20 100,20"/></svg>
+          </div>
+          <h1 class="text-gradient">最近发生</h1>
+          <p class="subtitle">打工人不切平台就能同步的世界脉搏。只搬运、不评论、看一眼就走。</p>
+          <div class="meta-bar" aria-label="数据更新状态">
+            <span class="meta-chip live" title="正在活跃更新"><span class="dot" aria-hidden="true"></span>正在跳动</span>
+            <span class="meta-chip" id="updChip">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>截至 <b id="updTime" style="color:var(--text)">09:15</b> 更新 · <span id="updRel">3 分钟前</span></span>
+            </span>
+            <span class="meta-chip" title="数据来源">
+              <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <span id="srcLabel">GitHub Trending</span>
+            </span>
+          </div>
+        </section>
+
+        <!-- stale 警告 -->
+        <div class="stale-note" id="staleNote" role="status">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r=".5"/></svg>
+          <span>数据可能不新鲜——最近 6 小时没成功抓到更新，我们正在处理，你看到的是上一次成功的快照。</span>
+        </div>
+
+        <!-- 专题 Tab -->
+        <section>
+          <h2 class="section-h">
+            <svg viewBox="0 0 24 24" style="stroke:var(--ai-1);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            专题 · 每小时更新
+            <span class="count">共 2 个 · 4 个候补中</span>
+          </h2>
+          <div class="tabs" role="tablist" aria-label="专题切换">
+            <button class="tab active" type="button" role="tab" aria-selected="true" data-tab="github"><span class="emo">🌟</span>GitHub 每日 Star 榜<span class="cnt">25</span></button>
+            <button class="tab" type="button" role="tab" aria-selected="false" data-tab="ai"><span class="emo">🤖</span>AI 圈大事<span class="cnt">20</span></button>
+          </div>
+        </section>
+
+        <!-- ============ Tab 1: GitHub 每日 Star ============ -->
+        <div class="feed" id="feed-github" role="tabpanel" aria-label="GitHub 每日 Star 榜">
+
+          <a class="row repo" href="https://github.com/microsoft/vscode" target="_blank" rel="noopener">
+            <span class="rank">1</span>
+            <div class="body">
+              <div class="title-line">
+                <h3><span class="owner">microsoft</span><span class="slash">/</span>vscode</h3>
+                <span class="kind">仓库</span>
+              </div>
+              <p class="summary">Visual Studio Code — 微软家喻户晓的开源编辑器，AI 助手集成后又一次冲上 Trending。</p>
+              <div class="meta">
+                <span class="meta-item"><span class="lang-dot" style="background:var(--lang-ts)"></span>TypeScript</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>158.2k</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><path d="M12 12v3"/></svg>27.9k</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>+823 <span class="unit">今日</span></span>
+              <span class="external">GitHub<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row repo" href="https://github.com/deepseek-ai/DeepSeek-V3" target="_blank" rel="noopener">
+            <span class="rank">2</span>
+            <div class="body">
+              <div class="title-line">
+                <h3><span class="owner">deepseek-ai</span><span class="slash">/</span>DeepSeek-V3</h3>
+                <span class="kind">仓库</span>
+              </div>
+              <p class="summary">国产开源大模型，最新 671B MoE 权重与推理代码，中文技术圈今天讨论最凶的一个仓库。</p>
+              <div class="meta">
+                <span class="meta-item"><span class="lang-dot" style="background:var(--lang-py)"></span>Python</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>68.4k</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><path d="M12 12v3"/></svg>7.9k</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>+712 <span class="unit">今日</span></span>
+              <span class="external">GitHub<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row repo" href="https://github.com/anthropics/claude-code" target="_blank" rel="noopener">
+            <span class="rank">3</span>
+            <div class="body">
+              <div class="title-line">
+                <h3><span class="owner">anthropics</span><span class="slash">/</span>claude-code</h3>
+                <span class="kind">仓库</span>
+              </div>
+              <p class="summary">Anthropic 官方 CLI 版 Claude Code。命令行里让 AI 帮你写代码、跑测试、看 diff，程序员爱好者今天疯狂玩。</p>
+              <div class="meta">
+                <span class="meta-item"><span class="lang-dot" style="background:var(--lang-ts)"></span>TypeScript</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>18.6k</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><path d="M12 12v3"/></svg>1.2k</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>+594 <span class="unit">今日</span></span>
+              <span class="external">GitHub<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row repo" href="https://github.com/rust-lang/rust" target="_blank" rel="noopener">
+            <span class="rank">4</span>
+            <div class="body">
+              <div class="title-line">
+                <h3><span class="owner">rust-lang</span><span class="slash">/</span>rust</h3>
+                <span class="kind">仓库</span>
+              </div>
+              <p class="summary">Rust 主仓库，1.90 发布日全网都在庆祝。系统编程党又赢一天。</p>
+              <div class="meta">
+                <span class="meta-item"><span class="lang-dot" style="background:var(--lang-rs)"></span>Rust</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>98.7k</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><path d="M12 12v3"/></svg>12.7k</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>+412 <span class="unit">今日</span></span>
+              <span class="external">GitHub<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row repo" href="https://github.com/langchain-ai/langgraph" target="_blank" rel="noopener">
+            <span class="rank">5</span>
+            <div class="body">
+              <div class="title-line">
+                <h3><span class="owner">langchain-ai</span><span class="slash">/</span>langgraph</h3>
+                <span class="kind">仓库</span>
+              </div>
+              <p class="summary">Agent 图编排框架，多智能体系统必学一课。做 AI 应用的 CRUD 工程师日常收藏。</p>
+              <div class="meta">
+                <span class="meta-item"><span class="lang-dot" style="background:var(--lang-py)"></span>Python</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>19.4k</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><path d="M12 12v3"/></svg>3.6k</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>+387 <span class="unit">今日</span></span>
+              <span class="external">GitHub<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row repo" href="https://github.com/withastro/astro" target="_blank" rel="noopener">
+            <span class="rank">6</span>
+            <div class="body">
+              <div class="title-line">
+                <h3><span class="owner">withastro</span><span class="slash">/</span>astro</h3>
+                <span class="kind">仓库</span>
+              </div>
+              <p class="summary">前端全栈框架，5.0 大版本更新，Server Islands 让 SSR + 静态又快又灵活。</p>
+              <div class="meta">
+                <span class="meta-item"><span class="lang-dot" style="background:var(--lang-ts)"></span>TypeScript</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>47.8k</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><path d="M12 12v3"/></svg>2.5k</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>+312 <span class="unit">今日</span></span>
+              <span class="external">GitHub<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row repo" href="https://github.com/pytorch/pytorch" target="_blank" rel="noopener">
+            <span class="rank">7</span>
+            <div class="body">
+              <div class="title-line">
+                <h3><span class="owner">pytorch</span><span class="slash">/</span>pytorch</h3>
+                <span class="kind">仓库</span>
+              </div>
+              <p class="summary">深度学习框架顶流。2.6 更新支持新的 Blackwell 架构，炼丹师们再次开心。</p>
+              <div class="meta">
+                <span class="meta-item"><span class="lang-dot" style="background:var(--lang-py)"></span>Python</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>82.1k</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><path d="M12 12v3"/></svg>22.1k</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>+248 <span class="unit">今日</span></span>
+              <span class="external">GitHub<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row repo" href="https://github.com/vercel/next.js" target="_blank" rel="noopener">
+            <span class="rank">8</span>
+            <div class="body">
+              <div class="title-line">
+                <h3><span class="owner">vercel</span><span class="slash">/</span>next.js</h3>
+                <span class="kind">仓库</span>
+              </div>
+              <p class="summary">React 全栈框架，15.5 修了一堆 Turbopack 的坑，前端仔的日常仓库。</p>
+              <div class="meta">
+                <span class="meta-item"><span class="lang-dot" style="background:var(--lang-js)"></span>JavaScript</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>127.4k</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><path d="M12 12v3"/></svg>27.4k</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>+201 <span class="unit">今日</span></span>
+              <span class="external">GitHub<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row repo" href="https://github.com/golang/go" target="_blank" rel="noopener">
+            <span class="rank">9</span>
+            <div class="body">
+              <div class="title-line">
+                <h3><span class="owner">golang</span><span class="slash">/</span>go</h3>
+                <span class="kind">仓库</span>
+              </div>
+              <p class="summary">Go 语言主仓库，1.24 泛型与 GC 又优化一波，后端牛马熟悉的味道。</p>
+              <div class="meta">
+                <span class="meta-item"><span class="lang-dot" style="background:var(--lang-go)"></span>Go</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>123.9k</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><path d="M12 12v3"/></svg>17.6k</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>+168 <span class="unit">今日</span></span>
+              <span class="external">GitHub<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row repo" href="https://github.com/awesome-selfhosted/awesome-selfhosted" target="_blank" rel="noopener">
+            <span class="rank">10</span>
+            <div class="body">
+              <div class="title-line">
+                <h3><span class="owner">awesome-selfhosted</span><span class="slash">/</span>awesome-selfhosted</h3>
+                <span class="kind">仓库</span>
+              </div>
+              <p class="summary">自部署软件汇总清单。想跑私有 Notion / 相册 / 密码管理器？先来这翻一翻。</p>
+              <div class="meta">
+                <span class="meta-item"><span class="lang-dot" style="background:var(--lang-md)"></span>Markdown</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>229.3k</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><path d="M12 12v3"/></svg>9.9k</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>+139 <span class="unit">今日</span></span>
+              <span class="external">GitHub<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+        </div>
+
+        <!-- ============ Tab 2: AI 圈大事 ============ -->
+        <div class="feed" id="feed-ai" role="tabpanel" aria-label="AI 圈大事" hidden>
+
+          <a class="row news" href="https://www.anthropic.com/news/claude-opus-4-8" target="_blank" rel="noopener">
+            <span class="rank">1</span>
+            <div class="body">
+              <div class="title-line">
+                <h3>Anthropic releases Claude Opus 4.8 — significant reasoning improvements at same price</h3>
+                <span class="kind">讨论</span>
+              </div>
+              <p class="summary">官方公告：Opus 4.8 在推理、编码、Agent 任务上多个 benchmark 全面刷新，Anthropic 官网同价发布。HN 上评论热烈讨论"是不是又该重新评估 GPT 的地位了"。</p>
+              <div class="meta">
+                <span class="domain"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>anthropic.com</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>412 评论</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3 小时前</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score">
+                <svg class="fire" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                1247 <span class="unit">points</span>
+              </span>
+              <span class="hn-btn" role="button" tabindex="0" data-hn="https://news.ycombinator.com" aria-label="打开 HN 讨论">HN 讨论<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row news" href="https://arxiv.org" target="_blank" rel="noopener">
+            <span class="rank">2</span>
+            <div class="body">
+              <div class="title-line">
+                <h3>DeepMind's Gemini 3 shows human-parity on GAIA agent benchmark</h3>
+                <span class="kind">讨论</span>
+              </div>
+              <p class="summary">Google DeepMind 论文：Gemini 3 首次在 GAIA 基准上达到人类平均水平，Agent 能力大突破。论文发出后 HN 前排争论"benchmark 是否被污染"。</p>
+              <div class="meta">
+                <span class="domain"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>arxiv.org</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>328 评论</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6 小时前</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score">
+                <svg class="fire" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                894 <span class="unit">points</span>
+              </span>
+              <span class="hn-btn" role="button" tabindex="0" data-hn="https://news.ycombinator.com" aria-label="打开 HN 讨论">HN 讨论<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row news" href="https://openai.com/blog" target="_blank" rel="noopener">
+            <span class="rank">3</span>
+            <div class="body">
+              <div class="title-line">
+                <h3>OpenAI closes $6.6B round at $340B valuation, but staff turnover reaches record high</h3>
+                <span class="kind">讨论</span>
+              </div>
+              <p class="summary">The Information 独家：OpenAI 完成新一轮 66 亿融资，估值抬到 3400 亿；同时核心研究员离职率创新高。评论区"OpenAI 是不是 AI 圈的 Yahoo"讨论爆炸。</p>
+              <div class="meta">
+                <span class="domain"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>theinformation.com</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>516 评论</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>9 小时前</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score">
+                <svg class="fire" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                762 <span class="unit">points</span>
+              </span>
+              <span class="hn-btn" role="button" tabindex="0" data-hn="https://news.ycombinator.com" aria-label="打开 HN 讨论">HN 讨论<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row news" href="https://mistral.ai" target="_blank" rel="noopener">
+            <span class="rank">4</span>
+            <div class="body">
+              <div class="title-line">
+                <h3>Mistral open-sources 22B code model, benchmarks near GPT-4 for code generation</h3>
+                <span class="kind">讨论</span>
+              </div>
+              <p class="summary">法国 Mistral 开源新的 22B 代码模型 Codestral 2，多项 code benchmark 逼近 GPT-4。评论区在算"22B 单卡能不能跑"。</p>
+              <div class="meta">
+                <span class="domain"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>mistral.ai</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>241 评论</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>12 小时前</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score">
+                <svg class="fire" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                581 <span class="unit">points</span>
+              </span>
+              <span class="hn-btn" role="button" tabindex="0" data-hn="https://news.ycombinator.com" aria-label="打开 HN 讨论">HN 讨论<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row news" href="https://news.ycombinator.com" target="_blank" rel="noopener">
+            <span class="rank">5</span>
+            <div class="body">
+              <div class="title-line">
+                <h3>Show HN: I wrote a local-first RAG framework in 500 lines of Rust</h3>
+                <span class="kind">讨论</span>
+              </div>
+              <p class="summary">HN 帖子：作者纯 Rust 手写了极简 RAG 框架，无 embedding 服务、纯本地。评论区在 debate "是不是过度工程"。</p>
+              <div class="meta">
+                <span class="domain"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>news.ycombinator.com</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>178 评论</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>16 小时前</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score">
+                <svg class="fire" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                438 <span class="unit">points</span>
+              </span>
+              <span class="hn-btn" role="button" tabindex="0" data-hn="https://news.ycombinator.com" aria-label="打开 HN 讨论">HN 讨论<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row news" href="https://techcrunch.com" target="_blank" rel="noopener">
+            <span class="rank">6</span>
+            <div class="body">
+              <div class="title-line">
+                <h3>Cursor CEO: We hit $500M ARR in 20 months — but the moat is our infra, not the model</h3>
+                <span class="kind">讨论</span>
+              </div>
+              <p class="summary">TechCrunch 专访：Cursor 用 20 个月冲到 5 亿美金 ARR，CEO 表态护城河来自 infra & UX，不是模型。评论区在争"AI 工具会不会被模型收编"。</p>
+              <div class="meta">
+                <span class="domain"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>techcrunch.com</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>287 评论</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>18 小时前</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score">
+                <svg class="fire" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                394 <span class="unit">points</span>
+              </span>
+              <span class="hn-btn" role="button" tabindex="0" data-hn="https://news.ycombinator.com" aria-label="打开 HN 讨论">HN 讨论<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+          <a class="row news" href="https://arxiv.org" target="_blank" rel="noopener">
+            <span class="rank">7</span>
+            <div class="body">
+              <div class="title-line">
+                <h3>The efficiency paradox: why 1B models outperform 7B ones on structured tasks</h3>
+                <span class="kind">讨论</span>
+              </div>
+              <p class="summary">Meta AI 论文：在结构化输出任务上小模型反而更稳，作者主张"参数量不是万能药"。HN 评论区一半赞、一半骂"这是为砍成本找借口"。</p>
+              <div class="meta">
+                <span class="domain"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>arxiv.org</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>152 评论</span>
+                <span class="meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>1 天前</span>
+              </div>
+            </div>
+            <div class="score-block">
+              <span class="score">
+                <svg class="fire" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                283 <span class="unit">points</span>
+              </span>
+              <span class="hn-btn" role="button" tabindex="0" data-hn="https://news.ycombinator.com" aria-label="打开 HN 讨论">HN 讨论<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </div>
+          </a>
+
+        </div>
+
+        <!-- 底部克制感说明 -->
+        <div class="quiet-strip">
+          这里是 <b>只读的世界之窗</b>——不做评论、不推送、不做红点。GitHub 数据每 60 分钟从 Trending 页抓取一次，AI 圈从 HN Algolia API 每 30 分钟拉一次。想聊感受？去 <a href="03-diary.html" style="color:var(--ai-2);font-weight:600">日记广场</a> 或 <a href="01-home.html" style="color:var(--ai-2);font-weight:600">频道</a> 吐槽。
+          <span class="qt">克制，是这个板块的产品性格。</span>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- ============ 右侧栏（xl:block 才显示） ============ -->
+    <aside class="rightbar">
+      <section class="glass-card board" aria-label="今日快报">
+        <h3>
+          <svg viewBox="0 0 24 24" style="fill:none;stroke:var(--ai-1);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          今日快报
+        </h3>
+        <div class="brief-item">
+          <span class="b-emo">🌟</span>
+          <div class="b-txt"><div class="b-lbl">最热仓库</div><span class="b-val">microsoft/vscode <b>+823 ⭐</b></span></div>
+        </div>
+        <div class="brief-item">
+          <span class="b-emo">🚀</span>
+          <div class="b-txt"><div class="b-lbl">最热语言</div><span class="b-val">TypeScript · Python · Rust</span></div>
+        </div>
+        <div class="brief-item">
+          <span class="b-emo">🤖</span>
+          <div class="b-txt"><div class="b-lbl">最热讨论</div><span class="b-val">Claude Opus 4.8 发布 · <em>1247</em> 分</span></div>
+        </div>
+        <div class="brief-item">
+          <span class="b-emo">🏢</span>
+          <div class="b-txt"><div class="b-lbl">今日大厂</div><span class="b-val">OpenAI 完成 66 亿融资</span></div>
+        </div>
+        <div class="brief-item">
+          <span class="b-emo">👀</span>
+          <div class="b-txt"><div class="b-lbl">牛马围观</div><span class="b-val">今天 <b>12,384</b> 次外链点击</span></div>
+        </div>
+      </section>
+
+      <section class="glass-card board" aria-label="候补专题">
+        <h3>
+          <svg viewBox="0 0 24 24" style="fill:none;stroke:var(--warm);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          候补专题
+        </h3>
+        <div class="coming-list">
+          <div class="coming-item"><span class="emo">🔥</span><span class="name">HN 全站热榜</span><span class="badge">P1</span></div>
+          <div class="coming-item"><span class="emo">📉</span><span class="name">裁员/融资动态</span><span class="badge">P1</span></div>
+          <div class="coming-item"><span class="emo">📢</span><span class="name">AI 官方公告</span><span class="badge">P1</span></div>
+          <div class="coming-item"><span class="emo">🇨🇳</span><span class="name">国内技术圈</span><span class="badge">P1</span></div>
+        </div>
+        <button class="vote-btn" type="button" onclick="fireToast('投票入口原型中，即将上线 →')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+          投票你想加哪个
+        </button>
+      </section>
+
+      <div class="quiet-strip">
+        <b>为什么这里没有点赞、评论、共情按钮？</b><br>
+        因为「最近发生」不是社区，是<b>世界的一扇窗</b>。这里保留 <b>看一眼就走</b> 的干净感。
+        <span class="qt">看一眼就够，也就够了。</span>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+  var SUN='<svg viewBox="0 0 24 24" class="icon"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+  var MOON='<svg viewBox="0 0 24 24" class="icon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+  function updateThemeIcon(){
+    var isLight=document.documentElement.classList.contains('light');
+    document.getElementById('themeToggle').innerHTML=isLight?MOON:SUN;
+    document.getElementById('themeToggle').setAttribute('aria-label',isLight?'切换到暗色':'切换到亮色');
+  }
+  function toggleTheme(){
+    document.documentElement.classList.toggle('light');
+    localStorage.setItem('theme',document.documentElement.classList.contains('light')?'light':'dark');
+    updateThemeIcon();
+  }
+  (function(){
+    if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light');
+    updateThemeIcon();
+  })();
+
+  // 每个专题的 meta（切换 Tab 时同步顶部更新时间条 & 数据源）
+  var TOPICS = {
+    github: { label:'GitHub Trending', time:'09:15', rel:'3 分钟前', stale:false },
+    ai:     { label:'Hacker News Algolia', time:'09:08', rel:'10 分钟前', stale:false }
+  };
+
+  function switchTab(tab){
+    // Tab 按钮
+    document.querySelectorAll('.tab').forEach(function(t){
+      var on = t.dataset.tab === tab;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    // 左侧栏专题项联动
+    document.querySelectorAll('.sidebar a[data-tab]').forEach(function(t){
+      t.classList.toggle('active', t.dataset.tab === tab);
+    });
+    // Feed
+    document.getElementById('feed-github').hidden = (tab !== 'github');
+    document.getElementById('feed-ai').hidden = (tab !== 'ai');
+    // 顶部更新时间条同步
+    var meta = TOPICS[tab];
+    document.getElementById('updTime').textContent = meta.time;
+    document.getElementById('updRel').textContent = meta.rel;
+    document.getElementById('srcLabel').textContent = meta.label;
+    document.getElementById('staleNote').classList.toggle('show', !!meta.stale);
+    // scroll to top
+    var m = document.querySelector('.main');
+    if(m) m.scrollTop = 0;
+  }
+
+  // Tab 按钮点击
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click',function(){ switchTab(t.dataset.tab) });
+  });
+  // 左侧栏专题项点击
+  document.querySelectorAll('.sidebar a[data-tab]').forEach(function(t){
+    t.addEventListener('click',function(ev){ ev.preventDefault(); switchTab(t.dataset.tab) });
+  });
+
+  // toast — 与 06-learn 的 fireToast 模式一致
+  var toastTimer;
+  function fireToast(msg){
+    var t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show') }, 1800);
+  }
+
+  // 候补专题项：友好 toast，替代 alert
+  document.querySelectorAll('.coming-item').forEach(function(t){
+    t.addEventListener('click',function(){
+      fireToast('候补中：正在评审，投个票让它更快上榜 →');
+    });
+  });
+
+  // HN 讨论按钮委托（span role=button，Enter/Space/Click 都触发外链）
+  document.querySelectorAll('.hn-btn').forEach(function(b){
+    function open(e){
+      e.stopPropagation(); e.preventDefault();
+      window.open(b.dataset.hn, '_blank', 'noopener');
+    }
+    b.addEventListener('click', open);
+    b.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' ') open(e);
+    });
+  });
+</script>
+</body>
+</html>
